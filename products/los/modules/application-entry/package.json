@@ -1,0 +1,6 @@
+{
+  "name": "@helix/los-application-entry-module",
+  "private": true,
+  "version": "0.0.0",
+  "description": "LOS application entry — quick data entry (QDE) screen"
+}

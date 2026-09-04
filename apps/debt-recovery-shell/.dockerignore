@@ -1,0 +1,10 @@
+node_modules
+**/node_modules
+.git
+*.md
+coverage
+# Keep drs-build in context — image COPYs it
+# Do not bake host .env secrets unless you intend to
+.env
+.env.*
+.env*.local

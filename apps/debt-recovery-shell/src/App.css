@@ -1,0 +1,267 @@
+.common-grid-layout{
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  align-items: center;
+}
+
+
+.resource-grid-layout{
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  align-items: center;
+}
+
+.field-grid-layout {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 16px;
+  padding: 16px;
+  border-radius: 8px;
+  background-color: var(--bg-paper, #f5f5f5); /* Use theme variable */
+}
+
+@media (min-width: 600px) {
+  .common-grid-layout {
+    grid-template-columns: 200px 1fr;
+  }
+  .resource-grid-layout {
+    grid-template-columns: 150px 1fr;
+  }
+  .field-grid-layout {
+    grid-template-columns: 200px 1fr auto;
+  }
+}
+
+.mt-1rem{
+  margin-top: 1rem;
+}
+
+.mt-2rem{
+  margin-top: 2rem;
+}
+
+.mb-16px{
+  margin-bottom: 16px;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* No global logo animation required by app UI */
+}
+/* Note: App-specific demo classes removed as they are unused in the app */
+
+.custom-textfield {
+  height: 35px;  
+}
+
+.custom-textfield .MuiOutlinedInput-root {
+  height: 35px;  
+}
+
+.custom-textfield .MuiInputBase-root {
+  padding: 0 14px;  
+}
+
+
+.custom-button {
+  height: 34px !important;   
+  padding: 0 14px !important;  
+  min-width: 100px !important;   
+  background-color: #D21B8F !important; 
+  color: #ffffff !important;  
+  font-weight: bold !important;  
+  border: none !important;  
+  text-transform: none !important;
+}
+
+.custom-button:hover {
+  background-color: #D21B8F !important; 
+  color: #ffffff !important; 
+}
+
+.custom-toast {
+  background-color: #e6f0ff !important; 
+  color: #004080 !important;             
+  font-weight: 500;
+  font-family: 'Open Sans', sans-serif;
+  border-left: 6px solid #0078FF;       
+  border-radius: 4px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  padding: 12px 16px;
+}
+
+.custom-toast .Toastify__close-button {
+  color: #004080 !important;
+}
+
+.toast-success {
+  background-color: #e6f7ff !important;
+  color: #0059b3 !important;
+  border-left: 6px solid #1e88e5;
+}
+
+.toast-error {
+  background-color: #ffe6e6 !important;
+  color: #b30000 !important;
+  border-left: 6px solid #e53935;
+}
+
+/* Common Grid Columns */
+.common-grid-coll{
+  display: grid;
+  grid-template-columns: repeat(4, minmax(200px, 1fr));
+  column-gap: 2rem;
+  row-gap: 0.4rem !important;
+  align-items: center;
+}
+
+/* Column dividers inside CommonHeader */
+.common-header .common-grid-coll > div {
+  padding-right: 1rem;
+  border-right: 1px solid var(--divider, #ccc); /* Use theme variable */
+}
+
+.common-header .common-grid-coll > div:last-child {
+  border-right: none;
+}
+
+/* Dark mode specific overrides */
+[data-theme="dark"] .common-header .common-grid-coll > div {
+  border-right: 1px solid var(--divider, #64748B);
+}
+
+[data-theme="dark"] .field-grid-layout {
+  background-color: var(--bg-paper, #334155);
+}
+
+/* DatabaseForm specific grid layout to mirror MUI Grid behavior */
+.dbform-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 24px; /* spacing similar to MUI spacing={3} */
+}
+
+@media (min-width: 600px) {
+  .dbform-grid {
+    grid-template-columns: repeat(12, 1fr);
+  }
+}
+
+/* Three-column layout used for path summary rows: left, middle, actions */
+/* three-col-grid removed (unused) */
+
+/* Utility classes to map Grid item sizing (xs, sm) to grid-column spans */
+.col-12 { grid-column: 1 / -1; }
+.col-6 { grid-column: span 6; }
+.col-4 { grid-column: span 4; }
+.col-3 { grid-column: span 3; }
+.col-2 { grid-column: span 2; }
+.col-1 { grid-column: span 1; }
+.col-5 { grid-column: span 5; }
+.col-8 { grid-column: span 8; }
+.col-7 { grid-column: span 7; }
+.col-9 { grid-column: span 9; }
+/* .col-07 removed (typo / unused) */
+
+/* Remove fractional column utility; use .col-1 for narrow action containers instead */
+
+@media (max-width: 599px) {
+  .col-6, .col-05, .col-5, .col-4, .col-3, .col-2, .col-1 { grid-column: 1 / -1; }
+}
+
+.dbform-center { text-align: center; }
+
+.headers-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  align-items: center;
+}
+/* headers-grid and header helpers removed — not used in codebase */
+
+
+/* Keep MUI overrides only where required elsewhere */
+
+.dbform-grid-start .MuiSelect-select {
+  display: flex;
+  align-items: center;
+  padding-top: 8px !important;
+  padding-bottom: 8px !important;
+}
+
+/* Ensure TextField/Select inside dbform-grid can grow naturally and align with other inputs */
+.dbform-grid .MuiFormControl-root,
+.dbform-grid .MuiTextField-root,
+.dbform-grid .MuiOutlinedInput-root {
+  min-height: 40px;
+  box-sizing: border-box;
+  width: 100%;
+}
+
+/* Center icons in narrow action columns */
+.dbform-grid .col-1,
+.dbform-grid .col-2 {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dbform-grid > div {
+  min-width: 0;
+}
+
+/* Ensure consistent vertical spacing inside dbform-grid rows */
+.dbform-grid > div { padding-top: 6px; padding-bottom: 6px; }
+
+/* API Tester: method + URL row fallback when MUI Grid spacing behaves differently across versions */
+.api-url-row {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+.api-method-select {
+  flex: 0 0 120px; /* fixed width for method select */
+  min-width: 80px;
+}
+.api-url-input {
+  flex: 1 1 auto; /* take remaining space */
+  min-width: 0; /* allow input to shrink properly inside flex */
+}
+
+/* Circular icon background utility for IconButton-like elements */
+.circle-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 50%;
+  background-color: #00a2ff; /* default circular bg matching existing Transform color */
+  color: rgb(0, 0, 0); /* icon/text color */
+}
+
+/* Smaller variant when IconButton uses size="small" */
+.circle-icon.small {
+  width: 28px;
+  height: 28px;
+}
+
+/* Allow overriding background using inline sx or additional classes */
+.circle-icon.transparent {
+  background-color: transparent;
+  color: inherit;
+}
+
+@keyframes fadePage {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

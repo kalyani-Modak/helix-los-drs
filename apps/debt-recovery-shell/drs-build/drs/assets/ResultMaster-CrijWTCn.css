@@ -1,0 +1,15 @@
+.result-master-header-card {
+  padding: 16px var(--portfolio-master-gutter, 24px) 12px;
+  border-bottom: 1px solid var(--drs-border-divider, hsl(215 14% 90%));
+  background: var(--drs-bg-paper, hsl(0 0% 100%));
+}
+
+.result-master-search {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  border-bottom: 1px solid var(--drs-border-divider, #e5e7eb);
+  
+}
+

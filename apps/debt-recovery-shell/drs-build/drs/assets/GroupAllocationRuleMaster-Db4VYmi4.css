@@ -1,0 +1,16 @@
+/* Group Allocation Rule Master - layout styles */
+
+.group-allocation-rule-master-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  margin-top: 20px;
+}
+
+.group-allocation-rule-master-header-card {
+  padding: 0 var(--group-allocation-rule-master-gutter, 24px) 10px;
+  border-bottom: 1px solid var(--drs-border-divider, hsl(215 14% 90%));
+  background: var(--drs-bg-paper, hsl(0 0% 100%));
+}

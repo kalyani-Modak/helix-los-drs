@@ -1,0 +1,381 @@
+/* RuleEngineGrid.css */
+:root {
+  /* Color palette */
+  --primary: #0378A6;
+  --primary-light: #4aa3d9;
+  --primary-dark: #025a8c;
+  --secondary: #8dbf41;
+  --secondary-light: #a8d173;
+  --secondary-dark: #6b9c2c;
+  --accent: #bf0404;
+  --accent-light: #f44336;
+  --accent-dark: #a30404;
+  --background-start: #f8fafc;
+  --background-end: #f1f5f9;
+  --card-bg: rgba(255, 255, 255, 0.98);
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-light: #64748b;
+  --text-muted: #94a3b8;
+  --border: #e2e8f0;
+  --hover: #f1f5f9;
+  --highlight: #ffd966;
+  --highlight-light: #fff3cd;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --error: #ef4444;
+  --info: #3b82f6;
+  --app-bar-gradient: linear-gradient(135deg, #0378A6 0%, #025a8c 50%, #01406b 100%);
+  --background-gradient: linear-gradient(145deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
+/* Global container */
+.rule-engine-container {
+  background: var(--background-gradient);
+  min-height: 100vh;
+  padding: 24px 0;
+}
+
+/* Main card */
+.rule-engine-paper {
+  border-radius: 16px;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border);
+  box-shadow: 0 4px 20px rgba(210, 212, 212, 0.08);
+  overflow: hidden;
+}
+
+/* Header */
+.rule-engine-header {
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  flex-wrap: wrap;
+  background-color: var(--card-bg);
+  border-bottom: 1px solid var(--border);
+}
+
+/* Title */
+.rule-engine-title {
+  font-weight: 900;
+  font-family: 'Inter', sans-serif;
+  font-size: 30px;
+  background: var(--app-bar-gradient);
+  background-clip: text;
+  color: transparent;
+}
+
+/* Search field */
+.rule-engine-search {
+  flex: 1;
+  display: flex;
+  justify-content: center;
+}
+
+.rule-engine-search .MuiOutlinedInput-root {
+  width: 400px;
+  border-radius: 8px;
+  background-color: var(--background-start);
+  transition: border-color 0.2s;
+}
+
+.rule-engine-search .MuiOutlinedInput-root:hover .MuiOutlinedInput-notchedOutline {
+  border-color: var(--primary);
+}
+
+@media (max-width: 600px) {
+  .rule-engine-search .MuiOutlinedInput-root {
+    width: 100%;
+  }
+}
+
+/* Action buttons */
+.rule-engine-actions {
+  display: flex;
+  gap: 12px;
+}
+
+/* Refresh button */
+.rule-engine-refresh-btn {
+  border-color: var(--border);
+  color: var(--text-secondary);
+  text-transform: none;
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  border-radius: 8px;
+}
+
+.rule-engine-refresh-btn:hover {
+  border-color: var(--primary);
+  background-color: rgba(3, 120, 166, 0.05);
+}
+
+/* New rule button */
+.rule-engine-new-btn {
+  background: var(--app-bar-gradient);
+  text-transform: none;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(3, 120, 166, 0.25);
+}
+
+.rule-engine-new-btn:hover {
+  background: var(--primary-dark);
+}
+
+/* Loading indicator */
+.rule-engine-loading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+  background-color: var(--background-start);
+}
+
+.rule-engine-loading-text {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  font-family: 'Inter', sans-serif;
+}
+
+/* Search results count */
+.rule-engine-search-results {
+  padding: 16px;
+  border-bottom: 1px solid var(--border);
+  background-color: var(--background-start);
+}
+
+.rule-engine-search-results-text {
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  color: var(--text-secondary);
+}
+
+@media (max-width: 600px) {
+  .rule-engine-search-results-text {
+    font-size: 12px;
+  }
+}
+
+/* Grid section */
+.rule-engine-grid-section {
+  padding: 16px;
+  background-color: var(--background-start);
+}
+
+/* Empty state */
+.rule-engine-empty-state {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 400px;
+  background-color: var(--card-bg);
+  border-radius: 12px;
+}
+
+.rule-engine-empty-state-text {
+  color: var(--text-secondary);
+  font-family: 'Inter', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+}
+
+@media (max-width: 600px) {
+  .rule-engine-empty-state-text {
+    font-size: 15px;
+  }
+}
+
+/* Dialog */
+.rule-engine-dialog-paper {
+  border-radius: 16px;
+  overflow: hidden;
+}
+
+.rule-engine-dialog-title {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  color: white;
+  padding: 16px 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-family: 'Inter', sans-serif;
+  font-weight: 600;
+}
+
+.rule-engine-dialog-title-text {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.rule-engine-dialog-close {
+  color: white !important;
+  background-color: transparent !important;
+}
+
+.rule-engine-dialog-close:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+}
+
+.rule-engine-dialog-close svg {
+  color: white !important;
+}
+
+.rule-engine-dialog-content {
+  padding: 24px;
+  background-color: var(--background-start);
+}
+
+.rule-engine-dialog-info {
+  margin-bottom: 16px;
+}
+
+.rule-engine-dialog-subtitle {
+  color: var(--text-secondary);
+  font-family: 'Inter', sans-serif;
+  margin-bottom: 8px;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+.rule-engine-dialog-details {
+  color: var(--text-light);
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  padding-top: 10px;
+}
+
+.rule-engine-dialog-details strong {
+  color: var(--primary);
+}
+
+.rule-engine-dialog-divider {
+  border-color: var(--border);
+}
+
+.rule-engine-dialog-actions {
+  padding: 16px 24px;
+  background-color: var(--card-bg);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.rule-engine-dialog-cancel {
+  color: var(--text-secondary);
+  font-family: 'Inter', sans-serif;
+  text-transform: none;
+}
+
+.rule-engine-dialog-cancel:hover {
+  background-color: rgba(148, 163, 184, 0.1);
+}
+
+/* Status badge */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: 'Inter', sans-serif;
+}
+
+.status-badge.published {
+  color: var(--success);
+}
+
+.status-badge.draft {
+  color: var(--warning);
+}
+
+/* Grid cell overrides */
+.rule-engine-cell-name {
+  font-family: 'Inter', sans-serif;
+  font-weight: 500;
+  color: var(--primary);
+  cursor: pointer;
+}
+
+.rule-engine-cell-name:hover {
+  text-decoration: underline;
+}
+
+.rule-engine-cell-type {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 100%;
+  font-family: 'Inter', sans-serif;
+}
+
+.rule-engine-cell-version,
+.rule-engine-cell-published,
+.rule-engine-cell-published-by,
+.rule-engine-cell-created-by,
+.rule-engine-cell-created-date {
+  font-family: 'Inter', sans-serif;
+  text-align: center;
+}
+
+.rule-engine-cell-version {
+  font-weight: 500;
+}
+
+.rule-engine-action-buttons {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  height: 100%;
+}
+
+.rule-engine-edit-button {
+  color: var(--primary);
+}
+
+.rule-engine-edit-button:hover {
+  background-color: rgba(3, 120, 166, 0.08);
+}
+
+/* Grid container */
+.rule-engine-grid {
+  width: 100%;
+  height: 70vh;
+  min-width: 900px;
+  overflow-x: auto;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  box-shadow: 0 12px 30px -10px rgba(3, 120, 166, 0.25);
+}
+
+@media (max-width: 600px) {
+  .rule-engine-grid {
+    height: 65vh;
+    min-width: 100%;
+  }
+}
+
+/* Version grid */
+.rule-engine-version-grid {
+  width: 400px;
+  height: 250px;
+  min-width: 350px;
+  overflow-x: auto;
+  border-radius: 12px;
+  border: 1px solid var(--border);
+}
+
+@media (max-width: 600px) {
+  .rule-engine-version-grid {
+    width: 100%;
+    min-width: 100%;
+  }
+}

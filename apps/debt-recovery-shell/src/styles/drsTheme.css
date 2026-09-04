@@ -1,0 +1,274 @@
+/* Aligned with monoRepoDebtSuite products/common/styles/drs-theme.css */
+
+:root {
+  --drs-bg-default: #ffffff;
+  --drs-bg-paper: #ffffff;
+  --drs-bg-panel: #f7fbff;
+  --drs-bg-sidebar: #1e293b;
+  --drs-bg-page: linear-gradient(180deg, #f4f8fd 0%, #edf4fb 52%, #eaf1fb 100%);
+  --drs-bg-input: #ffffff;
+
+  --drs-text-primary: hsl(220, 20%, 10%);
+  --drs-text-secondary: hsl(215, 14%, 46%);
+  --drs-text-tertiary: hsl(215, 25%, 27%);
+  --drs-text-inverse: #ffffff;
+
+  --drs-color-success: hsl(142, 71%, 45%);
+  --drs-color-primary: hsl(221, 83%, 53%);
+  --drs-color-primary-light: #3b82f6;
+  --drs-color-primary-dark: #1d4ed8;
+  --drs-color-secondary: #64748b;
+  --drs-color-secondary-light: #94a3b8;
+  --drs-color-secondary-dark: #475569;
+  --drs-color-accent: #ef4444;
+  --drs-color-warning: hsl(38, 92%, 50%);
+  --drs-color-accent-light: #f87171;
+  --drs-color-accent-dark: #dc2626;
+  --drs-soft-accent: rgba(59, 130, 246, 0.14);
+
+  --drs-border-divider: #d8e3f0;
+  --drs-control-border: rgba(37, 99, 235, 0.18);
+  --drs-control-hover-border: #2563eb;
+  --drs-hover-bg: rgba(37, 99, 235, 0.08);
+  --drs-action-selected: rgba(37, 99, 235, 0.12);
+  --drs-appbar-gradient: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%);
+  --drs-button-primary-bg: linear-gradient(90deg, #2563eb 0%, #1d4ed8 100%);
+  --drs-button-primary-hover: linear-gradient(90deg, #1d4ed8 0%, #1e40af 100%);
+  --drs-button-outline-bg: rgba(37, 99, 235, 0.04);
+  --drs-button-outline-hover: rgba(37, 99, 235, 0.08);
+  --drs-button-outline-text: #1d4ed8;
+  --drs-search-bg: rgba(37, 99, 235, 0.05);
+  --drs-search-border: rgba(37, 99, 235, 0.16);
+  --drs-sidebar-text: #94a3b8;
+  --drs-sidebar-text-active: #ffffff;
+  --drs-sidebar-hover: rgba(255, 255, 255, 0.1);
+  --drs-sidebar-active: rgba(255, 255, 255, 0.16);
+  --drs-checkbox-border: rgba(37, 99, 235, 0.22);
+  --drs-checkbox-checked-bg: #2563eb;
+  --drs-checkbox-check-color: #ffffff;
+  --drs-grid-row-hover: rgba(37, 99, 235, 0.06);
+  --drs-grid-row-selected: rgba(37, 99, 235, 0.12);
+  --drs-grid-header-bg: #fbfdff;
+  --drs-grid-odd-row: #fbfdff;
+  --drs-grid-footer-bg: #f7fbff;
+  --drs-chip-bg: rgba(245, 158, 11, 0.16);
+  --drs-chip-text: #92400e;
+
+  /* Debt Recovery shell (reference UI) */
+  --shell-header-bg: #2c3d55;
+  --shell-header-fg: #f8fafc;
+  --shell-header-muted: rgba(248, 250, 252, 0.78);
+  --shell-search-bg: #f1f5f9;
+  --shell-search-fg: #0f172a;
+  --shell-info-bar-bg: #e2e8f0;
+  --shell-info-bar-fg: #475569;
+  --shell-menubar-bg: #eef2f6;
+  --shell-menubar-border: #d8dee9;
+  --shell-menu-active-bg: #dbeafe;
+  --shell-menu-active-fg: #1e3a8a;
+  --shell-menu-hover-bg: rgba(37, 99, 235, 0.1);
+  --shell-icon-rail-bg: #111827;
+  --shell-icon-rail-border: #1f2937;
+}
+
+[data-theme="dark"],
+.theme-dark {
+  --drs-bg-default: hsl(222, 47%, 6%);
+  --drs-bg-paper: hsl(222, 47%, 9%);
+  --drs-bg-panel: hsl(222, 30%, 16%);
+  --drs-bg-sidebar: hsl(222, 47%, 8%);
+  --drs-bg-page: linear-gradient(160deg, hsl(222, 47%, 7%) 0%, hsl(222, 35%, 10%) 100%);
+  --drs-bg-input: hsl(222, 30%, 14%);
+
+  --drs-text-primary: hsl(210, 20%, 92%);
+  --drs-text-secondary: hsl(215, 14%, 55%);
+  --drs-text-tertiary: hsl(210, 20%, 80%);
+
+  --drs-color-success: hsl(142, 71%, 45%);
+  --drs-color-primary: hsl(221, 83%, 53%);
+  --drs-color-primary-light: #60a5fa;
+  --drs-color-primary-dark: #1d4ed8;
+  --drs-color-warning: hsl(38, 92%, 50%);
+  --drs-color-accent-light: hsla(221, 83%, 53%, 0.15);
+  --drs-soft-accent: rgba(59, 130, 246, 0.18);
+
+  --drs-border-divider: hsl(222, 30%, 18%);
+  --drs-control-border: rgba(96, 165, 250, 0.24);
+  --drs-control-hover-border: #60a5fa;
+  --drs-hover-bg: rgba(59, 130, 246, 0.18);
+  --drs-action-selected: rgba(37, 99, 235, 0.24);
+  --drs-button-outline-bg: rgba(37, 99, 235, 0.12);
+  --drs-button-outline-hover: rgba(59, 130, 246, 0.18);
+  --drs-button-outline-text: #93c5fd;
+  --drs-search-bg: rgba(29, 78, 216, 0.24);
+  --drs-search-border: rgba(96, 165, 250, 0.24);
+  --drs-sidebar-text: #cbd5e1;
+  --drs-sidebar-hover: rgba(255, 255, 255, 0.12);
+  --drs-sidebar-active: rgba(255, 255, 255, 0.18);
+  --drs-checkbox-border: rgba(96, 165, 250, 0.28);
+  --drs-grid-row-hover: rgba(96, 165, 250, 0.12);
+  --drs-grid-row-selected: rgba(37, 99, 235, 0.22);
+  --drs-grid-header-bg: rgba(29, 78, 216, 0.22);
+  --drs-grid-odd-row: rgba(15, 23, 42, 0.4);
+  --drs-grid-footer-bg: hsl(222, 30%, 16%);
+  --drs-chip-bg: rgba(245, 158, 11, 0.2);
+  --drs-chip-text: #fde68a;
+
+  --shell-header-bg: #0f172a;
+  --shell-header-fg: #f8fafc;
+  --shell-header-muted: rgba(248, 250, 252, 0.78);
+  --shell-search-bg: #1e293b;
+  --shell-search-fg: #f1f5f9;
+  --shell-info-bar-bg: #1e293b;
+  --shell-info-bar-fg: #94a3b8;
+  --shell-menubar-bg: #111827;
+  --shell-menubar-border: #1f2937;
+  --shell-menu-active-bg: rgba(59, 130, 246, 0.28);
+  --shell-menu-active-fg: #e2e8f0;
+  --shell-menu-hover-bg: rgba(59, 130, 246, 0.16);
+  --shell-icon-rail-bg: #0b1120;
+  --shell-icon-rail-border: #1e293b;
+}
+
+.drs-bg-default {
+  background-color: var(--drs-bg-default) !important;
+}
+.drs-bg-paper {
+  background-color: var(--drs-bg-paper) !important;
+}
+.drs-bg-panel {
+  background-color: var(--drs-bg-panel) !important;
+}
+
+.drs-text-primary {
+  color: var(--drs-text-primary) !important;
+}
+.drs-text-secondary {
+  color: var(--drs-text-secondary) !important;
+}
+.drs-text-tertiary {
+  color: var(--drs-text-tertiary) !important;
+}
+
+.drs-border {
+  border-color: var(--drs-border-divider) !important;
+}
+
+.drs-page-container {
+  background-color: var(--drs-bg-default) !important;
+  color: var(--drs-text-primary) !important;
+}
+
+.drs-panel-container {
+  background-color: var(--drs-bg-panel) !important;
+  border: 1px solid var(--drs-border-divider) !important;
+  border-radius: 8px;
+}
+
+.drs-section-title {
+  color: var(--drs-text-secondary) !important;
+  border-bottom: 1px solid var(--drs-border-divider) !important;
+}
+
+.drs-themed-textfield .MuiInputBase-root {
+  background-color: var(--drs-bg-input) !important;
+  color: var(--drs-text-primary) !important;
+  transition:
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    background-color 0.2s ease !important;
+}
+
+.drs-themed-textfield .MuiOutlinedInput-notchedOutline {
+  border-color: var(--drs-control-border) !important;
+}
+
+.drs-themed-textfield:hover .MuiOutlinedInput-notchedOutline {
+  border-color: var(--drs-control-hover-border) !important;
+}
+
+.drs-themed-textfield .Mui-focused .MuiOutlinedInput-notchedOutline {
+  border-color: var(--drs-control-hover-border) !important;
+  box-shadow: 0 0 0 3px var(--drs-soft-accent);
+}
+
+.drs-themed-textfield .MuiInputBase-input::placeholder,
+.drs-themed-textfield .MuiFormLabel-root,
+.drs-themed-textfield .MuiSvgIcon-root {
+  color: var(--drs-text-secondary) !important;
+}
+
+.drs-themed-textfield .MuiFormLabel-root.Mui-focused {
+  color: var(--drs-color-primary) !important;
+}
+
+.drs-themed-button {
+  text-transform: none !important;
+  box-shadow: none !important;
+  transition:
+    background-color 0.2s ease,
+    border-color 0.2s ease,
+    color 0.2s ease,
+    box-shadow 0.2s ease !important;
+}
+
+.drs-themed-button.MuiButton-contained {
+  background: var(--drs-button-primary-bg) !important;
+  color: var(--drs-text-inverse) !important;
+}
+
+.drs-themed-button.MuiButton-contained:hover {
+  background: var(--drs-button-primary-hover) !important;
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12) !important;
+}
+
+.drs-themed-button.MuiButton-outlined {
+  color: var(--drs-button-outline-text) !important;
+  border-color: var(--drs-control-border) !important;
+  background: var(--drs-button-outline-bg) !important;
+}
+
+.drs-themed-button.MuiButton-outlined:hover {
+  border-color: var(--drs-control-hover-border) !important;
+  background: var(--drs-button-outline-hover) !important;
+}
+
+.drs-themed-button.MuiButton-text {
+  color: var(--drs-color-primary) !important;
+}
+
+.drs-themed-button.MuiButton-text:hover {
+  background: var(--drs-hover-bg) !important;
+}
+
+/* Blue page title strip (Debt Recovery account-style headers) */
+.drs-page-title-bar {
+  display: flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 1rem;
+  margin: 0 0 0.75rem;
+  border-radius: 8px;
+  background: linear-gradient(90deg, var(--drs-color-primary) 0%, var(--drs-color-primary-dark) 100%);
+  color: var(--drs-text-inverse);
+  font-weight: 700;
+  font-size: 0.95rem;
+  letter-spacing: 0.02em;
+  box-shadow: 0 2px 8px rgba(37, 99, 235, 0.18);
+}
+
+[data-theme="dark"] .drs-page-title-bar,
+.theme-dark .drs-page-title-bar {
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.35);
+}
+
+/* MUI pagination — align with DRS table footer tone */
+.MuiTablePagination-root {
+  color: var(--drs-text-secondary);
+  border-top: 1px solid var(--drs-border-divider);
+  background: var(--drs-grid-footer-bg);
+}
+
+.MuiTablePagination-toolbar {
+  min-height: 48px;
+}

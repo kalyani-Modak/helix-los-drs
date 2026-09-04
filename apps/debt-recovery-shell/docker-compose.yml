@@ -1,0 +1,18 @@
+# Build context is apps/debt-recovery-shell (pre-built drs-build/drs required).
+#
+#   cd apps/debt-recovery-shell
+#   docker compose up --build
+
+services:
+  drs-portal:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    environment:
+      MODE: int
+      ENV: int
+      # Override any config.json key without rebuilding:
+      # BASE_KEYCLOAK_API_PATH: http://10.x.x.x:8007/user-management/keycloak-api/
+      # BASE_RULEENINGE_API_PATH: http://10.x.x.x:8003/ruleengine-service/api/

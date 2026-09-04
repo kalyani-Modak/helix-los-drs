@@ -1,0 +1,386 @@
+/*
+ * WF Graphical Log page — ported from LOS reference's pages/los/los-pages.css
+ * (compact workflow diagram card, nav dropdown, child-history table, action
+ * toolbar) plus components/los/los-enterprise.css. Only the rules this page
+ * (and its WorkflowActionToolbar / BpmnCanvas compact mode) actually use.
+ */
+
+.muted {
+  color: #64748b;
+}
+
+.los-workflow-panel--details {
+  margin-top: 0.25rem;
+}
+
+.los-child-history-wrap {
+  overflow: auto;
+  max-width: 100%;
+  border: 1px solid #e8edf3;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.los-child-history-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+}
+
+.los-child-history-table thead th {
+  background: #f1f5f9;
+  color: #475569;
+  font-weight: 700;
+  text-align: left;
+  padding: 0.55rem 0.65rem;
+  border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.los-child-history-table tbody td {
+  padding: 0.5rem 0.65rem;
+  border-bottom: 1px solid #f1f5f9;
+  color: #0f172a;
+  vertical-align: top;
+}
+
+.los-child-history-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.los-child-history-link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #2563eb;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  text-align: left;
+}
+
+.los-child-history-link:hover {
+  color: #1d4ed8;
+}
+
+.los-child-history-status {
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.los-child-history-error {
+  max-width: 280px;
+  word-break: break-word;
+  color: #64748b;
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.los-child-history-error.has-error {
+  color: #b91c1c;
+}
+
+.diagram-card--enterprise {
+  min-height: 520px;
+}
+
+.diagram-card--enterprise .bpmn-root {
+  min-height: 500px;
+}
+
+.diagram-card--enterprise .bpmn-host {
+  min-height: 440px;
+  height: 440px;
+}
+
+.diagram-card--compact {
+  min-height: 0 !important;
+  margin: 0;
+  border: none;
+  box-shadow: none;
+  background: transparent;
+}
+
+.diagram-card--compact .bpmn-root,
+.diagram-card--compact .bpmn-root--compact {
+  min-height: 0 !important;
+}
+
+.diagram-card--compact .bpmn-host,
+.diagram-card--compact .bpmn-host--compact {
+  min-height: 320px !important;
+  height: 360px !important;
+  max-height: 42vh;
+}
+
+.los-workflow-panel {
+  background: #f8fafc;
+  border: 1px solid #e8edf3;
+  border-radius: 8px;
+  padding: 0.75rem 0.85rem;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.los-workflow-panel__title {
+  margin: 0 0 0.3rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #64748b;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+}
+
+.los-workflow-panel--compact {
+  padding: 0.55rem 0.75rem;
+  margin: 0;
+}
+
+/* —— Compact Workflow Graphical Log —— */
+.los-workflow-page--compact {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  max-width: 100%;
+}
+
+.los-workflow-page__sticky-actions {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0;
+  padding: 0.35rem 0;
+  background: linear-gradient(180deg, #f8fafc 70%, rgba(248, 250, 252, 0.85) 100%);
+}
+
+/* Graphical Log: actions sit under the BPMN card, above Detailed History */
+.los-workflow-page__sticky-actions--below-diagram {
+  position: static;
+  top: auto;
+  z-index: auto;
+  background: transparent;
+  padding: 0.15rem 0 0.25rem;
+}
+
+.los-workflow-page__sticky-actions .los-workflow-action-toolbar {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+}
+
+.los-workflow-page__sticky-actions .los-workflow-action-toolbar > .los-quick-actions {
+  margin-bottom: 0 !important;
+  display: inline-flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  align-self: flex-end;
+  gap: 0.35rem;
+}
+
+.los-workflow-page__sticky-actions .los-workflow-action-toolbar__toast {
+  width: 100%;
+  align-self: stretch;
+}
+
+.los-workflow-page__sticky-actions .los-quick-actions .MuiButton-root,
+.los-workflow-page__sticky-actions .MuiButton-root {
+  min-height: 30px;
+  height: 30px;
+  padding: 0 0.65rem !important;
+  font-size: 0.75rem;
+  line-height: 1 !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center;
+  box-sizing: border-box;
+}
+
+.los-workflow-page__sticky-actions .MuiButton-startIcon {
+  margin-right: 4px !important;
+  margin-left: 0 !important;
+  display: inline-flex;
+  align-items: center;
+}
+
+.los-workflow-page__sticky-actions .MuiButton-startIcon > *:first-of-type {
+  font-size: 1rem !important;
+}
+
+/* Disabled toolbar actions: muted grey like DRS nav */
+.los-workflow-page__sticky-actions .MuiButton-root.Mui-disabled,
+.los-workflow-page__sticky-actions .MuiButton-root:disabled {
+  background: transparent !important;
+  background-image: none !important;
+  color: #c5c9d1 !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  opacity: 1 !important;
+  cursor: default !important;
+}
+
+.los-workflow-page__sticky-actions .MuiButton-root.Mui-disabled .MuiButton-startIcon,
+.los-workflow-page__sticky-actions .MuiButton-root:disabled .MuiButton-startIcon,
+.los-workflow-page__sticky-actions .MuiButton-root.Mui-disabled .MuiSvgIcon-root,
+.los-workflow-page__sticky-actions .MuiButton-root:disabled .MuiSvgIcon-root,
+.los-workflow-page__sticky-actions .MuiButton-root.Mui-disabled .MuiCircularProgress-root,
+.los-workflow-page__sticky-actions .MuiButton-root:disabled .MuiCircularProgress-root {
+  color: #c5c9d1 !important;
+}
+
+.los-workflow-error-panel--compact {
+  padding: 0.45rem 0.75rem;
+  font-size: 0.78rem;
+  margin: 0;
+}
+
+.los-wf-status-icon--completed { color: #166534 !important; }
+.los-wf-status-icon--running { color: #1e40af !important; }
+.los-wf-status-icon--failed { color: #dc2626 !important; }
+.los-wf-status-icon--pending { color: #d97706 !important; }
+.los-wf-status-icon--skipped { color: #6b7280 !important; }
+
+.los-glog-card {
+  background: #fff;
+  border: 1px solid #e8edf3;
+  border-radius: 10px;
+  overflow: visible;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+}
+
+.los-glog-card__header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.45rem 0.65rem;
+  border-bottom: 1px solid #e8edf3;
+  background: #f8fafc;
+  border-radius: 10px 10px 0 0;
+}
+
+.los-glog-card__nav {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.los-glog-card__nav-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: #64748b;
+  flex-shrink: 0;
+}
+
+.los-glog-select {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  max-width: min(420px, 70vw);
+  padding: 0.3rem 0.55rem;
+  border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  background: #fff;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.8rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.los-glog-select:hover:not(:disabled) {
+  border-color: #94a3b8;
+}
+
+.los-glog-select__name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.los-glog-select__chevron {
+  color: #64748b;
+  font-size: 0.7rem;
+  margin-left: 0.15rem;
+}
+
+.los-glog-menu {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  z-index: 30;
+  min-width: min(360px, 90vw);
+  max-height: 280px;
+  overflow: auto;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.12);
+  padding: 0.25rem;
+}
+
+.los-glog-menu__item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  width: 100%;
+  border: none;
+  background: transparent;
+  text-align: left;
+  padding: 0.4rem 0.5rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.78rem;
+  color: #0f172a;
+}
+
+.los-glog-menu__item:hover,
+.los-glog-menu__item.is-selected {
+  background: #eff6ff;
+}
+
+.los-glog-menu__name {
+  flex: 1 1 auto;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.los-glog-menu__status {
+  font-size: 0.65rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+  flex-shrink: 0;
+}
+
+.los-glog-menu__status--completed { color: #166534; }
+.los-glog-menu__status--running { color: #1e40af; }
+.los-glog-menu__status--failed { color: #dc2626; }
+.los-glog-menu__status--pending { color: #d97706; }
+.los-glog-menu__status--skipped { color: #6b7280; }
+
+.los-glog-menu__empty {
+  padding: 0.65rem;
+  font-size: 0.75rem;
+  color: #64748b;
+}
+
+@media (max-height: 800px) {
+  .diagram-card--compact .bpmn-host--compact {
+    height: 280px !important;
+    min-height: 240px !important;
+    max-height: 34vh;
+  }
+}

@@ -1,0 +1,432 @@
+/* RuleMetaInfo.css */
+:root {
+  /* Color palette */
+  --primary: #0378A6;
+  --primary-light: #4aa3d9;
+  --primary-dark: #025a8c;
+  --secondary: #8dbf41;
+  --secondary-light: #a8d173;
+  --secondary-dark: #6b9c2c;
+  --accent: #bf0404;
+  --accent-light: #f44336;
+  --accent-dark: #a30404;
+  --background-start: #f8fafc;
+  --background-end: #f1f5f9;
+  --card-bg: rgba(255, 255, 255, 0.98);
+  --text-primary: #0f172a;
+  --text-secondary: #334155;
+  --text-light: #64748b;
+  --text-muted: #94a3b8;
+  --border: #e2e8f0;
+  --hover: #f1f5f9;
+  --highlight: #ffd966;
+  --highlight-light: #fff3cd;
+
+  /* Dimensions */
+  --label-width: 120px;
+  --field-width: 200px;
+  --total-row-width: calc(120px + 200px + 16px);
+  --spacing: 8px;
+  --border-radius: 8px;
+  --transition-speed: 0.2s;  
+}
+
+/* Global container updated for dialog layout */
+.rule-meta-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: auto;
+  background: transparent;
+  width: 100%;
+  position: relative;
+  margin: 0;
+  padding: 0;
+}
+
+.rule-meta-paper {
+  max-width: 600px;
+  width: 100%;
+  border-radius: 24px;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border);
+  box-shadow: 0 20px 40px -12px rgba(3, 120, 166, 0.25);
+  overflow: hidden;
+  transition: box-shadow 0.3s ease;
+}
+
+/* Main card (unchanged) */
+.rule-meta-paper {
+  width: calc(var(--total-row-width) + 48px);
+  border-radius: 24px;
+  background-color: var(--card-bg);
+  border: 1px solid var(--border);
+  box-shadow: 0 20px 40px -12px rgba(3, 120, 166, 0.25);
+  overflow: hidden;
+  transition: box-shadow 0.3s ease;
+}
+
+.rule-meta-paper:hover {
+  box-shadow: 0 24px 48px -12px rgba(3, 120, 166, 0.35);
+}
+
+/* Main header (unchanged) */
+.rule-meta-header {
+  /* background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 50%, #01406b 100%); */
+  padding: 16px 24px;
+  /* border-bottom: 1px solid var(--primary-dark); */
+   background: linear-gradient(135deg, var(--primary), var(--secondary));
+  border-bottom: 1px solid var(--primary-dark); /* keep subtle border */
+}
+
+.rule-meta-header-title {
+  font-weight: 700;
+  font-family: 'Inter', sans-serif;
+  font-size: 20px;
+  color: white;
+  text-transform: capitalize;
+  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Form content (unchanged) */
+.rule-meta-content {
+  padding: 24px;
+}
+
+/* Form row (unchanged) */
+.form-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 16px;
+  width: 100%;
+}
+
+.form-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: var(--label-width);
+  color: var(--text-secondary);
+}
+
+.form-label-text {
+  font-weight: 500;
+  font-size: 14px;
+  color: var(--text-primary);
+  white-space: nowrap;
+}
+
+.form-field {  
+  width: var(--field-width);  
+  height: 35px;
+}
+
+/* HTextField and HDropdown (unchanged) */
+.h-text-field-root,
+.h-dropdown-root {
+  background-color: var(--background-start);
+  transition: background-color var(--transition-speed) ease, box-shadow var(--transition-speed) ease;
+  height: auto;
+  min-height: auto;
+}
+
+/* local override (do not edit global /common/styles/textfield.css) */
+.custom-textfield .MuiOutlinedInput-root,
+.custom-dropdown .MuiOutlinedInput-root {
+  height: 28px !important;
+  min-height: 28px !important;
+  font-size: 13px;
+  align-items: center;
+  border-radius: 6px;
+}
+
+.custom-textfield .MuiOutlinedInput-input,
+.custom-dropdown .MuiOutlinedInput-input {
+  height: 28px !important;
+  min-height: 28px !important;
+  line-height: 1.2;
+  padding: 0 10px !important;
+}
+
+.h-text-field-root:hover,
+.h-dropdown-root:hover {
+  background-color: var(--hover);
+}
+
+.h-text-field-root.Mui-focused,
+.h-dropdown-root.Mui-focused {
+  background-color: #fff;
+  box-shadow: 0 0 0 2px rgba(3, 120, 166, 0.12);
+}
+
+/* Output attributes list (unchanged) */
+.output-attributes-container {
+  margin-top: 16px;
+  margin-bottom: 16px;
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 8px;
+  background-color: var(--background-start);
+  transition: box-shadow 0.3s ease;
+}
+
+.output-attributes-container:hover {
+  box-shadow: 0 4px 12px rgba(3, 120, 166, 0.06);
+}
+
+.output-attributes-title {
+  font-weight: 600;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  color: var(--primary);
+  margin-bottom: 8px;
+  padding-left: 8px;
+  padding-right: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.output-attribute-item {
+  border-radius: 8px;
+  margin-bottom: 4px;
+}
+
+.output-attribute-item:hover {
+  background-color: var(--hover);
+}
+
+.output-attribute-primary {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.output-attribute-secondary {
+  color: var(--text-light);
+  font-size: 0.85rem;
+}
+
+/* Icon buttons in output list (unchanged) */
+.edit-button {
+  color: var(--primary);
+}
+
+.edit-button:hover {
+  background-color: rgba(74, 163, 217, 0.12);
+}
+
+.delete-button {
+  color: var(--accent);
+}
+
+.delete-button:hover {
+  background-color: rgba(244, 67, 54, 0.12);
+}
+
+/* Divider (unchanged) */
+.custom-divider {
+  margin: 16px 0;
+  border-color: var(--border);
+}
+
+/* Action buttons container (main form) – unchanged */
+.action-buttons {
+  display: flex;
+  gap: 8px;
+  width: 200px;
+  justify-content: flex-end;
+  margin-left: auto;
+  padding: 10px 10px;
+}
+
+/* Dialog – updated to match reference styles */
+.rule-meta-dialog-paper {
+  border-radius: 10px !important;
+  background-color: var(--card-bg);
+  box-shadow: 0 24px 48px -12px rgba(3, 120, 166, 0.35);
+  width: calc(var(--total-row-width) + 80px);
+}
+
+/* Dialog header – now uses primary→secondary gradient, updated font, padding */
+.dialog-header {
+  background: linear-gradient(135deg, var(--primary), var(--secondary));
+  border-bottom: 1px solid var(--primary-dark); /* keep subtle border */
+  /* padding: 16px 24px; */
+}
+
+.dialog-header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  /* padding: 8px 16px;  */
+  /* matches reference padding: 8px 16px */
+}
+
+.dialog-title {
+  font-weight: 700;                    /* reference uses 700 */
+  font-family: 'Poppins', 'Inter', 'Segoe UI', sans-serif; /* updated font stack */
+  font-size: 18px;                     /* reference size */
+  color: white;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.dialog-close-button {
+  color: #fff;                         /* navigationButtonStyle color */
+}
+
+.dialog-close-button:hover {
+  background-color: rgba(255, 255, 255, 0.1); /* navigationButtonStyle hover */
+}
+
+.dialog-content {
+  padding: 24px;
+}
+
+/* Attribute type radio group (unchanged) */
+.attribute-type-radio-group {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 24px;
+  justify-content: center;
+  padding: 16px;
+  background-color: var(--background-start);
+  border-radius: 16px;
+}
+
+.radio-option {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.radio-option input[type="radio"] {
+  accent-color: var(--primary);
+  width: 16px;
+  height: 16px;
+}
+
+.radio-option label {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+/* Web Combo fields – unchanged */
+.web-combo-fields .form-row {
+  /* already styled */
+}
+
+/* Options fields – unchanged */
+.option-item {
+  margin-bottom: 16px;
+  border: 1px solid var(--border);
+  padding: 12px;
+  border-radius: 16px;
+  background-color: var(--background-start);
+  position: relative;
+  transition: box-shadow 0.2s ease;
+}
+
+.option-item:hover {
+  box-shadow: 0 2px 8px rgba(3, 120, 166, 0.06);
+}
+
+.option-item-header {
+  display: flex;
+  justify-content: flex-end;
+  position: absolute;
+  top: 8px;
+  right: 8px;
+}
+
+.option-remove-button {
+  color: var(--accent);
+}
+
+.option-remove-button:hover {
+  background-color: rgba(244, 67, 54, 0.12);
+}
+
+.option-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  margin-top: 8px;
+}
+
+.option-row:first-of-type {
+  margin-top: 16px;
+}
+
+.option-label {
+  width: 80px;
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.option-field {
+  width: var(--field-width);
+}
+
+.option-field .MuiInputBase-root {
+  background-color: #fff;
+  height: 36px;
+}
+
+.add-option-button-container {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+  width: calc(var(--field-width) + 80px + 16px);
+  margin-left: auto;
+}
+
+/* Dialog actions – now styled as footer matching reference */
+.dialog-actions {
+  /* background: linear-gradient(135deg, var(--primary), var(--secondary)); footer gradient */
+  /* border-top: 1px solid var(--border);           reference border */
+  padding: 6px 12px;                             /* reference padding */
+  display: flex;
+  width: 200px;
+  margin-left: auto;
+  gap: 8px;
+  justify-content: flex-end;
+  align-items: center;
+  /* Keep the original positioning, but override background/padding */
+}
+
+/* Responsive adjustments (unchanged) */
+@media (max-width: 600px) {
+  .rule-meta-paper,
+  .rule-meta-dialog-paper {
+    width: 95%;
+  }
+
+  .form-row {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .form-label,
+  .form-field,
+  .option-field,
+  .add-option-button-container {
+    width: 100%;
+  }
+
+  .action-buttons {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Ensure footer adapts on mobile */
+  .dialog-actions {
+    width: 100%;
+    justify-content: center;
+  }
+}

@@ -1,0 +1,235 @@
+/* DRS tokens (--drs-*) are set on the Add Asset page root via useDrsTheme / themeVars.
+   Layout matches Interface Delight: cards on panel, type tiles, field grid gap-3, label above input (space-y-1). */
+
+._scrollBody_sw60v_4 {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding-bottom: 88px;
+  box-sizing: border-box;
+}
+
+._stack_sw60v_13 {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0 16px 16px;
+}
+
+@media (min-width: 600px) {
+  ._stack_sw60v_13 {
+    padding-left: 24px;
+    padding-right: 24px;
+  }
+}
+
+@media (min-width: 900px) {
+  ._stack_sw60v_13 {
+    padding-left: 32px;
+    padding-right: 32px;
+  }
+}
+
+/* Entry column: vertical rhythm only (horizontal padding comes from parent .stack) */
+._entryColumn_sw60v_37 {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+._sectionStack_sw60v_45 {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+._formSectionBlock_sw60v_52 + ._formSectionBlock_sw60v_52 {
+  margin-top: 4px;
+}
+
+._card_sw60v_56 {
+  border: 1px solid var(--drs-border-divider, #e2e8f0);
+  border-radius: 8px;
+  background: var(--drs-bg-paper, #ffffff);
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+}
+
+._cardContent_sw60v_63 {
+  padding: 16px;
+}
+
+/* Asset type row: Interface Delight "text-xs font-medium" */
+._sectionLabel_sw60v_68 {
+  font-family: "Inter", system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.35;
+  letter-spacing: -0.01em;
+  color: var(--drs-text-primary, #141923);
+  margin: 0;
+}
+
+._sectionLabelRequired_sw60v_78 {
+  color: var(--drs-color-accent, #ef4444);
+  font-weight: 600;
+}
+
+._typeSection_sw60v_83 {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+._typeGrid_sw60v_89 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+@media (min-width: 600px) {
+  ._typeGrid_sw60v_89 {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+}
+
+._typeTile_sw60v_101 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--drs-border-divider, #e2e8f0);
+  background: var(--drs-bg-paper, #ffffff);
+  cursor: pointer;
+  text-align: left;
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.25;
+  color: var(--drs-text-primary, #141923);
+  transition: border-color 0.15s ease, box-shadow 0.15s ease, background 0.15s ease;
+}
+
+._typeTile_sw60v_101:hover:not(:disabled) {
+  border-color: var(--drs-control-hover-border, #2563eb);
+  background: var(--drs-hover-bg, rgba(37, 99, 235, 0.08));
+}
+
+._typeTile_sw60v_101:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+._typeTileSelected_sw60v_129 {
+  border-color: var(--drs-color-primary, #2563eb);
+  background: var(--drs-action-selected, rgba(37, 99, 235, 0.12));
+  box-shadow: 0 0 0 2px var(--drs-soft-accent, rgba(37, 99, 235, 0.2));
+  font-weight: 600;
+  color: var(--drs-color-primary-dark, #1d4ed8);
+}
+
+._typeTileIcon_sw60v_137 {
+  display: flex;
+  align-items: center;
+  color: var(--drs-text-secondary, #64748b);
+}
+
+._typeTileSelected_sw60v_129 ._typeTileIcon_sw60v_137 {
+  color: var(--drs-color-primary, #2563eb);
+}
+
+._formHeader_sw60v_147 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+._formHeaderTitle_sw60v_154 {
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.35;
+  color: var(--drs-text-primary, #141923);
+}
+
+/* Interface Delight subsection: text-[10px] font-semibold text-muted-foreground mb-2 */
+._subsectionTitle_sw60v_163 {
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--drs-text-secondary, #64748b);
+  margin: 0 0 8px;
+}
+
+._formSectionBlock_sw60v_52:first-child ._subsectionTitle_sw60v_163 {
+  margin-top: 0;
+}
+
+._formSectionBlock_sw60v_52:not(:first-child) ._subsectionTitle_sw60v_163 {
+  margin-top: 16px;
+}
+
+/* Interface Delight: grid-cols-2 lg:grid-cols-3 gap-3 (12px) */
+._fieldGrid_sw60v_182 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+@media (min-width: 1024px) {
+  ._fieldGrid_sw60v_182 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+/* Interface Delight Field: space-y-1 → label above input, 4px gap */
+._fieldCell_sw60v_195 {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 4px;
+  min-width: 0;
+}
+
+._fieldControl_sw60v_203 {
+  width: 100%;
+  min-width: 0;
+}
+
+._fieldControl_sw60v_203 .MuiFormControl-root {
+  width: 100%;
+}
+
+._fieldControl_sw60v_203 .MuiTextField-root {
+  width: 100%;
+}
+
+._mutedNote_sw60v_216 {
+  font-family: "Inter", system-ui, -apple-system, sans-serif;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--drs-text-secondary, #64748b);
+}
+
+._inlineCode_sw60v_223 {
+  margin-left: 8px;
+}
+
+._primaryIcon_sw60v_227 {
+  color: var(--drs-color-primary, #2563eb);
+}
+
+._barWrap_sw60v_231 {
+  position: relative;
+  z-index: 2000;
+  min-height: 8px;
+}

@@ -1,0 +1,25 @@
+const lms = [
+  {
+    id: 101,
+    description: "Learning module 101",
+    caption: "Change Password"
+  },
+  {
+    id: 102,
+    description: "Learning module 102",
+    caption: "Preferences"
+  },
+  {
+    id: 103,
+    description: "This is collection 3",
+    caption: "Switch Profiles"
+  },
+  {
+    id: 104,
+    description: "This is collection 4",
+    caption: "Announcement"
+  }
+];
+export {
+  lms as default
+};

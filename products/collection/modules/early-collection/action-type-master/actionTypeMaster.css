@@ -1,0 +1,43 @@
+/* ── Header card ─────────────────────────────── */
+.action-type-master-header-card {
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid #bfc1c7;
+}
+
+/* ── Breadcrumb row ───────────────────────────── */
+.action-type-master-breadcrumb {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.action-type-master-bc-link {
+  font-size: 12px;
+  color: var(--text-secondary, #6b7280);
+  cursor: default;
+}
+
+.action-type-master-bc-sep {
+  font-size: 12px;
+  color: var(--text-secondary, #9ca3af);
+  margin: 0 6px;
+  user-select: none;
+}
+
+.action-type-master-bc-current {
+  color: var(--drs-text-primary, hsl(220 20% 10%));
+  font-weight: 500;
+}
+
+/* ── Grid section ────────────────────────────── */
+.action-type-master-grid-section {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+
+.drs-action-type-master-grid {
+  width: 100%;
+}

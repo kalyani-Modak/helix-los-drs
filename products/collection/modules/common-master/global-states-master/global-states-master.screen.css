@@ -1,0 +1,121 @@
+/* Global States Master — layout; colors/typography from theme */
+
+.global-states-master-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.global-states-master-header-card {
+  padding: 16px var(--global-states-master-gutter, 24px) 12px;
+  border-bottom: 1px solid var(--drs-border-divider, hsl(215 14% 90%));
+  background: var(--drs-bg-paper, hsl(0 0% 100%));
+}
+
+.global-states-master-breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.global-states-master-bc-link {
+  color: var(--drs-text-secondary, hsl(215 14% 46%));
+  font-size: inherit;
+  font-family: inherit;
+}
+
+.global-states-master-bc-sep {
+  color: var(--drs-text-secondary, hsl(215 14% 46%));
+  user-select: none;
+  opacity: 0.85;
+  font-size: 11px;
+  padding: 0 2px;
+}
+
+.global-states-master-bc-current {
+  color: var(--drs-text-primary, hsl(220 20% 10%));
+  font-weight: 500;
+}
+
+.global-states-master-header-card .global-states-master-description {
+  margin: 6px 0 0 0;
+  padding: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--drs-text-secondary, hsl(215, 14%, 46%));
+}
+
+.global-states-master-filter-bar {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: flex-end;
+  gap: 16px;
+  padding: 12px var(--global-states-master-gutter, 24px);
+  border-bottom: 1px solid var(--drs-border-divider, hsl(215 14% 90%));
+  /* background: var(--drs-bg-muted, hsl(210 20% 98%)); */
+}
+
+.global-states-master-filter-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.global-states-master-filter-label {
+  font-size: 10px;
+  line-height: 1.2;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--drs-text-secondary, hsl(215 14% 46%));
+}
+
+.global-states-master-filter-input {
+  width: 176px;
+  max-width: 100%;
+}
+
+.global-states-master-filter-input-desc {
+  width: 224px;
+  max-width: 100%;
+}
+
+.global-states-master-filter-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 2px;
+  height: 30px;
+}
+
+.global-states-master-grid-wrap { 
+  flex: 1 1 auto;
+  width: 100%;
+  padding: 0 ;
+  box-sizing: border-box;
+}
+
+.global-states-master-grid {
+  width: 100%;
+  height: 55vh;
+  min-height: 360px;
+}
+
+@media (max-width: 720px) {
+  .global-states-master-filter-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .global-states-master-filter-input,
+  .global-states-master-filter-input-desc {
+    width: 100%;
+  }
+}

@@ -1,0 +1,15 @@
+.phase-master-header-card {
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid #bfc1c7;
+}
+
+.phase-master-grid-section {
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.drs-phase-master-grid {
+  width: 100%;
+}

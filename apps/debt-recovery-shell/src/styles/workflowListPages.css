@@ -1,0 +1,81 @@
+/*
+ * Trimmed subset of LOS's pages/los/los-pages.css — only the rules actually
+ * used by the DRS Workflow Registry pages (Upload, List, Detail):
+ * `.los-page h2`, `.los-lead`, `.los-table*`, `.drs-mui-table*`.
+ * The full los-pages.css (~22KB) also styles LOS application-detail /
+ * dashboard screens that DRS does not have, so it was not ported wholesale.
+ */
+
+.los-page h2 {
+  margin: 0 0 0.5rem;
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--drs-text-primary, #0f172a);
+}
+
+.los-lead {
+  color: var(--drs-text-secondary, #64748b);
+  margin: 0 0 1.25rem;
+  max-width: 720px;
+}
+
+.los-table {
+  width: 100%;
+  border-collapse: collapse;
+  border-spacing: 0;
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
+.los-table th,
+.los-table td {
+  padding: 0.65rem 0.85rem;
+  border-bottom: 1px solid var(--los-table-row-border, #e2e8f0);
+  text-align: left;
+  vertical-align: top;
+}
+
+.los-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--los-table-header-bg, linear-gradient(180deg, #e2e8f0 0%, #d2dae4 100%));
+  color: var(--los-table-header-fg, #0f172a);
+  font-weight: 700;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.045em;
+  border-bottom: 2px solid var(--los-table-header-border, #94a3b8);
+  white-space: normal;
+}
+
+.los-table tbody td {
+  color: var(--los-table-cell-fg, #334155);
+}
+
+.los-table tbody tr:hover td {
+  background: var(--los-table-row-hover, #f1f5f9);
+}
+
+.los-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+/* MUI Table + DRS grid header (monoRepoDebtSuite list styling) */
+.drs-mui-table .MuiTableHead-root .MuiTableCell-root {
+  background: var(--drs-grid-header-bg);
+  color: var(--drs-text-primary);
+  font-weight: 700;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.045em;
+  border-bottom: 2px solid var(--drs-border-divider);
+}
+
+.drs-mui-table .MuiTableBody-root .MuiTableRow-root:hover .MuiTableCell-root {
+  background: var(--drs-grid-row-hover);
+}
+
+.drs-mui-table .MuiTableCell-root {
+  border-color: var(--drs-border-divider);
+}

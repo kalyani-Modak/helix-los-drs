@@ -1,0 +1,35 @@
+/* Return Mail Tracking — list chrome (scoped to this screen only; do not edit shared HAgGrid.css) */
+.drs-return-mail-grid.ag-theme-alpine .ag-root-wrapper,
+.drs-return-mail-grid.ag-theme-alpine-dark .ag-root-wrapper {
+  border: none !important;
+  border-radius: 0;
+}
+
+.drs-return-mail-grid .ag-header {
+  background: var(--drs-grid-header-bg, #fbfdff);
+  border-bottom: 1px solid var(--drs-border-divider, #d8e3f0) !important;
+}
+
+.drs-return-mail-grid .ag-header-cell {
+  padding-top: 2px;
+  padding-bottom: 2px;
+}
+
+.drs-return-mail-grid .ag-header-cell-label .ag-header-cell-text {
+  color: #5f7693;
+  font-size: 10px !important;
+  font-weight: 600 !important;
+  letter-spacing: 0.04em;
+}
+
+.drs-return-mail-grid .ag-cell {
+  color: #10233f;
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+}
+
+.drs-return-mail-grid .ag-paging-panel {
+  background: var(--drs-bg-paper, #ffffff);
+  border-top: 1px solid var(--drs-border-divider, #d8e3f0);
+}

@@ -1,0 +1,9 @@
+{
+  "BASE_API_PATH": "http://10.141.51.105:8003/allocation/",
+  "BASE_FOLLOWUP_API_PATH": "http://10.141.51.105:8003/followup/",
+  "BASE_RULEENINGE_API_PATH": "http://10.141.51.105:8003/ruleengine-service/",
+  "BASE_KEYCLOAK_API_PATH": "http://10.141.51.105:8003/user-management/keycloak-api/",
+  "BASE_LOS_QDE_API_PATH": "http://localhost:8085/",
+  "LOG_LEVEL": "debug",
+  "ENV": "105"
+}

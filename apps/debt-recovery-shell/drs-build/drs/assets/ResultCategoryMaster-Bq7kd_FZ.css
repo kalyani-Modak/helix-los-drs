@@ -1,0 +1,21 @@
+.result-category-master-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.result-category-master-header-card {
+  padding: 16px var(--result-category-master-gutter, 24px) 12px;
+  background: var(--drs-bg-paper, #fff);
+}
+
+.result-category-master-grid-wrap {
+  flex: 1;
+  width: 100%;
+  padding: 16px var(--result-category-master-gutter, 24px) 88px;
+  box-sizing: border-box;
+  border-top: 1px solid var(--drs-border-divider, hsl(215 14% 90%));
+  margin-top: 12px;
+}

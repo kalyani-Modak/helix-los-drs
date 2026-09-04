@@ -1,0 +1,25 @@
+{
+  "name": "LOS",
+  "uri": "http://los.cursor.local/bpmn",
+  "prefix": "los",
+  "xml": {
+    "tagAlias": "lowerCase"
+  },
+  "associations": [],
+  "types": [
+    {
+      "name": "ActivityConfiguration",
+      "superClass": ["Element"],
+      "meta": {
+        "allowedIn": ["bpmn:ExtensionElements"]
+      },
+      "properties": [
+        {
+          "name": "body",
+          "isBody": true,
+          "type": "String"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,378 @@
+.bpmn-root {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  min-height: 480px;
+  background: #f8fafc;
+  border-radius: 12px;
+}
+
+.bpmn-root--compact {
+  min-height: 0;
+  height: auto;
+}
+
+.bpmn-root--fullscreen {
+  min-height: 100vh;
+  height: 100%;
+  border-radius: 0;
+  background: #f8fafc;
+}
+
+.bpmn-root--fullscreen:fullscreen,
+.bpmn-root--fullscreen:-webkit-full-screen {
+  width: 100%;
+  height: 100%;
+  min-height: 100%;
+}
+
+.bpmn-root--fullscreen .bpmn-host {
+  height: auto;
+  max-height: none;
+  min-height: 0;
+  flex: 1 1 auto;
+}
+
+.bpmn-root--compact.bpmn-root--fullscreen {
+  height: 100%;
+  min-height: 100%;
+}
+
+.bpmn-root--compact.bpmn-root--fullscreen .bpmn-host--compact {
+  height: auto !important;
+  max-height: none !important;
+  min-height: 0 !important;
+  flex: 1 1 auto;
+}
+
+.bpmn-root--fullscreen .bpmn-footer-bar,
+.bpmn-root--fullscreen .bpmn-legend-footer,
+.bpmn-root--fullscreen .bpmn-toolbar {
+  flex-shrink: 0;
+  margin-top: 0;
+  border-radius: 0;
+}
+
+.bpmn-root--compact.bpmn-root--fullscreen .bpmn-footer-bar {
+  margin-top: auto;
+}
+
+.bpmn-toolbar {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  padding: 0.55rem 0.85rem;
+  border-bottom: 1px solid #e2e8f0;
+  background: #fff;
+  border-radius: 12px 12px 0 0;
+}
+
+.bpmn-footer-bar {
+  flex-shrink: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.4rem 0.75rem;
+  padding: 0.35rem 0.55rem;
+  background: #fff;
+  border-top: 1px solid #e2e8f0;
+  border-radius: 0 0 10px 10px;
+}
+
+.bpmn-footer-bar__legend {
+  min-width: 0;
+  flex: 1 1 auto;
+}
+
+.bpmn-footer-bar .bpmn-toolbar__actions {
+  margin-left: auto;
+}
+
+.bpmn-legend-footer {
+  flex-shrink: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 0.85rem;
+  background: #fff;
+  border-top: 1px solid #e2e8f0;
+  border-radius: 0 0 12px 12px;
+}
+
+.bpmn-legend-footer__hint {
+  font-size: 0.68rem;
+  color: #64748b;
+  font-weight: 600;
+}
+
+.bpmn-toolbar__left {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem 1.25rem;
+}
+
+.bpmn-toolbar__title {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: #0f172a;
+}
+
+.bpmn-mini-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem 0.75rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.68rem;
+  color: #475569;
+  font-weight: 600;
+}
+
+.bpmn-mini-legend li {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.bpmn-mini-legend__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  border: 1px solid transparent;
+  flex-shrink: 0;
+}
+
+.bpmn-mini-legend__dot--success {
+  background: #166534;
+  border-color: #14532d;
+}
+
+.bpmn-mini-legend__dot--active {
+  background: #1e40af;
+  border-color: #1e3a8a;
+  box-shadow: 0 0 6px rgba(30, 64, 175, 0.65);
+}
+
+.bpmn-mini-legend__dot--error {
+  background: #dc2626;
+  border-color: #b91c1c;
+}
+
+.bpmn-mini-legend__dot--pending {
+  background: #f59e0b;
+  border-color: #d97706;
+}
+
+.bpmn-mini-legend__dot--skipped {
+  background: #9ca3af;
+  border-color: #6b7280;
+}
+
+.bpmn-toolbar__actions {
+  display: flex;
+  gap: 0.35rem;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.bpmn-toolbar__actions .MuiButton-root {
+  min-height: 28px;
+  padding: 0.15rem 0.55rem;
+  font-size: 0.72rem;
+}
+
+.bpmn-host .djs-element .djs-visual image,
+.bpmn-host .djs-element .djs-visual foreignObject,
+.bpmn-host .djs-element .djs-visual foreignObject * {
+  pointer-events: none !important;
+}
+
+.bpmn-host .designer-activity-label {
+  pointer-events: none;
+}
+
+.bpmn-host .designer-activity-label text,
+.bpmn-host .designer-activity-label tspan {
+  fill: #1e293b;
+}
+
+.bpmn-host {
+  flex: 1 1 auto;
+  position: relative;
+  width: 100%;
+  min-height: 420px;
+  height: 420px;
+  overflow: hidden;
+  background: #f8fafc;
+  border-radius: 0;
+}
+
+.bpmn-host--compact {
+  flex: 0 0 auto;
+  min-height: 320px;
+  height: 360px;
+  max-height: 42vh;
+}
+
+@media (min-width: 1600px) {
+  .bpmn-host--compact {
+    height: 400px;
+    max-height: 44vh;
+  }
+}
+
+@media (max-height: 800px) {
+  .bpmn-host--compact {
+    height: 300px;
+    min-height: 260px;
+    max-height: 36vh;
+  }
+}
+
+.bpmn-host .djs-container {
+  position: absolute !important;
+  inset: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.bpmn-host .djs-container svg {
+  width: 100%;
+  height: 100%;
+}
+
+.bpmn-root--no-legend .bpmn-host {
+  border-radius: 0 0 12px 12px;
+}
+
+.bpmn-root--compact.bpmn-root--no-legend .bpmn-host--compact {
+  border-radius: 10px;
+}
+
+.bpmn-host svg .djs-element.wf-execution-success .djs-visual rect,
+.bpmn-host svg .djs-element.wf-execution-success .djs-visual circle,
+.bpmn-host svg .djs-element.wf-execution-success .djs-visual polygon,
+.bpmn-host .djs-element.wf-execution-success .djs-visual rect,
+.bpmn-host .djs-element.wf-execution-success .djs-visual circle,
+.bpmn-host .djs-element.wf-execution-success .djs-visual polygon,
+.bpmn-host .djs-element.wf-execution-success .djs-visual path,
+.bpmn-host .djs-element.wf-execution-success .djs-visual > :first-child {
+  stroke: #166534 !important;
+  stroke-width: 3px !important;
+}
+
+.bpmn-host svg .djs-element.wf-execution-success .djs-visual rect,
+.bpmn-host svg .djs-element.wf-execution-success .djs-visual circle,
+.bpmn-host svg .djs-element.wf-execution-success .djs-visual polygon,
+.bpmn-host .djs-element.wf-execution-success .djs-visual rect,
+.bpmn-host .djs-element.wf-execution-success .djs-visual circle,
+.bpmn-host .djs-element.wf-execution-success .djs-visual polygon {
+  fill: #bbf7d0 !important;
+}
+
+.bpmn-host svg .djs-element.wf-execution-error .djs-visual rect,
+.bpmn-host svg .djs-element.wf-execution-error .djs-visual circle,
+.bpmn-host svg .djs-element.wf-execution-error .djs-visual polygon,
+.bpmn-host .djs-element.wf-execution-error .djs-visual rect,
+.bpmn-host .djs-element.wf-execution-error .djs-visual circle,
+.bpmn-host .djs-element.wf-execution-error .djs-visual polygon,
+.bpmn-host .djs-element.wf-execution-error .djs-visual path,
+.bpmn-host .djs-element.wf-execution-error .djs-visual > :first-child {
+  stroke: #dc2626 !important;
+  stroke-width: 3px !important;
+}
+
+.bpmn-host svg .djs-element.wf-execution-error .djs-visual rect,
+.bpmn-host svg .djs-element.wf-execution-error .djs-visual circle,
+.bpmn-host svg .djs-element.wf-execution-error .djs-visual polygon,
+.bpmn-host .djs-element.wf-execution-error .djs-visual rect,
+.bpmn-host .djs-element.wf-execution-error .djs-visual circle,
+.bpmn-host .djs-element.wf-execution-error .djs-visual polygon {
+  fill: #fecaca !important;
+}
+
+.bpmn-host svg .djs-element.wf-execution-active .djs-visual rect,
+.bpmn-host svg .djs-element.wf-execution-active .djs-visual circle,
+.bpmn-host svg .djs-element.wf-execution-active .djs-visual polygon,
+.bpmn-host .djs-element.wf-execution-active .djs-visual rect,
+.bpmn-host .djs-element.wf-execution-active .djs-visual circle,
+.bpmn-host .djs-element.wf-execution-active .djs-visual polygon,
+.bpmn-host .djs-element.wf-execution-active .djs-visual path,
+.bpmn-host .djs-element.wf-execution-active .djs-visual > :first-child {
+  stroke: #1e40af !important;
+  stroke-width: 3px !important;
+}
+
+.bpmn-host svg .djs-element.wf-execution-active .djs-visual rect,
+.bpmn-host svg .djs-element.wf-execution-active .djs-visual circle,
+.bpmn-host svg .djs-element.wf-execution-active .djs-visual polygon,
+.bpmn-host .djs-element.wf-execution-active .djs-visual rect,
+.bpmn-host .djs-element.wf-execution-active .djs-visual circle,
+.bpmn-host .djs-element.wf-execution-active .djs-visual polygon {
+  fill: #93c5fd !important;
+  filter: drop-shadow(0 0 8px rgba(30, 64, 175, 0.55));
+}
+
+.bpmn-host svg .djs-element.wf-execution-pending .djs-visual rect,
+.bpmn-host svg .djs-element.wf-execution-pending .djs-visual circle,
+.bpmn-host svg .djs-element.wf-execution-pending .djs-visual polygon,
+.bpmn-host .djs-element.wf-execution-pending .djs-visual rect,
+.bpmn-host .djs-element.wf-execution-pending .djs-visual circle,
+.bpmn-host .djs-element.wf-execution-pending .djs-visual polygon,
+.bpmn-host .djs-element.wf-execution-pending .djs-visual path,
+.bpmn-host .djs-element.wf-execution-pending .djs-visual > :first-child {
+  stroke: #d97706 !important;
+  stroke-width: 2px !important;
+}
+
+.bpmn-host svg .djs-element.wf-execution-pending .djs-visual rect,
+.bpmn-host svg .djs-element.wf-execution-pending .djs-visual circle,
+.bpmn-host svg .djs-element.wf-execution-pending .djs-visual polygon,
+.bpmn-host .djs-element.wf-execution-pending .djs-visual rect,
+.bpmn-host .djs-element.wf-execution-pending .djs-visual circle,
+.bpmn-host .djs-element.wf-execution-pending .djs-visual polygon {
+  fill: #fef3c7 !important;
+}
+
+.bpmn-host svg .djs-element.wf-execution-skipped .djs-visual rect,
+.bpmn-host svg .djs-element.wf-execution-skipped .djs-visual circle,
+.bpmn-host svg .djs-element.wf-execution-skipped .djs-visual polygon,
+.bpmn-host .djs-element.wf-execution-skipped .djs-visual rect,
+.bpmn-host .djs-element.wf-execution-skipped .djs-visual circle,
+.bpmn-host .djs-element.wf-execution-skipped .djs-visual polygon,
+.bpmn-host .djs-element.wf-execution-skipped .djs-visual path,
+.bpmn-host .djs-element.wf-execution-skipped .djs-visual > :first-child {
+  stroke: #6b7280 !important;
+  stroke-width: 2px !important;
+}
+
+.bpmn-host svg .djs-element.wf-execution-skipped .djs-visual rect,
+.bpmn-host svg .djs-element.wf-execution-skipped .djs-visual circle,
+.bpmn-host svg .djs-element.wf-execution-skipped .djs-visual polygon,
+.bpmn-host .djs-element.wf-execution-skipped .djs-visual rect,
+.bpmn-host .djs-element.wf-execution-skipped .djs-visual circle,
+.bpmn-host .djs-element.wf-execution-skipped .djs-visual polygon {
+  fill: #e5e7eb !important;
+}
+
+/* Operator selection (Graphical Log) — outline only; does not replace execution colors */
+.bpmn-host svg .djs-element.wf-selected .djs-visual > :first-child,
+.bpmn-host .djs-element.wf-selected .djs-visual > :first-child {
+  stroke: #0f766e !important;
+  stroke-width: 4px !important;
+  stroke-dasharray: none !important;
+}
+
+.bpmn-host .djs-element.wf-selected {
+  outline: 2px solid #0f766e;
+  outline-offset: 2px;
+}

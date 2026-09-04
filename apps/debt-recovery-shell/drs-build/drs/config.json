@@ -1,0 +1,13 @@
+{
+  "BASE_API_PATH": "http://10.141.51.105:8003/allocation/",
+  "BASE_FOLLOWUP_API_PATH": "http://10.141.51.105:8003/followup/",
+  "BASE_RULEENINGE_API_PATH": "http://10.141.51.105:8767/ruleengine-service/api/",
+  "BASE_KEYCLOAK_API_PATH": "http://10.141.51.105:8007/user-management/keycloak-api/",
+  "BASE_HELIX_EARLY_COLLECTIONS_API_PATH": "http://10.141.182.196:8025/earlyCollections/api/",
+  "BASE_HELIX_COL_LISTING_API_PATH": "http://10.141.182.196:8025/collection-listing/api/col-listing/",
+  "BASE_UTILITY_API_PATH": "http://10.141.51.105:8008/communication-service/",
+  "BASE_INTEGRATION_FRAMEWORK_API_PATH": "http://10.141.51.105:8082/integration-api/",
+  "BASE_DMS_API_PATH": "http://10.165.187.17:4080/dms-service/",
+  "LOG_LEVEL": "debug",
+  "ENV": "105"
+}

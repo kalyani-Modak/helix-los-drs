@@ -1,0 +1,13 @@
+packages:
+  - apps/*
+  - shared/*
+  - products/*/modules/*
+
+allowBuilds:
+  core-js: false
+  esbuild: false
+  unrs-resolver: false
+
+onlyBuiltDependencies:
+  - core-js
+  - esbuild

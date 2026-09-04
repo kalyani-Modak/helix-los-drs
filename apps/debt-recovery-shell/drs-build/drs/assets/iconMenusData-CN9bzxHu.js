@@ -1,0 +1,31 @@
+const iconMenus = {
+  icons: [
+    {
+      iconId: 1,
+      name: "los",
+      imageName: "los.png"
+    },
+    {
+      iconId: 2,
+      name: "collections",
+      imageName: "collections.png"
+    },
+    {
+      iconId: 3,
+      name: "Notification",
+      imageName: "Notification.png"
+    },
+    {
+      iconId: 4,
+      name: "Ic_My_Loan",
+      imageName: "Ic_My_Loan.png"
+    }
+  ]
+};
+const iconMenusData = {
+  iconMenus
+};
+export {
+  iconMenusData as default,
+  iconMenus
+};

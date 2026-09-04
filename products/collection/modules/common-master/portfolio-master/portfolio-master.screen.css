@@ -1,0 +1,146 @@
+/* Portfolio Master — layout only; colors/typography from theme + HAgGrid.css */
+
+.portfolio-master-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.portfolio-master-header-card {
+  padding: 16px var(--portfolio-master-gutter, 24px) 12px;
+  border-bottom: 1px solid var(--drs-border-divider, hsl(215 14% 90%));
+  background: var(--drs-bg-paper, hsl(0 0% 100%));
+}
+
+.portfolio-master-breadcrumb {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 8px;
+  font-size: 12px;
+  line-height: 1.35;
+}
+
+.portfolio-master-bc-link {
+  color: var(--drs-text-secondary, hsl(215 14% 46%));
+  text-decoration: none;
+  padding: 0;
+  margin: 0;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: inherit;
+  font-family: inherit;
+}
+
+
+.portfolio-master-bc-sep {
+  color: var(--drs-text-secondary, hsl(215 14% 46%));
+  user-select: none;
+  opacity: 0.85;
+  font-size: 11px;
+  padding: 0 2px;
+}
+
+.portfolio-master-bc-current {
+  color: var(--drs-text-primary, hsl(220 20% 10%));
+  font-weight: 500;
+}
+
+.portfolio-master-header-card .portfolio-master-description {
+  margin: 6px 0 0 0;
+  padding: 0;
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--drs-text-secondary, hsl(215, 14%, 46%));
+}
+
+.portfolio-master-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  padding: 8px var(--portfolio-master-gutter, 24px) 12px;
+}
+
+.portfolio-master-search-wrap {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 10px;
+  width: auto;
+  max-width: 100%;
+}
+
+.portfolio-master-search-label {
+  flex: 0 0 auto;
+}
+
+.portfolio-master-search-field {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.portfolio-master-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  gap: 16px 24px;
+  padding: 4px var(--portfolio-master-gutter, 24px) 16px;
+}
+
+.portfolio-master-field {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
+.portfolio-master-field-checkbox {
+  align-items: center;
+}
+
+.portfolio-master-grid-edit-hint {
+  flex: 1 1 100%;
+  font-size: 11px;
+  line-height: 1.35;
+  color: var(--drs-text-secondary, hsl(215, 14%, 46%));
+}
+
+.portfolio-master-idle-hint {
+  font-size: 12px;
+  line-height: 1.45;
+  color: var(--drs-text-secondary, hsl(215, 14%, 46%));
+  flex: 1 1 200px;
+}
+
+.portfolio-master-grid-wrap {
+  flex: 1 1 auto;
+  min-height: 44vh;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+@media (max-width: 720px) {
+  .portfolio-master-toolbar,
+  .portfolio-master-form {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .portfolio-master-search-wrap {
+    flex-wrap: wrap;
+    align-items: flex-start;
+    width: 100%;
+  }
+
+  .portfolio-master-search-field .MuiTextField-root,
+  .portfolio-master-search-field input {
+    max-width: 100%;
+  }
+}

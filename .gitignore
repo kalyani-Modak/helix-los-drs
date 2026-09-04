@@ -1,0 +1,6 @@
+**/monoRepoDebtSuite@tmp/durable-*/jenkins-log.txt
+tmp/**
+monoRepoDebtSuite@tmp/**
+monoRepoDebtSuite@tmp/
+monoRepoDebtSuite@tmp/
+node_modules/

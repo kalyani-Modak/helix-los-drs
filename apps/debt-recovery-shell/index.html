@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Debt Recovery</title>
+    <link rel="icon" href="favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <base href="/drs/" />
+    <meta
+      http-equiv="Content-Security-Policy"
+      content="
+      default-src 'self' %VITE_CSP_CONNECT_ORIGIN%;
+      connect-src 'self' %VITE_CSP_CONNECT_ORIGIN%;
+      script-src 'self' %VITE_CSP_CONNECT_ORIGIN%;
+      script-src-elem 'self' %VITE_CSP_CONNECT_ORIGIN%;
+      img-src 'self' data: blob:;
+      style-src 'self' 'nonce-__CSP_STYLE_NONCE__';
+      style-src-elem 'self' 'nonce-__CSP_STYLE_NONCE__';
+      font-src 'self' data: 'nonce-__CSP_STYLE_NONCE__';
+      object-src 'none';
+      base-uri 'self';
+      form-action 'self';
+      frame-src 'self' blob: %VITE_CSP_CONNECT_ORIGIN%;
+      media-src 'none';
+      worker-src 'self';
+      manifest-src 'self';
+      block-all-mixed-content;
+      "
+    />
+    <meta property="csp-nonce" nonce="__CSP_STYLE_NONCE__" />
+
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.jsx"></script>
+  </body>
+</html>

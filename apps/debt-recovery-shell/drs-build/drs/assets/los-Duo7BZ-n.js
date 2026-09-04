@@ -1,0 +1,30 @@
+const los = [
+  {
+    id: 201,
+    description: "Learning outcome 201",
+    caption: "Change Password"
+  },
+  {
+    id: 202,
+    description: "Learning outcome 202",
+    caption: "Preferences"
+  },
+  {
+    id: 203,
+    description: "This is collection 3",
+    caption: "Switch Profiles"
+  },
+  {
+    id: 204,
+    description: "This is collection 4",
+    caption: "Announcement"
+  },
+  {
+    id: 205,
+    description: "This is collection 5",
+    caption: "Landing Page"
+  }
+];
+export {
+  los as default
+};

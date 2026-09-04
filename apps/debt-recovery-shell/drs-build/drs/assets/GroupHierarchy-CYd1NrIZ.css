@@ -1,0 +1,326 @@
+/* Group Hierarchy — layout/sizing via --drs-* tokens; no color/font overrides in JSX */
+
+.group-hierarchy-page {
+  display: flex;
+  flex-direction: column;
+  min-height: 100%;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.group-hierarchy-header-card {
+  padding: 16px var(--group-hierarchy-gutter, 24px) 12px;
+}
+
+.group-hierarchy-header-card .group-hierarchy-description {
+  margin: 6px 0 0 0;
+  padding: 0;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.group-hierarchy-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 16px;
+  padding: 8px var(--group-hierarchy-gutter, 24px) 12px;
+}
+
+.group-hierarchy-search-wrap {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 10px;
+}
+
+.group-hierarchy-search-label {
+  flex: 0 0 auto;
+}
+
+.group-hierarchy-search-field {
+  flex: 0 1 auto;
+  min-width: 0;
+}
+
+.group-hierarchy-active-filter {
+  display: flex;
+  align-items: center;
+}
+
+.group-hierarchy-grid-wrap {
+  flex: 1 1 auto;
+  min-height: 44vh;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0 var(--group-hierarchy-gutter, 24px) 72px;
+}
+
+.group-hierarchy-definition-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 8px;
+  margin: 0;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  font-size: 12px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.group-hierarchy-definition-link:hover {
+  text-decoration: underline;
+}
+
+/* Definition drawer */
+.group-hierarchy-drawer-paper {
+  width: 100%;
+  max-width: 560px;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.group-hierarchy-drawer-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 16px 20px;
+}
+
+.group-hierarchy-drawer-title-block {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.group-hierarchy-drawer-subtitle {
+  font-size: 12px;
+  line-height: 1.4;
+}
+
+.group-hierarchy-chip-strip {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 20px 0;
+}
+
+.group-hierarchy-chip-row {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.group-hierarchy-chip {
+  font-size: 11px;
+  font-weight: 500;
+  padding: 2px 8px;
+  border-radius: 999px;
+}
+
+.group-hierarchy-chip-sep {
+  font-size: 11px !important;
+}
+
+.group-hierarchy-drawer-body {
+  flex: 1 1 auto;
+  overflow: auto;
+  padding: 16px 20px;
+}
+
+.group-hierarchy-drawer-helper {
+  margin: 0 0 12px 0;
+  font-size: 11px;
+  line-height: 1.45;
+}
+
+.group-hierarchy-drawer-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 20px;
+}
+
+.group-hierarchy-drawer-footer-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.group-hierarchy-footer-warn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+}
+
+.group-hierarchy-footer-muted {
+  font-size: 11px;
+}
+
+/* Level ladder */
+.group-hierarchy-ladder {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.group-hierarchy-ladder-connector {
+  position: absolute;
+  left: 15px;
+  top: 16px;
+  bottom: 48px;
+  width: 1px;
+  pointer-events: none;
+}
+
+.group-hierarchy-ladder-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.group-hierarchy-ladder-item {
+  position: relative;
+  padding-left: 40px;
+}
+
+.group-hierarchy-ladder-dot {
+  position: absolute;
+  left: 9px;
+  top: 16px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  box-sizing: border-box;
+}
+
+
+
+.group-hierarchy-ladder-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 8px;
+}
+
+
+
+.group-hierarchy-ladder-card-body {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.group-hierarchy-level-badge span {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.group-hierarchy-ladder-fields {
+  flex: 1 1 auto;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px 12px;
+  min-width: 0;
+}
+
+.group-hierarchy-ladder-field {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.group-hierarchy-ladder-field .hlabel,
+.group-hierarchy-ladder-field label {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.group-hierarchy-ladder-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 0 0 auto;
+}
+
+.group-hierarchy-ladder-warn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+}
+
+.group-hierarchy-ladder-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  padding: 32px 16px;
+  border-radius: 8px;
+  text-align: center;
+}
+
+.group-hierarchy-ladder-add {
+  padding-left: 40px;
+  margin-top: 4px;
+}
+
+.group-hierarchy-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  margin: 0;
+  border: none;
+  border-radius: 4px;
+  background: transparent;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+
+
+.group-hierarchy-icon-btn:disabled {
+  opacity: 0.3;
+  cursor: default;
+}
+
+
+
+@media (max-width: 720px) {
+  .group-hierarchy-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .group-hierarchy-ladder-fields {
+    grid-template-columns: 1fr;
+  }
+
+  .group-hierarchy-drawer-paper {
+    max-width: 100%;
+  }
+}
