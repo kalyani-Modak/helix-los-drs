@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useIntl } from "react-intl";
 import { useLocation, useNavigate } from "react-router-dom";
+import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
 
 import {
   HAccordion,
@@ -639,8 +640,8 @@ const newCustomId = () =>
   typeof crypto !== "undefined" && crypto.randomUUID
     ? crypto.randomUUID()
     : `custom-${Date.now()}-${Math.random()
-        .toString(36)
-        .slice(2, 10)}`;
+      .toString(36)
+      .slice(2, 10)}`;
 
 const flattenItems = (families = []) =>
   families.flatMap((family) => family.items || []);
@@ -734,7 +735,7 @@ const ApplicationDocumentUpload = () => {
   const [applicationNo, setApplicationNo] =
     useState(
       incomingApplicationNo ||
-        MOCK_DOCUMENT_DATA.applicationNo
+      MOCK_DOCUMENT_DATA.applicationNo
     );
 
   const [stageOptions, setStageOptions] =
@@ -765,9 +766,9 @@ const ApplicationDocumentUpload = () => {
   const [applicableFor, setApplicableFor] =
     useState(
       location.state?.applicableFor ||
-        MOCK_DOCUMENT_DATA.applicableFor ||
-        applicantOptions[0]?.value ||
-        ALL_BORROWERS
+      MOCK_DOCUMENT_DATA.applicableFor ||
+      applicantOptions[0]?.value ||
+      ALL_BORROWERS
     );
 
   const [stage, setStage] = useState(
@@ -854,7 +855,7 @@ const ApplicationDocumentUpload = () => {
           (family) => {
             if (
               next[
-                family.docFamilyCode
+              family.docFamilyCode
               ] === undefined
             ) {
               next[
@@ -985,10 +986,10 @@ const ApplicationDocumentUpload = () => {
       } catch (error) {
         toast.error(
           error?.message ||
-            t(
-              "label.docupload.msg.loadFailed",
-              "Unable to load document masters"
-            )
+          t(
+            "label.docupload.msg.loadFailed",
+            "Unable to load document masters"
+          )
         );
       }
     },
@@ -1059,23 +1060,23 @@ const ApplicationDocumentUpload = () => {
         const payload =
           incomingApplicationNo
             ? unwrapApiResponse(
-                await HAxiosService.GET(
-                  LosDocumentAPI.getByAppNo(
-                    incomingApplicationNo,
-                    stage,
-                    customerType,
-                    applicableFor
-                  )
+              await HAxiosService.GET(
+                LosDocumentAPI.getByAppNo(
+                  incomingApplicationNo,
+                  stage,
+                  customerType,
+                  applicableFor
                 )
               )
+            )
             : unwrapApiResponse(
-                await HAxiosService.GET(
-                  LosDocumentAPI.checklist(
-                    stage,
-                    customerType
-                  )
+              await HAxiosService.GET(
+                LosDocumentAPI.checklist(
+                  stage,
+                  customerType
                 )
-              );
+              )
+            );
 
         applyFamilies(payload);
 
@@ -1085,10 +1086,10 @@ const ApplicationDocumentUpload = () => {
       } catch (error) {
         toast.error(
           error?.message ||
-            t(
-              "label.docupload.msg.loadFailed",
-              "Unable to load document checklist"
-            )
+          t(
+            "label.docupload.msg.loadFailed",
+            "Unable to load document checklist"
+          )
         );
       }
     }, [
@@ -1129,9 +1130,9 @@ const ApplicationDocumentUpload = () => {
           ).map((item) =>
             item.itemId === itemId
               ? {
-                  ...item,
-                  ...patch,
-                }
+                ...item,
+                ...patch,
+              }
               : item
           ),
         }))
@@ -1221,7 +1222,7 @@ const ApplicationDocumentUpload = () => {
 
         szreceivedyn:
           status ===
-          STATUS.RECEIVED
+            STATUS.RECEIVED
             ? "Y"
             : "N",
 
@@ -1368,17 +1369,17 @@ const ApplicationDocumentUpload = () => {
         prev.map(
           (row) =>
             row.docFamilyCode ===
-            family.docFamilyCode
+              family.docFamilyCode
               ? {
-                  ...row,
+                ...row,
 
-                  items: [
-                    ...(row.items ||
-                      []),
+                items: [
+                  ...(row.items ||
+                    []),
 
-                    item,
-                  ],
-                }
+                  item,
+                ],
+              }
               : row
         )
     );
@@ -1426,10 +1427,10 @@ const ApplicationDocumentUpload = () => {
         } catch (error) {
           toast.error(
             error?.message ||
-              t(
-                "label.docupload.msg.deleteFailed",
-                "Unable to delete document"
-              )
+            t(
+              "label.docupload.msg.deleteFailed",
+              "Unable to delete document"
+            )
           );
 
           return;
@@ -1518,7 +1519,7 @@ const ApplicationDocumentUpload = () => {
            */
           status:
             item.status ===
-            STATUS.PENDING
+              STATUS.PENDING
               ? STATUS.RECEIVED
               : item.status,
 
@@ -1574,7 +1575,7 @@ const ApplicationDocumentUpload = () => {
 
           status:
             item.status ===
-            STATUS.RECEIVED
+              STATUS.RECEIVED
               ? STATUS.PENDING
               : item.status,
 
@@ -1638,7 +1639,7 @@ const ApplicationDocumentUpload = () => {
         const binary =
           atob(
             data.contentBase64 ||
-              ""
+            ""
           );
 
         const bytes =
@@ -1687,10 +1688,10 @@ const ApplicationDocumentUpload = () => {
       } catch (error) {
         toast.error(
           error?.message ||
-            t(
-              "label.docupload.preview.unavailable",
-              "No preview available"
-            )
+          t(
+            "label.docupload.preview.unavailable",
+            "No preview available"
+          )
         );
       }
     };
@@ -1864,13 +1865,13 @@ const ApplicationDocumentUpload = () => {
 
                   szreceivedyn:
                     item.status ===
-                    STATUS.RECEIVED
+                      STATUS.RECEIVED
                       ? "Y"
                       : "N",
 
                   szwaivedyn:
                     item.status ===
-                    STATUS.WAIVED
+                      STATUS.WAIVED
                       ? "Y"
                       : "N",
 
@@ -1883,7 +1884,7 @@ const ApplicationDocumentUpload = () => {
 
                   szdifferyn:
                     item.status ===
-                    STATUS.DEFERRED
+                      STATUS.DEFERRED
                       ? "Y"
                       : "N",
 
@@ -2017,7 +2018,7 @@ const ApplicationDocumentUpload = () => {
 
           applyFamilies(
             refreshed ||
-              saved
+            saved
           );
 
           setPendingFiles(
@@ -2037,10 +2038,10 @@ const ApplicationDocumentUpload = () => {
         } catch (error) {
           toast.error(
             error?.message ||
-              t(
-                "label.docupload.msg.saveFailed",
-                "Save failed"
-              )
+            t(
+              "label.docupload.msg.saveFailed",
+              "Save failed"
+            )
           );
 
           return {
@@ -2169,120 +2170,120 @@ const ApplicationDocumentUpload = () => {
               Applicable for | Stage | Customer Type
               ================================================== */}
 
- <HBox
-  style={{
-    display: "flex",
-    flexDirection: "row",
-    alignItems: "center",
-    width: "100%",
-  }}
->
-  {/* APPLICABLE FOR */}
-  <HBox
-    style={{
-      display: "flex",
-      flexDirection: "row",
-      alignItems: "center",
-      width: "33.33%",
-      paddingRight: "12px",
-      boxSizing: "border-box",
-    }}
-  >
-    <HLabel
-      value="label.docupload.field.applicableFor"
-      required
-      align="left"
-      colon={false}
-      style={{
-        width: "95px",
-        minWidth: "95px",
-        whiteSpace: "nowrap",
-        marginRight: "10px",
-      }}
-    />
+          <HBox
+            style={{
+              display: "flex",
+              flexDirection: "row",
+              alignItems: "center",
+              width: "100%",
+            }}
+          >
+            {/* APPLICABLE FOR */}
+            <HBox
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                width: "33.33%",
+                paddingRight: "12px",
+                boxSizing: "border-box",
+              }}
+            >
+              <HLabel
+                value="label.docupload.field.applicableFor"
+                required
+                align="left"
+                colon={false}
+                style={{
+                  width: "95px",
+                  minWidth: "95px",
+                  whiteSpace: "nowrap",
+                  marginRight: "10px",
+                }}
+              />
 
-    <HDropdown
-      name="applicableFor"
-      options={applicantOptions}
-      value={applicableFor}
-      onChange={(e) =>
-        setApplicableFor(e.target.value)
-      }
-      width="220px"
-    />
-  </HBox>
-
-
-  {/* STAGE */}
-  <HBox
-    style={{
-      display: "flex",
-      flexDirection: "row",
-      alignItems: "center",
-      width: "33.33%",
-      paddingRight: "12px",
-      boxSizing: "border-box",
-    }}
-  >
-    <HLabel
-      value="label.docupload.field.stage"
-      required
-      align="left"
-      colon={false}
-      style={{
-        width: "55px",
-        minWidth: "55px",
-        whiteSpace: "nowrap",
-        marginRight: "10px",
-      }}
-    />
-
-    <HDropdown
-      name="stage"
-      options={stageOptions}
-      value={stage}
-      onChange={(e) =>
-        setStage(e.target.value)
-      }
-      width="220px"
-    />
-  </HBox>
+              <HDropdown
+                name="applicableFor"
+                options={applicantOptions}
+                value={applicableFor}
+                onChange={(e) =>
+                  setApplicableFor(e.target.value)
+                }
+                width="220px"
+              />
+            </HBox>
 
 
-  {/* CUSTOMER TYPE */}
-  <HBox
-    style={{
-      display: "flex",
-      flexDirection: "row",
-      alignItems: "center",
-      width: "33.33%",
-      boxSizing: "border-box",
-    }}
-  >
-    <HLabel
-      value="label.docupload.field.customerType"
-      required
-      align="left"
-      colon={false}
-      style={{
-        width: "95px",
-        minWidth: "95px",
-        whiteSpace: "nowrap",
-        marginRight: "10px",
-      }}
-    />
+            {/* STAGE */}
+            <HBox
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                width: "33.33%",
+                paddingRight: "12px",
+                boxSizing: "border-box",
+              }}
+            >
+              <HLabel
+                value="label.docupload.field.stage"
+                required
+                align="left"
+                colon={false}
+                style={{
+                  width: "55px",
+                  minWidth: "55px",
+                  whiteSpace: "nowrap",
+                  marginRight: "10px",
+                }}
+              />
 
-    <HDropdown
-      name="customerType"
-      options={customerTypeOptions}
-      value={customerType}
-      onChange={(e) =>
-        setCustomerType(e.target.value)
-      }
-      width="220px"
-    />
-  </HBox>
-</HBox>
+              <HDropdown
+                name="stage"
+                options={stageOptions}
+                value={stage}
+                onChange={(e) =>
+                  setStage(e.target.value)
+                }
+                width="220px"
+              />
+            </HBox>
+
+
+            {/* CUSTOMER TYPE */}
+            <HBox
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                width: "33.33%",
+                boxSizing: "border-box",
+              }}
+            >
+              <HLabel
+                value="label.docupload.field.customerType"
+                required
+                align="left"
+                colon={false}
+                style={{
+                  width: "95px",
+                  minWidth: "95px",
+                  whiteSpace: "nowrap",
+                  marginRight: "10px",
+                }}
+              />
+
+              <HDropdown
+                name="customerType"
+                options={customerTypeOptions}
+                value={customerType}
+                onChange={(e) =>
+                  setCustomerType(e.target.value)
+                }
+                width="220px"
+              />
+            </HBox>
+          </HBox>
 
           {/* ==================================================
               CHECKLIST HEADER
@@ -2323,424 +2324,423 @@ const ApplicationDocumentUpload = () => {
               DOCUMENT FAMILIES
               ================================================== */}
 
-       {families.map((family) => (
-  <HBox
-    key={family.docFamilyCode}
-    style={{
-      border: "1px solid #e0c5d3",
-      borderRadius: "6px",
-      marginBottom: "12px",
-      overflow: "hidden",
-      width: "100%",
-    }}
-  >
-
-    {/* ==================================================
-        FAMILY HEADER
-        ================================================== */}
-
-    <HBox
-      style={{
-        display: "flex",
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        width: "100%",
-        padding: "8px 12px",
-        boxSizing: "border-box",
-        backgroundColor: "#f4f9fa",
-        borderBottom: "1px solid #e0c5d3",
-      }}
-    >
-
-      {/* Section title */}
-
-      <HLabel
-        value={family.docFamilyName}
-        translate={false}
-        align="left"
-        colon={false}
-        style={{
-          fontWeight: 600,
-        }}
-      />
-
-      {/* Add Document */}
-
-      <HButton
-        label="label.docupload.button.addDocument"
-        variant="outlined"
-        inline
-        onClick={() =>
-          setAddingFor(
-            addingFor === family.docFamilyCode
-              ? ""
-              : family.docFamilyCode
-          )
-        }
-      />
-
-    </HBox>
-
-
-    {/* ==================================================
-        ADD DOCUMENT AREA
-        ================================================== */}
-
-    {addingFor === family.docFamilyCode ? (
-      <HBox
-        style={{
-          display: "flex",
-          flexDirection: "row",
-          alignItems: "center",
-          gap: "8px",
-          padding: "10px 12px",
-          width: "100%",
-          boxSizing: "border-box",
-        }}
-      >
-
-        <HTextField
-          value={newDocName}
-          onChange={(e) =>
-            setNewDocName(e.target.value)
-          }
-          editable
-          placeholder="label.docupload.placeholder.docName"
-          width="100%"
-        />
-
-        <HButton
-          label="label.docupload.button.add"
-          variant="contained"
-          inline
-          onClick={() =>
-            handleAddCustom(family)
-          }
-        />
-
-        <HButton
-          label="label.docupload.button.cancel"
-          variant="outlined"
-          inline
-          onClick={() => {
-            setAddingFor("");
-            setNewDocName("");
-          }}
-        />
-
-      </HBox>
-    ) : null}
-
-
-    {/* ==================================================
-        DOCUMENT LIST
-        ================================================== */}
-
-    <HBox
-      style={{
-        display: "flex",
-        flexDirection: "column",
-        width: "100%",
-      }}
-    >
-
-      {(family.items || []).length === 0 ? (
-        <HLabel
-          value="label.docupload.empty.section"
-          align="left"
-          colon={false}
-        />
-      ) : (
-        (family.items || []).map((item) => (
-          <HBox
-            key={item.itemId}
-            style={{
-              display: "flex",
-              flexDirection: "row",
-              alignItems: "center",
-              width: "100%",
-              padding: "10px 12px",
-              boxSizing: "border-box",
-              borderBottom: "1px solid #eeeeee",
-            }}
-          >
-
-            {/* ========================================
-                DOCUMENT NAME
-                ======================================== */}
-
+          {families.map((family) => (
             <HBox
+              key={family.docFamilyCode}
               style={{
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "flex-start",
-                width: "35%",
-                minWidth: "35%",
+                border: "1px solid #e0c5d3",
+                borderRadius: "6px",
+                marginBottom: "12px",
+                overflow: "hidden",
+                width: "100%",
               }}
             >
 
-              {/* Document icon */}
+              {/* ==================================================
+        FAMILY HEADER
+        ================================================== */}
 
-              <HLabel
-                value="▤"
-                translate={false}
-                align="left"
-                colon={false}
-              />
+              <HBox
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  width: "100%",
+                  padding: "8px 12px",
+                  boxSizing: "border-box",
+                  backgroundColor: "#f4f9fa",
+                  borderBottom: "1px solid #e0c5d3",
+                }}
+              >
 
-              {/* Document information */}
+                {/* Section title */}
+
+                <HLabel
+                  value={family.docFamilyName}
+                  translate={false}
+                  align="left"
+                  colon={false}
+                  style={{
+                    fontWeight: 600,
+                  }}
+                />
+
+                {/* Add Document */}
+
+                <HButton
+                  label="label.docupload.button.addDocument"
+                  variant="outlined"
+                  inline
+                  onClick={() =>
+                    setAddingFor(
+                      addingFor === family.docFamilyCode
+                        ? ""
+                        : family.docFamilyCode
+                    )
+                  }
+                />
+
+              </HBox>
+
+
+              {/* ==================================================
+        ADD DOCUMENT AREA
+        ================================================== */}
+
+              {addingFor === family.docFamilyCode ? (
+                <HBox
+                  style={{
+                    display: "flex",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    gap: "8px",
+                    padding: "10px 12px",
+                    width: "100%",
+                    boxSizing: "border-box",
+                  }}
+                >
+
+                  <HTextField
+                    value={newDocName}
+                    onChange={(e) =>
+                      setNewDocName(e.target.value)
+                    }
+                    editable
+                    placeholder="label.docupload.placeholder.docName"
+                    width="100%"
+                  />
+
+                  <HButton
+                    label="label.docupload.button.add"
+                    variant="contained"
+                    inline
+                    onClick={() =>
+                      handleAddCustom(family)
+                    }
+                  />
+
+                  <HButton
+                    label="label.docupload.button.cancel"
+                    variant="outlined"
+                    inline
+                    onClick={() => {
+                      setAddingFor("");
+                      setNewDocName("");
+                    }}
+                  />
+
+                </HBox>
+              ) : null}
+
+
+              {/* ==================================================
+        DOCUMENT LIST
+        ================================================== */}
 
               <HBox
                 style={{
                   display: "flex",
                   flexDirection: "column",
-                  marginLeft: "8px",
+                  width: "100%",
                 }}
               >
 
-                <HLabel
-                  value={item.docName}
-                  translate={false}
-                  align="left"
-                  colon={false}
-                />
+                {(family.items || []).length === 0 ? (
+                  <HLabel
+                    value="label.docupload.empty.section"
+                    align="left"
+                    colon={false}
+                  />
+                ) : (
+                  (family.items || []).map((item) => (
+                    <HBox
+                      key={item.itemId}
+                      style={{
+                        display: "flex",
+                        flexDirection: "row",
+                        alignItems: "center",
+                        width: "100%",
+                        padding: "10px 12px",
+                        boxSizing: "border-box",
+                        borderBottom: "1px solid #eeeeee",
+                      }}
+                    >
 
-                <HLabel
-                  value={
-                    item.custom
-                      ? "Custom"
-                      : "System generated"
-                  }
-                  translate={false}
-                  align="left"
-                  colon={false}
-                />
+                      {/* ========================================
+                DOCUMENT NAME
+                ======================================== */}
+
+                      <HBox
+                        style={{
+                          display: "flex",
+                          flexDirection: "row",
+                          alignItems: "flex-start",
+                          width: "35%",
+                          minWidth: "35%",
+                        }}
+                      >
+
+                        {/* Document icon */}
+
+                        <DescriptionOutlinedIcon
+                          sx={{
+                            fontSize: 20,
+                            marginTop: "2px",
+                          }}
+                        />
+
+                        {/* Document information */}
+
+                        <HBox
+                          style={{
+                            display: "flex",
+                            flexDirection: "column",
+                            marginLeft: "8px",
+                          }}
+                        >
+
+                          <HLabel
+                            value={item.docName}
+                            translate={false}
+                            align="left"
+                            colon={false}
+                          />
+
+                          <HLabel
+                            value={
+                              item.custom
+                                ? "Custom"
+                                : "System generated"
+                            }
+                            translate={false}
+                            align="left"
+                            colon={false}
+                          />
+
+                        </HBox>
+
+                      </HBox>
+
+
+                      {/* ========================================
+                FILE INPUT
+                ======================================== */}
+
+                      <input
+                        ref={(element) => {
+                          fileInputs.current[item.itemId] =
+                            element;
+                        }}
+                        type="file"
+                        hidden
+                        onChange={(e) => {
+                          handleFilePicked(
+                            item,
+                            e.target.files?.[0]
+                          );
+
+                          /*
+                           * Allow selecting
+                           * the same file again.
+                           */
+                          e.target.value = "";
+                        }}
+                      />
+
+
+                      {/* ========================================
+                UPLOAD
+                ======================================== */}
+
+                      <HBox
+                        style={{
+                          display: "flex",
+                          flexDirection: "row",
+                          alignItems: "center",
+                          gap: "8px",
+                          width: "65%",
+                        }}
+                      >
+
+                        <HButton
+                          label={
+                            item.fileName
+                              ? "Replace"
+                              : "Upload"
+                          }
+                          translate={false}
+                          variant="outlined"
+                          inline
+                          onClick={() =>
+                            fileInputs.current[
+                              item.itemId
+                            ]?.click()
+                          }
+                        />
+
+
+                        {/* ====================================
+                  RECEIVED
+                  ==================================== */}
+
+                        <HButton
+                          label="Received"
+                          translate={false}
+                          variant={
+                            item.status ===
+                              STATUS.RECEIVED
+                              ? "contained"
+                              : "outlined"
+                          }
+                          inline
+                          onClick={() =>
+                            handleStatusClick(
+                              item,
+                              STATUS.RECEIVED
+                            )
+                          }
+                        />
+
+
+                        {/* ====================================
+                  DEFERRED
+                  ==================================== */}
+
+                        <HButton
+                          label="Deferred"
+                          translate={false}
+                          variant={
+                            item.status ===
+                              STATUS.DEFERRED
+                              ? "contained"
+                              : "outlined"
+                          }
+                          inline
+                          onClick={() =>
+                            handleStatusClick(
+                              item,
+                              STATUS.DEFERRED
+                            )
+                          }
+                        />
+
+
+                        {/* ====================================
+                  WAIVED
+                  ==================================== */}
+
+                        <HButton
+                          label="Waived"
+                          translate={false}
+                          variant={
+                            item.status ===
+                              STATUS.WAIVED
+                              ? "contained"
+                              : "outlined"
+                          }
+                          inline
+                          onClick={() =>
+                            handleStatusClick(
+                              item,
+                              STATUS.WAIVED
+                            )
+                          }
+                        />
+
+
+                        {/* ====================================
+                  STATUS
+                  ==================================== */}
+
+                        <HLabel
+                          value={item.status}
+                          translate={false}
+                          align="left"
+                          colon={false}
+                        />
+
+
+                        {/* ====================================
+                  FILE NAME
+                  ==================================== */}
+
+                        {item.fileName ? (
+                          <HLabel
+                            value={`${item.fileName} ${item.fileSize
+                                ? `(${formatFileSize(
+                                  item.fileSize
+                                )})`
+                                : ""
+                              }`}
+                            translate={false}
+                            align="left"
+                            colon={false}
+                          />
+                        ) : null}
+
+
+                        {/* ====================================
+                  PREVIEW
+                  ==================================== */}
+
+                        {item.hasFile ||
+                          item.fileUrl ? (
+                          <HButton
+                            label="Preview"
+                            translate={false}
+                            variant="outlined"
+                            inline
+                            onClick={() =>
+                              handlePreview(item)
+                            }
+                          />
+                        ) : null}
+
+
+                        {/* ====================================
+                  REMOVE FILE
+                  ==================================== */}
+
+                        {item.fileName ? (
+                          <HButton
+                            label="Remove"
+                            translate={false}
+                            variant="outlined"
+                            inline
+                            onClick={() =>
+                              handleRemoveFile(item)
+                            }
+                          />
+                        ) : null}
+
+
+                        {/* ====================================
+                  DELETE CUSTOM DOCUMENT
+                  ==================================== */}
+
+                        {item.custom ? (
+                          <HButton
+                            label="Delete"
+                            translate={false}
+                            variant="outlined"
+                            inline
+                            onClick={() =>
+                              handleDeleteCustom(item)
+                            }
+                          />
+                        ) : null}
+
+                      </HBox>
+
+                    </HBox>
+                  ))
+                )}
 
               </HBox>
 
             </HBox>
-
-
-            {/* ========================================
-                FILE INPUT
-                ======================================== */}
-
-            <input
-              ref={(element) => {
-                fileInputs.current[item.itemId] =
-                  element;
-              }}
-              type="file"
-              hidden
-              onChange={(e) => {
-                handleFilePicked(
-                  item,
-                  e.target.files?.[0]
-                );
-
-                /*
-                 * Allow selecting
-                 * the same file again.
-                 */
-                e.target.value = "";
-              }}
-            />
-
-
-            {/* ========================================
-                UPLOAD
-                ======================================== */}
-
-            <HBox
-              style={{
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                gap: "8px",
-                width: "65%",
-              }}
-            >
-
-              <HButton
-                label={
-                  item.fileName
-                    ? "Replace"
-                    : "Upload"
-                }
-                translate={false}
-                variant="outlined"
-                inline
-                onClick={() =>
-                  fileInputs.current[
-                    item.itemId
-                  ]?.click()
-                }
-              />
-
-
-              {/* ====================================
-                  RECEIVED
-                  ==================================== */}
-
-              <HButton
-                label="Received"
-                translate={false}
-                variant={
-                  item.status ===
-                  STATUS.RECEIVED
-                    ? "contained"
-                    : "outlined"
-                }
-                inline
-                onClick={() =>
-                  handleStatusClick(
-                    item,
-                    STATUS.RECEIVED
-                  )
-                }
-              />
-
-
-              {/* ====================================
-                  DEFERRED
-                  ==================================== */}
-
-              <HButton
-                label="Deferred"
-                translate={false}
-                variant={
-                  item.status ===
-                  STATUS.DEFERRED
-                    ? "contained"
-                    : "outlined"
-                }
-                inline
-                onClick={() =>
-                  handleStatusClick(
-                    item,
-                    STATUS.DEFERRED
-                  )
-                }
-              />
-
-
-              {/* ====================================
-                  WAIVED
-                  ==================================== */}
-
-              <HButton
-                label="Waived"
-                translate={false}
-                variant={
-                  item.status ===
-                  STATUS.WAIVED
-                    ? "contained"
-                    : "outlined"
-                }
-                inline
-                onClick={() =>
-                  handleStatusClick(
-                    item,
-                    STATUS.WAIVED
-                  )
-                }
-              />
-
-
-              {/* ====================================
-                  STATUS
-                  ==================================== */}
-
-              <HLabel
-                value={item.status}
-                translate={false}
-                align="left"
-                colon={false}
-              />
-
-
-              {/* ====================================
-                  FILE NAME
-                  ==================================== */}
-
-              {item.fileName ? (
-                <HLabel
-                  value={`${item.fileName} ${
-                    item.fileSize
-                      ? `(${formatFileSize(
-                          item.fileSize
-                        )})`
-                      : ""
-                  }`}
-                  translate={false}
-                  align="left"
-                  colon={false}
-                />
-              ) : null}
-
-
-              {/* ====================================
-                  PREVIEW
-                  ==================================== */}
-
-              {item.hasFile ||
-              item.fileUrl ? (
-                <HButton
-                  label="Preview"
-                  translate={false}
-                  variant="outlined"
-                  inline
-                  onClick={() =>
-                    handlePreview(item)
-                  }
-                />
-              ) : null}
-
-
-              {/* ====================================
-                  REMOVE FILE
-                  ==================================== */}
-
-              {item.fileName ? (
-                <HButton
-                  label="Remove"
-                  translate={false}
-                  variant="outlined"
-                  inline
-                  onClick={() =>
-                    handleRemoveFile(item)
-                  }
-                />
-              ) : null}
-
-
-              {/* ====================================
-                  DELETE CUSTOM DOCUMENT
-                  ==================================== */}
-
-              {item.custom ? (
-                <HButton
-                  label="Delete"
-                  translate={false}
-                  variant="outlined"
-                  inline
-                  onClick={() =>
-                    handleDeleteCustom(item)
-                  }
-                />
-              ) : null}
-
-            </HBox>
-
-          </HBox>
-        ))
-      )}
-
-    </HBox>
-
-  </HBox>
-))}
+          ))}
 
         </HPaper>
 
@@ -2804,12 +2804,12 @@ const ApplicationDocumentUpload = () => {
       >
 
         {preview?.fileUrl &&
-        (
-          preview.fileType ||
-          ""
-        ).startsWith(
-          "image/"
-        ) ? (
+          (
+            preview.fileType ||
+            ""
+          ).startsWith(
+            "image/"
+          ) ? (
           <img
             src={
               preview.fileUrl
@@ -3132,8 +3132,8 @@ const ApplicationDocumentUpload = () => {
           value={
             deferDialog?.date
               ? dayjs(
-                  deferDialog.date
-                )
+                deferDialog.date
+              )
               : null
           }
           onChange={(value) =>
@@ -3143,8 +3143,8 @@ const ApplicationDocumentUpload = () => {
 
                 date: value
                   ? value.format(
-                      "YYYY-MM-DD"
-                    )
+                    "YYYY-MM-DD"
+                  )
                   : "",
               })
             )
