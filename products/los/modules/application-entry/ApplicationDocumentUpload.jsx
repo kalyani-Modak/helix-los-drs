@@ -36,7 +36,6 @@ import { unwrapApiResponse } from "./unwrapApiResponse";
  */
 const USE_MOCK_DATA = true;
 
-const ALL_BORROWERS = "ALL_BORROWERS";
 
 const STATUS = {
   PENDING: "Pending",
@@ -107,9 +106,7 @@ const MOCK_WAIVE_REASON_OPTIONS = [
    ============================================================ */
 
 const MOCK_DOCUMENT_DATA = {
-  applicationNo: "APP20260904001",
-  applicableFor: ALL_BORROWERS,
-
+  applicationNo: "A1",
   stage: "PRE_SUBMISSION",
 
   customerType: "SALARIED",
@@ -634,6 +631,7 @@ const toDropdownOptions = (rows = []) =>
   (Array.isArray(rows) ? rows : []).map((row) => ({
     label: row.label || row.value,
     value: row.value,
+    customerType: row.customerType || "",
   }));
 
 const newCustomId = () =>
@@ -673,16 +671,15 @@ const ApplicationDocumentUpload = () => {
 
   const screenMenuId = location.state?.menuId;
 
-  const incomingApplicationNo =
-    location.state?.applicationNo;
+  const incomingApplicationNo =location.state?.applicationNo;
+  const orgId = location.state?.orgId || "001";
 
-  const borrowerType =
-    location.state?.borrowerType || "Individual";
+  const borrowerType =location.state?.borrowerType || "Individual";
 
   /* ==========================================================
      TRANSLATION HELPER
      ========================================================== */
-
+ 
   const t = useCallback(
     (id, defaultMessage, values) =>
       intl.formatMessage(
@@ -695,121 +692,43 @@ const ApplicationDocumentUpload = () => {
     [intl]
   );
 
-  /* ==========================================================
-     APPLICANT OPTIONS
-     ========================================================== */
 
-  const applicantOptions = useMemo(() => {
-    const fromState = location.state?.applicants;
-
-    if (
-      Array.isArray(fromState) &&
-      fromState.length > 0
-    ) {
-      return fromState.map((name) => ({
-        label: name,
-        value: name,
-      }));
-    }
-
-    return [
-      {
-        label: "Primary Applicant",
-        value: "PRIMARY",
-      },
-      {
-        label: "Co-Applicant",
-        value: "CO_APPLICANT",
-      },
-      {
-        label: "All Borrowers",
-        value: ALL_BORROWERS,
-      },
-    ];
-  }, [location.state?.applicants]);
-
+  
   /* ==========================================================
      STATE
      ========================================================== */
 
-  const [applicationNo, setApplicationNo] =
-    useState(
-      incomingApplicationNo ||
-      MOCK_DOCUMENT_DATA.applicationNo
-    );
+  const [applicationNo, setApplicationNo] = useState(incomingApplicationNo || MOCK_DOCUMENT_DATA.applicationNo );
 
-  const [stageOptions, setStageOptions] =
-    useState(
-      USE_MOCK_DATA
-        ? MOCK_STAGE_OPTIONS
-        : []
-    );
+  const [applicantOptions, setApplicantOptions] = useState([]);
 
-  const [
-    customerTypeOptions,
-    setCustomerTypeOptions,
-  ] = useState(
-    USE_MOCK_DATA
-      ? MOCK_CUSTOMER_TYPE_OPTIONS
-      : []
-  );
+  const [stageOptions, setStageOptions] =useState(USE_MOCK_DATA? MOCK_STAGE_OPTIONS: []);
 
-  const [
-    waiveReasonOptions,
-    setWaiveReasonOptions,
-  ] = useState(
-    USE_MOCK_DATA
-      ? MOCK_WAIVE_REASON_OPTIONS
-      : []
-  );
+  const [waiveReasonOptions,setWaiveReasonOptions,] = useState(USE_MOCK_DATA? MOCK_WAIVE_REASON_OPTIONS: []);
 
-  const [applicableFor, setApplicableFor] =
-    useState(
-      location.state?.applicableFor ||
-      MOCK_DOCUMENT_DATA.applicableFor ||
-      applicantOptions[0]?.value ||
-      ALL_BORROWERS
-    );
+  const [applicableFor, setApplicableFor] =useState("");
 
-  const [stage, setStage] = useState(
-    USE_MOCK_DATA
-      ? MOCK_DOCUMENT_DATA.stage
-      : ""
-  );
+  const [stage, setStage] = useState(USE_MOCK_DATA? MOCK_DOCUMENT_DATA.stage: "");
 
-  const [customerType, setCustomerType] =
-    useState(
-      USE_MOCK_DATA
-        ? MOCK_DOCUMENT_DATA.customerType
-        : ""
-    );
+  const [customerType, setCustomerType] =useState("");
 
-  const [families, setFamilies] =
-    useState([]);
+  const [families, setFamilies] =useState([]);
 
-  const [expanded, setExpanded] =
-    useState({});
+  const [expanded, setExpanded] =useState({});
 
-  const [addingFor, setAddingFor] =
-    useState("");
+  const [addingFor, setAddingFor] =useState("");
 
-  const [newDocName, setNewDocName] =
-    useState("");
+  const [newDocName, setNewDocName] =useState("");
 
-  const [pendingFiles, setPendingFiles] =
-    useState({});
+  const [pendingFiles, setPendingFiles] =useState({});
 
-  const [savedItemIds, setSavedItemIds] =
-    useState(() => new Set());
+  const [savedItemIds, setSavedItemIds] =useState(() => new Set());
 
-  const [preview, setPreview] =
-    useState(null);
+  const [preview, setPreview] =useState(null);
 
-  const [waiveDialog, setWaiveDialog] =
-    useState(null);
+  const [waiveDialog, setWaiveDialog] =useState(null);
 
-  const [deferDialog, setDeferDialog] =
-    useState(null);
+  const [deferDialog, setDeferDialog] =useState(null);
 
   const fileInputs = useRef({});
 
@@ -1103,9 +1022,49 @@ const ApplicationDocumentUpload = () => {
       toast,
     ]);
 
+    const loadApplicantOptions = useCallback(async () => {
+    if (!applicationNo || !orgId) {
+      return;
+    }
+
+    try {
+      const applicants = await HAxiosService.GET(LosDocumentAPI.LosDocumentAPI("ECF-DocumentUpload")+`?applicationNo=${applicationNo}&orgId=${orgId}`).then(unwrapApiResponse);
+
+      const options = toDropdownOptions(applicants);
+
+      setApplicantOptions(options);
+
+      // Set first applicant as default
+      setApplicableFor((current) => {
+        const selectedValue =
+          current && options.some((option) => option.value === current)
+            ? current
+            : options[0]?.value || "";
+        const selectedApplicant = options.find(
+          (option) => option.value === selectedValue
+        );
+        setCustomerType(
+          selectedApplicant?.customerType || ""
+        );
+        return selectedValue;
+      });
+    } catch (error) {
+      toast.error(error?.message || t("label.docupload.msg.loadApplicantFailed", "Unable to load applicants")
+      );
+
+      setApplicantOptions([]);
+      setApplicableFor("");
+    }
+  },
+  [applicationNo,orgId,t,toast,]
+);
   /* ==========================================================
      INITIAL LOAD
      ========================================================== */
+  useEffect(() => {
+    loadApplicantOptions();
+  }, [loadApplicantOptions]);
+
 
   useEffect(() => {
     loadMasters();
@@ -2206,9 +2165,16 @@ const ApplicationDocumentUpload = () => {
                 name="applicableFor"
                 options={applicantOptions}
                 value={applicableFor}
-                onChange={(e) =>
-                  setApplicableFor(e.target.value)
-                }
+                onChange={(e) => {
+                  const selectedValue = e.target.value;
+                  setApplicableFor(selectedValue);
+                  const selectedApplicant = applicantOptions.find(
+                    (option) => option.value === selectedValue
+                  );
+                  setCustomerType(
+                    selectedApplicant?.customerType || ""
+                  );
+                }}
                 width="220px"
               />
             </HBox>
@@ -2273,14 +2239,10 @@ const ApplicationDocumentUpload = () => {
                 }}
               />
 
-              <HDropdown
+              <HTextField
                 name="customerType"
-                options={customerTypeOptions}
                 value={customerType}
-                onChange={(e) =>
-                  setCustomerType(e.target.value)
-                }
-                width="220px"
+                sx={{mb:2 , ml:1}}
               />
             </HBox>
           </HBox>
