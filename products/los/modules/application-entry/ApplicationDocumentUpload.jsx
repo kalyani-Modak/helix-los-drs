@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useIntl } from "react-intl";
 import { useLocation, useNavigate } from "react-router-dom";
 import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
+import { IntlProvider, useIntl } from "react-intl";
 
 import {
   HAccordion,
@@ -665,6 +665,14 @@ const formatFileSize = (bytes) => {
 const ApplicationDocumentUpload = () => {
   const intl = useIntl();
   const toast = useToast();
+
+   const localeOverrides = useMemo(
+    () => ({
+      ...intl.messages,
+      "label.button.refresh": "Re-Generate Documents",
+    }),
+    [intl.messages]
+  );
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -2092,6 +2100,7 @@ const ApplicationDocumentUpload = () => {
      ========================================================== */
 
   return (
+    <IntlProvider locale={intl.locale} messages={localeOverrides}>
     <HBox>
 
       {/* ======================================================
@@ -2135,6 +2144,7 @@ const ApplicationDocumentUpload = () => {
               flexDirection: "row",
               alignItems: "center",
               width: "100%",
+              marginBottom : "8px"
             }}
           >
             {/* APPLICABLE FOR */}
@@ -2251,35 +2261,54 @@ const ApplicationDocumentUpload = () => {
               CHECKLIST HEADER
               ================================================== */}
 
-          <HBox>
+<HBox
+  style={{
+    display: "flex",
+    flexDirection: "column",
+    width: "100%",
+    marginBottom: "16px"
+  }}
+>
 
-            <HBox>
+  {/* Title on its own line */}
 
-              <HLabel
-                value="label.docupload.checklist.title"
-                align="left"
-                colon={false}
-              />
+  <HLabel
+    value="label.docupload.checklist.title"
+    align="left"
+    colon={false}
+    style={{
+      fontWeight: 600,
+    }}
+  />
 
-              <HLabel
-                value="label.docupload.checklist.hint"
-                align="left"
-                colon={false}
-              />
+  {/* Hint (left) + received count (right) on the same line */}
 
-            </HBox>
+  <HBox
+    style={{
+      display: "flex",
+      flexDirection: "row",
+      alignItems: "center",
+      justifyContent: "space-between",
+      width: "100%",
+    }}
+  >
 
+    <HLabel
+      value="label.docupload.checklist.hint"
+      align="left"
+      colon={false}
+    />
 
-            {/* 0/18 received */}
+    <HLabel
+      value={`${receivedCount}/${items.length} received`}
+      translate={false}
+      align="left"
+      colon={false}
+    />
 
-            <HLabel
-              value={`${receivedCount}/${items.length} received`}
-              translate={false}
-              align="left"
-              colon={false}
-            />
+  </HBox>
 
-          </HBox>
+</HBox>
 
 
           {/* ==================================================
@@ -2311,7 +2340,7 @@ const ApplicationDocumentUpload = () => {
                   width: "100%",
                   padding: "8px 12px",
                   boxSizing: "border-box",
-                  backgroundColor: "#f4f9fa",
+                  backgroundColor: "transaparent",
                   borderBottom: "1px solid #e0c5d3",
                 }}
               >
@@ -3117,6 +3146,7 @@ const ApplicationDocumentUpload = () => {
       </HDialog>
 
     </HBox>
+  </IntlProvider>
   );
 };
 
