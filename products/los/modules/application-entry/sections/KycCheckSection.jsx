@@ -1,11 +1,7 @@
-import { HButton,  HLabel,  HTextField,  HBox } from "@helix/component-library";
-import FieldRow from "../components/FieldRow";
+import { HButton, HLabel, HTextField, HBox } from "@helix/component-library";
 import KycVerifyRow from "../components/KycVerifyRow";
 import SectionBlock from "../components/SectionBlock";
-import {
-  statusLabelKey,
-  YES_NO_OPTIONS,
-} from "../constants/qdeOptions";
+import { statusLabelKey } from "../constants/qdeOptions";
 
 const KycOtpRow = ({
   labelKey,
@@ -24,8 +20,8 @@ const KycOtpRow = ({
   maxLength,
   disabled = false,
 }) => (
-  <HBox sx={{ display: "flex", flexDirection: "row", alignItems: "center", width: "100%", gap: 1, mb: 0.2, }} >
-    <HBox sx={{ width: "280px", minWidth: "280px", flexShrink: 0, }} >
+  <HBox sx={{ display: "flex", flexDirection: "row", alignItems: "center", width: "100%", gap: 1, mb: 0.2 }}>
+    <HBox sx={{ width: "280px", minWidth: "280px", flexShrink: 0 }}>
       <HLabel
         value={labelKey}
         required={required}
@@ -134,15 +130,12 @@ const IndividualKyc = ({
     />
 
     {/* PAN - Aadhaar Link */}
-    <FieldRow labelKey="label.qde.field.panAadhaarLink">
-      <HBox
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          gap: 1,
-          flexWrap: "wrap",
-        }}
-      >
+    <HBox sx={{ display: "flex", flexDirection: "row", alignItems: "center", width: "100%", gap: 1, mb: 0.2 }}>
+      <HBox sx={{ width: "280px", minWidth: "280px", flexShrink: 0 }}>
+        <HLabel value="label.qde.field.panAadhaarLink" align="left" colon={false} />
+      </HBox>
+
+      <HBox sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
         <HButton
           label="label.qde.button.verify"
           variant="outlined"
@@ -159,7 +152,7 @@ const IndividualKyc = ({
           colon={false}
         />
       </HBox>
-    </FieldRow>
+    </HBox>
 
     {/* CKYC + OTP - SAME ROW */}
     <KycOtpRow
@@ -184,15 +177,12 @@ const IndividualKyc = ({
     />
 
     {/* DigiLocker */}
-    <FieldRow labelKey="label.qde.field.digilocker">
-      <HBox
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          gap: 1,
-          flexWrap: "wrap",
-        }}
-      >
+    <HBox sx={{ display: "flex", flexDirection: "row", alignItems: "center", width: "100%", gap: 1, mb: 0.2 }}>
+      <HBox sx={{ width: "280px", minWidth: "280px", flexShrink: 0 }}>
+        <HLabel value="label.qde.field.digilocker" align="left" colon={false} />
+      </HBox>
+
+      <HBox sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
         <HTextField
           value={form.digiRef}
           onChange={(e) =>
@@ -218,7 +208,7 @@ const IndividualKyc = ({
           colon={false}
         />
       </HBox>
-    </FieldRow>
+    </HBox>
   </>
 );
 
@@ -259,12 +249,11 @@ const NonIndividualKyc = ({
     />
 
     {/* CIN */}
-    <HBox sx={{ display: "flex", alignItems: "center", width: "100%", gap: 1, mb: 0.2 }} >
-      <HBox sx={{ width: "280px", minWidth: "280px", flexShrink: 0 }} >
+    <HBox sx={{ display: "flex", alignItems: "center", width: "100%", gap: 1, mb: 0.2 }}>
+      <HBox sx={{ width: "280px", minWidth: "280px", flexShrink: 0 }}>
         <HLabel value="label.qde.field.cin" align="left" colon={false} />
       </HBox>
 
-      {/* CIN TextField */}
       <HTextField
         value={form.cin}
         onChange={(e) =>
@@ -275,7 +264,6 @@ const NonIndividualKyc = ({
         width="330px"
       />
 
-      {/* Reference text */}
       <HLabel value="For reference only" align="left" colon={false} />
     </HBox>
 

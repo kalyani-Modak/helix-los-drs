@@ -77,6 +77,8 @@
   "label.qde.field.rmName": "Relationship manager name",
   "label.qde.field.rmCode": "Relationship manager code",
   "label.qde.field.otp": "OTP",
+  "label.qde.field.dealerName": "Dealer Name",
+  "label.qde.field.dealerCode": "Dealer Code",
 
   "label.qde.button.submit": "Submit",
   "label.qde.button.verify": "Verify",

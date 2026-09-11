@@ -1,50 +1,12 @@
-import {
-  HBox,
-  HButton,
-  HCheckBox,
-  HDatePicker,
-  HDropdown,
-  HLabel,
-  HTextField
-} from "@helix/component-library";
+import { HBox, HButton, HCheckBox, HDatePicker, HDropdown, HLabel, HTextField } from "@helix/component-library";
 import SectionBlock from "../components/SectionBlock";
-import {
-  BORROWER_CATEGORIES,
-  ENTITY_TYPES,
-  GENDERS
-} from "../constants/qdeOptions";
+import { BORROWER_CATEGORIES, ENTITY_TYPES, GENDERS } from "../constants/qdeOptions";
 import { fromPickerValue, toPickerValue } from "../dateHelpers";
 import { useIntl } from "react-intl";
 
-const DEFAULT_FIELD_WIDTH = {
-  xs: "100%",
-  sm: "50%",
-  md: "33.333%"
-};
-
-const FieldContainer = ({ children }) => (
-  <HBox
-    sx={{
-      width: DEFAULT_FIELD_WIDTH,
-      display: "flex",
-      flexDirection: "column",
-      gap: 0.5,
-      minWidth: 0,
-      boxSizing: "border-box",
-      px: 1
-    }}
-  >
-    {children}
-  </HBox>
-);
-
 const VerifiedFlag = ({ verified }) => (
   <HLabel
-    value={
-      verified
-        ? "label.qde.status.verified"
-        : "label.qde.status.pending"
-    }
+    value={verified ? "label.qde.status.verified" : "label.qde.status.pending"}
     align="left"
     colon={false}
   />
@@ -61,21 +23,11 @@ const ApplicantDetailsSection = ({
   const intl = useIntl();
 
   return (
-    <SectionBlock
-      sectionKey="applicant"
-      titleKey="label.qde.section.applicant"
-    >
-      <HBox
-        sx={{
-          display: "flex",
-          flexWrap: "wrap",
-          width: "100%",
-        }}
-      >
+    <SectionBlock sectionKey="applicant" titleKey="label.qde.section.applicant">
+      <HBox sx={{ width: "100%", display: "flex", flexDirection: "row", flexWrap: "wrap" }}>
         {isNonIndividual ? (
           <>
-            {/* Entity Name */}
-            <FieldContainer>
+            <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1 }}>
               <HLabel
                 value={intl.formatMessage({
                   id: "label.qde.field.entityName",
@@ -85,20 +37,16 @@ const ApplicantDetailsSection = ({
                 align="left"
                 colon={false}
               />
-
               <HTextField
                 value={form.entityName}
-                onChange={(e) =>
-                  setField("entityName", e.target.value)
-                }
+                onChange={(e) => setField("entityName", e.target.value)}
                 editable
                 required
                 width="100%"
               />
-            </FieldContainer>
+            </HBox>
 
-            {/* Entity Type */}
-            <FieldContainer>
+            <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1 }}>
               <HLabel
                 value={intl.formatMessage({
                   id: "label.qde.field.entityType",
@@ -108,21 +56,17 @@ const ApplicantDetailsSection = ({
                 align="left"
                 colon={false}
               />
-
               <HDropdown
                 name="entityType"
                 options={ENTITY_TYPES}
                 value={form.entityType}
-                onChange={(e) =>
-                  setField("entityType", e.target.value)
-                }
+                onChange={(e) => setField("entityType", e.target.value)}
                 required
                 width="100%"
               />
-            </FieldContainer>
+            </HBox>
 
-            {/* DOI */}
-            <FieldContainer>
+            <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1 }}>
               <HLabel
                 value={intl.formatMessage({
                   id: "label.qde.field.doi",
@@ -131,20 +75,16 @@ const ApplicantDetailsSection = ({
                 align="left"
                 colon={false}
               />
-
               <HDatePicker
                 value={toPickerValue(form.doi)}
-                onChange={(value) =>
-                  setField("doi", fromPickerValue(value))
-                }
+                onChange={(value) => setField("doi", fromPickerValue(value))}
                 width="100%"
               />
-            </FieldContainer>
+            </HBox>
           </>
         ) : (
           <>
-            {/* First Name */}
-            <FieldContainer>
+            <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1 }}>
               <HLabel
                 value={intl.formatMessage({
                   id: "label.qde.field.firstName",
@@ -154,21 +94,17 @@ const ApplicantDetailsSection = ({
                 align="left"
                 colon={false}
               />
-
               <HTextField
                 value={form.firstName}
-                onChange={(e) =>
-                  setField("firstName", e.target.value)
-                }
+                onChange={(e) => setField("firstName", e.target.value)}
                 editable
                 required
                 type="name"
                 width="100%"
               />
-            </FieldContainer>
+            </HBox>
 
-            {/* Middle Name */}
-            <FieldContainer>
+            <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1 }}>
               <HLabel
                 value={intl.formatMessage({
                   id: "label.qde.field.middleName",
@@ -177,20 +113,16 @@ const ApplicantDetailsSection = ({
                 align="left"
                 colon={false}
               />
-
               <HTextField
                 value={form.middleName}
-                onChange={(e) =>
-                  setField("middleName", e.target.value)
-                }
+                onChange={(e) => setField("middleName", e.target.value)}
                 editable
                 type="name"
                 width="100%"
               />
-            </FieldContainer>
+            </HBox>
 
-            {/* Last Name */}
-            <FieldContainer>
+            <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1 }}>
               <HLabel
                 value={intl.formatMessage({
                   id: "label.qde.field.lastName",
@@ -200,21 +132,17 @@ const ApplicantDetailsSection = ({
                 align="left"
                 colon={false}
               />
-
               <HTextField
                 value={form.lastName}
-                onChange={(e) =>
-                  setField("lastName", e.target.value)
-                }
+                onChange={(e) => setField("lastName", e.target.value)}
                 editable
                 required
                 type="name"
                 width="100%"
               />
-            </FieldContainer>
+            </HBox>
 
-            {/* Gender */}
-            <FieldContainer>
+            <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1 }}>
               <HLabel
                 value={intl.formatMessage({
                   id: "label.qde.field.gender",
@@ -223,23 +151,18 @@ const ApplicantDetailsSection = ({
                 required
                 align="left"
                 colon={false}
-                sx={{mt: 2}}
               />
-
               <HDropdown
                 name="gender"
                 options={GENDERS}
                 value={form.gender}
-                onChange={(e) =>
-                  setField("gender", e.target.value)
-                }
+                onChange={(e) => setField("gender", e.target.value)}
                 required
                 width="100%"
               />
-            </FieldContainer>
+            </HBox>
 
-            {/* DOB */}
-            <FieldContainer>
+            <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1 }}>
               <HLabel
                 value={intl.formatMessage({
                   id: "label.qde.field.dob",
@@ -248,21 +171,16 @@ const ApplicantDetailsSection = ({
                 required
                 align="left"
                 colon={false}
-                sx={{mt: 2}}
               />
-
               <HDatePicker
                 value={toPickerValue(form.dob)}
-                onChange={(value) =>
-                  setField("dob", fromPickerValue(value))
-                }
+                onChange={(value) => setField("dob", fromPickerValue(value))}
                 required
                 width="100%"
               />
-            </FieldContainer>
+            </HBox>
 
-            {/* Borrower Category */}
-            <FieldContainer>
+            <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1 }}>
               <HLabel
                 value={intl.formatMessage({
                   id: "label.qde.field.borrowerCategory",
@@ -270,95 +188,75 @@ const ApplicantDetailsSection = ({
                 })}
                 align="left"
                 colon={false}
-                sx={{mt: 2}}
               />
-
               <HDropdown
                 name="profile"
                 options={BORROWER_CATEGORIES}
                 value={form.profile}
-                onChange={(e) =>
-                  setField("profile", e.target.value)
-                }
+                onChange={(e) => setField("profile", e.target.value)}
                 width="100%"
               />
-            </FieldContainer>
+            </HBox>
 
-            {/* Father Name */}
-            <FieldContainer>
+            <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1 }}>
               <HLabel
                 value={intl.formatMessage({
                   id: "label.qde.field.fatherName",
-                  defaultMessage: "Father Name"
+                  defaultMessage: "Father's Name"
                 })}
                 align="left"
                 colon={false}
-                sx={{mt: 0.5}}
               />
-
               <HTextField
                 value={form.fatherName}
-                onChange={(e) =>
-                  setField("fatherName", e.target.value)
-                }
+                onChange={(e) => setField("fatherName", e.target.value)}
                 editable
                 type="name"
                 width="100%"
               />
-            </FieldContainer>
+            </HBox>
 
-            {/* Mother Name */}
-            <FieldContainer>
+            <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1 }}>
               <HLabel
                 value={intl.formatMessage({
                   id: "label.qde.field.motherName",
-                  defaultMessage: "Mother Name"
+                  defaultMessage: "Mother's Name"
                 })}
                 align="left"
                 colon={false}
-                sx={{mt: 0.5}}
               />
-
               <HTextField
                 value={form.motherName}
-                onChange={(e) =>
-                  setField("motherName", e.target.value)
-                }
+                onChange={(e) => setField("motherName", e.target.value)}
                 editable
                 type="name"
                 width="100%"
               />
-            </FieldContainer>
+            </HBox>
           </>
         )}
 
-        {/* Mobile */}
-        <FieldContainer>
+        <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1 }}>
           <HLabel
             value={intl.formatMessage({
               id: "label.qde.field.mobile",
-              defaultMessage: "Mobile"
+              defaultMessage: "Mobile Number"
             })}
             required
             align="left"
             colon={false}
-            sx={{mt: 0.5}}
           />
-
-          <HBox sx={{ display: "flex", flexDirection: "column", gap: 0.5,  }}>
-            <HBox sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }} >
+          <HBox sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+            <HBox sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "nowrap" }}>
               <HTextField
                 value={form.mobile}
-                onChange={(e) =>
-                  setField("mobile", e.target.value)
-                }
+                onChange={(e) => setField("mobile", e.target.value)}
                 editable
                 required
                 type="phone"
                 length={10}
                 width="160px"
               />
-
               <HButton
                 label="label.qde.button.verify"
                 variant="outlined"
@@ -369,13 +267,11 @@ const ApplicantDetailsSection = ({
                 onClick={onVerifyMobile}
               />
             </HBox>
-
             <VerifiedFlag verified={form.mobileVerified} />
           </HBox>
-        </FieldContainer>
+        </HBox>
 
-        {/* Email */}
-        <FieldContainer>
+        <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1, mt: 1 }}>
           <HLabel
             value={intl.formatMessage({
               id: "label.qde.field.email",
@@ -384,31 +280,14 @@ const ApplicantDetailsSection = ({
             align="left"
             colon={false}
           />
-
-          <HBox
-            sx={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 0.5
-            }}
-          >
-            <HBox
-              sx={{
-                display: "flex",
-                alignItems: "center",
-                gap: 1,
-                flexWrap: "wrap"
-              }}
-            >
+          <HBox sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+            <HBox sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "nowrap" }}>
               <HTextField
                 value={form.email}
-                onChange={(e) =>
-                  setField("email", e.target.value)
-                }
+                onChange={(e) => setField("email", e.target.value)}
                 editable
                 width="200px"
               />
-
               <HButton
                 label="label.qde.button.verify"
                 variant="outlined"
@@ -418,30 +297,16 @@ const ApplicantDetailsSection = ({
                 onClick={onVerifyEmail}
               />
             </HBox>
-
             <VerifiedFlag verified={form.emailVerified} />
           </HBox>
-        </FieldContainer>
+        </HBox>
 
-        {/* Staff / Pre Approved */}
-        <HBox
-          sx={{
-            width: "100%",
-            display: "flex",
-            alignItems: "center",
-            gap: 2,
-            height: "100%",
-            mt: 1
-          }}
-        >
+        <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "row", alignItems: "center", gap: 2, boxSizing: "border-box", pr: 1, mt: 1 }}>
           <HCheckBox
             sx={{ width: "3%" }}
             checked={form.staff}
-            onChange={(e) =>
-              setField("staff", e.target.checked)
-            }
+            onChange={(e) => setField("staff", e.target.checked)}
           />
-
           <HLabel
             value={intl.formatMessage({
               id: "label.qde.field.staff",
@@ -452,11 +317,8 @@ const ApplicantDetailsSection = ({
           <HCheckBox
             sx={{ width: "3%" }}
             checked={form.preApproved}
-            onChange={(e) =>
-              setField("preApproved", e.target.checked)
-            }
+            onChange={(e) => setField("preApproved", e.target.checked)}
           />
-
           <HLabel
             value={intl.formatMessage({
               id: "label.qde.field.preApproved",

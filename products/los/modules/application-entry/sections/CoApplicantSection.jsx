@@ -1,4 +1,3 @@
-import React from "react";
 import { Grid } from "@mui/material";
 import { useIntl } from "react-intl";
 import { HButton, HLabel } from "@helix/component-library";

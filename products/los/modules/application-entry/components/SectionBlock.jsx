@@ -1,10 +1,28 @@
 import { useState } from "react";
 import { Grid } from "@mui/material";
-import { HAccordion,HBox, useDrsTheme } from "@helix/component-library";
+import { HAccordion, HBox, useDrsTheme, HLabel } from "@helix/component-library";
 
-const SectionBlock = ({ sectionKey, titleKey, defaultExpanded = true, children }) => {
+const SectionBlock = ({ sectionKey, titleKey, defaultExpanded = true, noAccordion = false, children }) => {
   const [expanded, setExpanded] = useState({ [sectionKey]: defaultExpanded });
   const { text } = useDrsTheme();
+
+ if (noAccordion) {
+    return (
+      <HBox sx={{ mb: 2, border: "1px solid #ddd", borderRadius: "4px", overflow: "hidden" }}>
+        {titleKey && (
+          <HLabel
+            sx={{ color: text.primary, fontWeight: 600 }}
+            value={titleKey}
+            align="left"
+            colon={false}
+          />
+        )}
+        <Grid container spacing={1.4} alignItems="flex-start" sx={{ p: 2 }} >
+          {children}
+        </Grid>
+      </HBox>
+    );
+  }
 
   return (
     <HBox

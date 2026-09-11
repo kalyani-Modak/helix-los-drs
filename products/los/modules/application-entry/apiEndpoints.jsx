@@ -7,7 +7,7 @@ const base = () => {
 
 /** REST paths aligned with the LOS quick data entry (QDE) transaction service. */
 export const LosQdeAPI = {
-  createDraft: () => `${base()}api/los/v1/qde/applications/draft`,
+  createDraft: () => `${base()}los/saveQde`,
   updateDraft: (appNo) => `${base()}api/los/v1/qde/applications/${encodeURIComponent(appNo)}/draft`,
   getByAppNo: (appNo) => `${base()}api/los/v1/qde/applications/${encodeURIComponent(appNo)}`,
   submit: (appNo) => `${base()}api/los/v1/qde/applications/${encodeURIComponent(appNo)}/submit`,

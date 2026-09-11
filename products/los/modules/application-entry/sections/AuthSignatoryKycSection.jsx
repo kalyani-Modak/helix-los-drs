@@ -1,10 +1,8 @@
 import { HButton, HLabel, HTextField, HBox } from "@helix/component-library";
-import FieldRow from "../components/FieldRow";
 import KycVerifyRow from "../components/KycVerifyRow";
 import SectionBlock from "../components/SectionBlock";
 import { statusLabelKey } from "../constants/qdeOptions";
 
-/** KYC for the authorised signatory of a non-individual borrower. */
 const AuthSignatoryKycSection = ({
   form,
   setField,
@@ -13,8 +11,9 @@ const AuthSignatoryKycSection = ({
   onSendAsAadhaarOtp,
   onValidateAsAadhaarOtp,
   onCheckAsPanAadhaarLink,
+  noAccordion,
 }) => (
-  <SectionBlock sectionKey="authSignatoryKyc" titleKey="label.qde.section.authSignatoryKyc">
+  <SectionBlock sectionKey="authSignatoryKyc" titleKey="label.qde.section.authSignatoryKyc" noAccordion={noAccordion}>
     <KycVerifyRow
       labelKey="label.qde.field.pan"
       value={form.asPan}
@@ -39,9 +38,12 @@ const AuthSignatoryKycSection = ({
       buttonLabelKey="label.qde.button.sendOtp"
     />
 
-    <HBox>
-      <HBox sx={{ display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0 }}>
+    <HBox sx={{ display: "flex", flexDirection: "row", alignItems: "flex-start", width: "100%", mb: 0.2 }}>
+      <HBox sx={{ width: "280px", minWidth: "280px", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5 }}>
         <HLabel value="label.qde.field.aadhaarOtp" align="left" colon={false} />
+      </HBox>
+
+      <HBox sx={{ display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0 }}>
         <HBox sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
           <HTextField
             value={form.asAadhaarOtp}
@@ -66,7 +68,11 @@ const AuthSignatoryKycSection = ({
       </HBox>
     </HBox>
 
-    <FieldRow labelKey="label.qde.field.panAadhaarLink">
+    <HBox sx={{ display: "flex", flexDirection: "row", alignItems: "center", width: "100%", mb: 0.2 }}>
+      <HBox sx={{ width: "280px", minWidth: "280px", flexShrink: 0 }}>
+        <HLabel value="label.qde.field.panAadhaarLink" align="left" colon={false} />
+      </HBox>
+
       <HBox sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
         <HButton
           label="label.qde.button.verify"
@@ -79,7 +85,7 @@ const AuthSignatoryKycSection = ({
         />
         <HLabel value={statusLabelKey(form.asPanAadhaarLinked)} align="left" colon={false} />
       </HBox>
-    </FieldRow>
+    </HBox>
   </SectionBlock>
 );
 

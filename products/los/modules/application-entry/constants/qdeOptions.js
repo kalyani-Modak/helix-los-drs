@@ -10,7 +10,7 @@
 /** Turns a plain string list into the `{ label, value }` shape HDropdown expects. */
 export const toOptions = (values = []) => values.map((v) => ({ label: v, value: v }));
 
-export const APPLICATION_TYPES = toOptions(["Fresh", "Enhancement", "Renewal", "Takeover", "Top Up"]);
+export const APPLICATION_TYPES = toOptions(["New", "Balance Transfer", "Top Up"]);
 
 export const PORTFOLIOS = toOptions([
   "Home Loan",
@@ -24,6 +24,8 @@ export const PORTFOLIOS = toOptions([
 export const DEFAULT_PORTFOLIO = "Home Loan";
 
 export const GENDERS = toOptions(["Male", "Female", "Transgender", "Other"]);
+
+export const Profiles = toOptions(["Salaried", "SENP", "SEP"]);
 
 export const BORROWER_CATEGORIES = toOptions([
   "General",
@@ -52,7 +54,7 @@ export const ADDRESS_TYPES_NON_INDIVIDUAL = toOptions([
   "Communication",
 ]);
 
-export const CHANNELS = toOptions(["Branch", "DSA", "RM", "Digital", "Connector", "Tele Sales"]);
+export const CHANNELS = toOptions(["Branch", "DSA", "RM", "Dealer", "Connector", "Tele Sales"]);
 
 export const ENTITY_TYPES = toOptions([
   "Proprietorship",
@@ -113,20 +115,20 @@ export const OCR_DOC_TYPES = toOptions([
 ]);
 
 /** Radio option sets — `label` is resolved through react-intl by HRadio. */
-export const BORROWER_TYPE_OPTIONS = [
-  { value: "Individual", label: "label.qde.option.individual" },
-  { value: "Non-Individual", label: "label.qde.option.nonIndividual" },
-];
+// export const BORROWER_TYPE_OPTIONS = [
+//   { value: "Individual", label: "label.qde.option.individual" },
+//   { value: "Non-Individual", label: "label.qde.option.nonIndividual" },
+// ];
 
-export const CUSTOMER_TYPE_OPTIONS = [
-  { value: "New", label: "label.qde.option.new" },
-  { value: "Existing", label: "label.qde.option.existing" },
-];
+// export const CUSTOMER_TYPE_OPTIONS = [
+//   { value: "New", label: "label.qde.option.new" },
+//   { value: "Existing", label: "label.qde.option.existing" },
+// ];
 
-export const YES_NO_OPTIONS = [
-  { value: "Y", label: "label.qde.option.yes" },
-  { value: "N", label: "label.qde.option.no" },
-];
+// export const YES_NO_OPTIONS = [
+//   { value: "Y", label: "label.qde.option.yes" },
+//   { value: "N", label: "label.qde.option.no" },
+// ];
 
 /** Verification lifecycle values persisted on the form. */
 export const VERIFICATION_STATUS = {

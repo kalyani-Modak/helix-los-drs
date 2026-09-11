@@ -296,6 +296,8 @@ importers:
 
   products/batch-framework/modules/batch-framework: {}
 
+  products/los/modules/application-entry: {}
+
 packages:
 
   '@ampproject/remapping@2.3.0':
