@@ -142,6 +142,65 @@ const formatFileSize = (bytes) => {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
 
+const isDocumentChanged = (item, originalItem) => {
+  // New/custom document
+  if (!originalItem) {
+    return true;
+  }
+
+  // Uploaded/removed file
+  if (
+    item.fileName !== originalItem.fileName ||
+    item.fileSize !== originalItem.fileSize ||
+    item.fileType !== originalItem.fileType ||
+    item.hasFile !== originalItem.hasFile
+  ) {
+    return true;
+  }
+
+  // Status
+  if (item.status !== originalItem.status) {
+    return true;
+  }
+
+  // LS_TRN_DOCUMENTS status flags
+  if (
+    item.szreceivedyn !== originalItem.szreceivedyn ||
+    item.szwaivedyn !== originalItem.szwaivedyn ||
+    item.szdifferyn !== originalItem.szdifferyn
+  ) {
+    return true;
+  }
+
+  // Waiver details
+  if (
+    item.waiveReason !== originalItem.waiveReason ||
+    item.waiveComments !== originalItem.waiveComments ||
+    item.szwaiverreason !== originalItem.szwaiverreason ||
+    item.szwaiverdec !== originalItem.szwaiverdec
+  ) {
+    return true;
+  }
+
+  // Deferral details
+  if (
+    item.deferralStage !== originalItem.deferralStage ||
+    item.deferralDate !== originalItem.deferralDate
+  ) {
+    return true;
+  }
+
+  // Remarks / other editable fields
+  if (
+    item.szremarks !== originalItem.szremarks ||
+    item.remarks !== originalItem.remarks
+  ) {
+    return true;
+  }
+
+  return false;
+};
+
 /* ============================================================
    COMPONENT
    ============================================================ */
@@ -150,7 +209,7 @@ const ApplicationDocumentUpload = () => {
   const intl = useIntl();
   const toast = useToast();
 
-   const localeOverrides = useMemo(
+  const localeOverrides = useMemo(
     () => ({
       ...intl.messages,
       "label.button.refresh": "Re-Generate Documents",
@@ -163,15 +222,15 @@ const ApplicationDocumentUpload = () => {
 
   const screenMenuId = location.state?.menuId;
 
-  const incomingApplicationNo =location.state?.applicationNo;
+  const incomingApplicationNo = location.state?.applicationNo;
   const orgId = location.state?.orgId || "001";
 
-  const borrowerType =location.state?.borrowerType || "Individual";
+  const borrowerType = location.state?.borrowerType || "Individual";
 
   /* ==========================================================
      TRANSLATION HELPER
      ========================================================== */
- 
+
   const t = useCallback(
     (id, defaultMessage, values) =>
       intl.formatMessage(
@@ -185,7 +244,7 @@ const ApplicationDocumentUpload = () => {
   );
 
 
-  
+
   /* ==========================================================
      STATE
      ========================================================== */
@@ -194,35 +253,38 @@ const ApplicationDocumentUpload = () => {
 
   const [applicantOptions, setApplicantOptions] = useState([]);
 
-  const [stageOptions, setStageOptions] =useState(USE_MOCK_DATA? MOCK_STAGE_OPTIONS: []);
+  const [stageOptions, setStageOptions] = useState(USE_MOCK_DATA ? MOCK_STAGE_OPTIONS : []);
 
-  const [waiveReasonOptions,setWaiveReasonOptions,] = useState(USE_MOCK_DATA? MOCK_WAIVE_REASON_OPTIONS: []);
+  const [waiveReasonOptions, setWaiveReasonOptions,] = useState(USE_MOCK_DATA ? MOCK_WAIVE_REASON_OPTIONS : []);
 
-  const [applicableFor, setApplicableFor] =useState("");
+  const [applicableFor, setApplicableFor] = useState("");
 
-  const [stage, setStage] = useState(USE_MOCK_DATA? MOCK_DOCUMENT_DATA.stage: "");
+  const [stage, setStage] = useState(USE_MOCK_DATA ? MOCK_DOCUMENT_DATA.stage : "");
 
-  const [customerType, setCustomerType] =useState("");
+  const [customerType, setCustomerType] = useState("");
 
-  const [families, setFamilies] =useState([]);
+  const [families, setFamilies] = useState([]);
 
-  const [expanded, setExpanded] =useState({});
+  const [expanded, setExpanded] = useState({});
 
-  const [addingFor, setAddingFor] =useState("");
+  const [addingFor, setAddingFor] = useState("");
 
-  const [newDocName, setNewDocName] =useState("");
+  const [newDocName, setNewDocName] = useState("");
 
-  const [pendingFiles, setPendingFiles] =useState({});
 
-  const [savedItemIds, setSavedItemIds] =useState(() => new Set());
+  const [savedItemIds, setSavedItemIds] = useState(() => new Set());
 
-  const [preview, setPreview] =useState(null);
+  const originalItemsRef = useRef([]);
 
-  const [waiveDialog, setWaiveDialog] =useState(null);
+  const [preview, setPreview] = useState(null);
 
-  const [deferDialog, setDeferDialog] =useState(null);
+  const [waiveDialog, setWaiveDialog] = useState(null);
+
+  const [deferDialog, setDeferDialog] = useState(null);
 
   const fileInputs = useRef({});
+
+
 
   /* ==========================================================
      DERIVED DATA
@@ -233,6 +295,26 @@ const ApplicationDocumentUpload = () => {
     [families]
   );
 
+  const getDocumentStatus = (item) => {
+    if (item.status) {
+      return item.status;
+    }
+
+    if (item.szwaivedyn === "Y") {
+      return STATUS.WAIVED;
+    }
+
+    if (item.szdifferyn === "Y") {
+      return STATUS.DEFERRED;
+    }
+
+    if (item.szreceivedyn === "Y") {
+      return STATUS.RECEIVED;
+    }
+
+    return STATUS.PENDING;
+  };
+
   const receivedCount = items.filter(
     (item) =>
       item.status === STATUS.RECEIVED
@@ -242,58 +324,162 @@ const ApplicationDocumentUpload = () => {
      APPLY DATA
      ========================================================== */
 
-  const applyFamilies = useCallback(
-    (payload) => {
-      const nextFamilies =
-        payload?.families || [];
+ const applyFamilies = useCallback(
+  (payload) => {
+    const nextFamilies = (payload?.families || []).map(
+      (family) => {
+        const normalizedItems = (family.items || []).map(
+          (item) => {
+            let itemId = item.itemId;
 
-      setFamilies(nextFamilies);
+            /*
+             * Existing DB document:
+             * Use database primary key as frontend row ID.
+             */
 
-      setSavedItemIds(
-        new Set(
-          flattenItems(nextFamilies).map(
-            (item) => item.itemId
-          )
-        )
-      );
-
-      setExpanded((prev) => {
-        const next = {
-          ...prev,
-        };
-
-        nextFamilies.forEach(
-          (family) => {
+            const documentSrNo =
+  item.iDocumentsSrNo ??
+  item.idocumentsSrNo ??
+  item.idocumentsrno ??
+  null;
             if (
-              next[
-              family.docFamilyCode
-              ] === undefined
+                !itemId &&
+  documentSrNo !== null
             ) {
-              next[
-                family.docFamilyCode
-              ] = true;
+              itemId = String(item.idocumentsSrNo);
             }
+
+            /*
+             * New/custom document:
+             * Generate frontend ID.
+             */
+            if (!itemId) {
+              itemId = newCustomId();
+            }
+
+            /*
+             * Derive UI status from backend flags.
+             */
+            const status =
+              item.szWaivedYn === "Y"
+                ? STATUS.WAIVED
+                : item.szDifferYn === "Y"
+                  ? STATUS.DEFERRED
+                  : item.szReceivedYn === "Y"
+                    ? STATUS.RECEIVED
+                    : STATUS.PENDING;
+
+            return {
+              ...item,
+
+              itemId,
+              iDocumentsSrNo: documentSrNo,
+
+              status,
+
+              /*
+               * UI file information.
+               * These do not come from LS_TRN_DOCUMENTS.
+               */
+              selectedFile: item.selectedFile,
+              fileName: item.fileName,
+              fileSize: item.fileSize,
+              fileType: item.fileType,
+              fileUrl: item.fileUrl,
+              hasFile: item.hasFile || false,
+
+              /*
+               * UI waiver information
+               */
+              waiveReason:
+                item.waiveReason ||
+                item.szWaiverReason ||
+                "",
+
+              waiveComments:
+                item.waiveComments ||
+                item.szWaiverDec ||
+                "",
+
+              /*
+               * UI deferral information
+               */
+              deferralStage:
+                item.deferralStage ||
+                item.szStageDue ||
+                "",
+
+              deferralDate:
+                item.deferralDate ||
+                "",
+            };
           }
         );
 
-        return next;
+        return {
+          ...family,
+          items: normalizedItems,
+        };
+      }
+    );
+
+    /*
+     * Keep original backend data for change detection.
+     */
+    originalItemsRef.current = JSON.parse(
+      JSON.stringify(
+        flattenItems(nextFamilies)
+      )
+    );
+
+    setFamilies(nextFamilies);
+
+    /*
+     * Existing saved rows.
+     */
+    setSavedItemIds(
+      new Set(
+        flattenItems(nextFamilies).map(
+          (item) => item.itemId
+        )
+      )
+    );
+
+    /*
+     * Expand each family.
+     */
+    setExpanded((prev) => {
+      const next = {
+        ...prev,
+      };
+
+      nextFamilies.forEach((family) => {
+        if (
+          next[family.docFamilyCode] === undefined
+        ) {
+          next[family.docFamilyCode] = true;
+        }
       });
 
-      if (payload?.applicationNo) {
-        setApplicationNo(
-          payload.applicationNo
-        );
-      }
+      return next;
+    });
 
-      if (payload?.applicableFor) {
-        setApplicableFor(
-          payload.applicableFor
-        );
-      }
-    },
-    []
-  );
+    /*
+     * Application number.
+     */
+    if (payload?.applicationNo) {
+      setApplicationNo(payload.applicationNo);
+    }
 
+    /*
+     * Applicable applicant.
+     */
+    if (payload?.applicableFor) {
+      setApplicableFor(payload.applicableFor);
+    }
+  },
+  []
+);
   /* ==========================================================
      LOAD MASTER DATA
      ========================================================== */
@@ -352,9 +538,6 @@ const ApplicationDocumentUpload = () => {
 
         setStageOptions(stageOpts);
 
-        setCustomerTypeOptions(
-          typeOpts
-        );
 
         setWaiveReasonOptions(
           reasonOpts
@@ -400,32 +583,32 @@ const ApplicationDocumentUpload = () => {
      ========================================================== */
 
   const loadChecklist = useCallback(async () => {
-  try {
-    if (!applicationNo) {
+    try {
+      if (!applicationNo) {
+        setFamilies([]);
+        return;
+      }
+
+      const payload = await HAxiosService.GET(LosDocumentAPI.LosDocumentAPI("ECF-DocumentUpload") + "/documents" + `?applicationNo=${applicationNo}&orgId=${orgId}`).then(unwrapApiResponse);
+
+      console.log("Incomming payload = ", payload);
+      applyFamilies(payload);
+
+      setAddingFor("");
+      setNewDocName("");
+    } catch (error) {
+      console.error("Failed to load document checklist", error);
       setFamilies([]);
-      return;
     }
+  }, [applicationNo, orgId, applyFamilies]);
 
-    const payload = await HAxiosService.GET(LosDocumentAPI.LosDocumentAPI("ECF-DocumentUpload")+"/documents"+`?applicationNo=${applicationNo}&orgId=${orgId}`).then(unwrapApiResponse);
-
-    applyFamilies(payload);
-
-    setPendingFiles({});
-    setAddingFor("");
-    setNewDocName("");
-  } catch (error) {
-    console.error("Failed to load document checklist", error);
-    setFamilies([]);
-  }
-}, [applicationNo,stage,customerType,applicableFor,applyFamilies,]);
-
-    const loadApplicantOptions = useCallback(async () => {
+  const loadApplicantOptions = useCallback(async () => {
     if (!applicationNo || !orgId) {
       return;
     }
 
     try {
-      const applicants = await HAxiosService.GET(LosDocumentAPI.LosDocumentAPI("ECF-DocumentUpload")+`?applicationNo=${applicationNo}&orgId=${orgId}`).then(unwrapApiResponse);
+      const applicants = await HAxiosService.GET(LosDocumentAPI.LosDocumentAPI("ECF-DocumentUpload") + `?applicationNo=${applicationNo}&orgId=${orgId}`).then(unwrapApiResponse);
 
       const options = toDropdownOptions(applicants);
 
@@ -453,8 +636,8 @@ const ApplicationDocumentUpload = () => {
       setApplicableFor("");
     }
   },
-  [applicationNo,orgId,t,toast,]
-);
+    [applicationNo, orgId, t, toast,]
+  );
   /* ==========================================================
      INITIAL LOAD
      ========================================================== */
@@ -488,6 +671,9 @@ const ApplicationDocumentUpload = () => {
               ? {
                 ...item,
                 ...patch,
+
+                // Mark existing document as changed
+                _dirty: true,
               }
               : item
           ),
@@ -496,7 +682,6 @@ const ApplicationDocumentUpload = () => {
     },
     []
   );
-
   /* ==========================================================
      STATUS CLICK
      ========================================================== */
@@ -510,6 +695,19 @@ const ApplicationDocumentUpload = () => {
     if (
       item.status === status
     ) {
+
+       /* Received — the backend requires a file on every Received
+       row, so route to the file picker instead of creating a
+       Received row with nothing attached */
+    if (status === STATUS.RECEIVED) {
+      const hasFile =
+        !!item.selectedFile || !!item.fileName || !!item.documentid;
+
+      if (!hasFile) {
+        fileInputs.current[item.itemId]?.click();
+        return;
+      }
+    }
       updateItem(
         item.itemId,
         {
@@ -602,8 +800,13 @@ const ApplicationDocumentUpload = () => {
     }
 
     const item = {
-      itemId:
-        newCustomId(),
+
+      itemId: newCustomId(),
+
+      _isNew: true,
+
+      custom: true,
+
 
       idocumentsrno: null,
 
@@ -611,9 +814,9 @@ const ApplicationDocumentUpload = () => {
         applicationNo,
 
       szorgid:
-        "LOS",
+        "001",
 
-      szdoccode: "",
+      szdoccode: newDocName.trim(),
 
       szapplicantid:
         applicableFor,
@@ -700,24 +903,6 @@ const ApplicationDocumentUpload = () => {
 
       dtupdatedon:
         new Date(),
-
-      docCode:
-        "",
-
-      docName:
-        newDocName.trim(),
-
-      required:
-        false,
-
-      custom:
-        true,
-
-      status:
-        STATUS.PENDING,
-
-      hasFile:
-        false,
     };
 
     setFamilies(
@@ -774,10 +959,10 @@ const ApplicationDocumentUpload = () => {
         try {
           unwrapApiResponse(
             await HAxiosService.DELETE(
-              LosDocumentAPI.deleteItem(
-                applicationNo,
-                item.itemId
-              )
+              LosDocumentAPI.LosDocumentAPI("ECF-DocumentUpload") +
+              `/${encodeURIComponent(item.itemId)}` +
+              `?applicationNo=${encodeURIComponent(applicationNo)}` +
+              `&orgId=${encodeURIComponent(orgId)}`
             )
           );
         } catch (error) {
@@ -813,713 +998,603 @@ const ApplicationDocumentUpload = () => {
           )
       );
 
-      setPendingFiles(
-        (prev) => {
-          const next = {
-            ...prev,
-          };
-
-          delete next[
-            item.itemId
-          ];
-
-          return next;
-        }
-      );
     };
 
   /* ==========================================================
      FILE PICKED
      ========================================================== */
 
-  const handleFilePicked =
-    (item, file) => {
-      if (!file) {
-        return;
-      }
+  const handleFilePicked = (item, file) => {
+    if (!file) return;
 
-      const fileUrl =
-        URL.createObjectURL(
-          file
-        );
+    updateItem(item.itemId, {
+      selectedFile: file,
+      fileName: file.name,
+      fileSize: file.size,
+      fileType: file.type,
+      hasFile: true,
 
-      setPendingFiles(
-        (prev) => ({
-          ...prev,
+      // Automatically mark document as Received
+      status: STATUS.RECEIVED,
 
-          [item.itemId]:
-            file,
-        })
-      );
+      // LS_TRN_DOCUMENTS flags
+      szreceivedyn: "Y",
+      szwaivedyn: "N",
+      szdifferyn: "N",
 
-      updateItem(
-        item.itemId,
-        {
-          fileName:
-            file.name,
-
-          fileSize:
-            file.size,
-
-          fileType:
-            file.type,
-
-          fileUrl,
-
-          hasFile:
-            true,
-
-          /*
-           * As soon as a file is uploaded,
-           * Pending becomes Received.
-           */
-          status:
-            item.status ===
-              STATUS.PENDING
-              ? STATUS.RECEIVED
-              : item.status,
-
-          szreceivedyn:
-            item.status ===
-              STATUS.PENDING
-              ? "Y"
-              : item.szdreceivedyn,
-
-          dtrecieptdate:
-            new Date(),
-        }
-      );
-    };
-
+      dtrecieptdate: new Date(),
+    });
+  };
   /* ==========================================================
      REMOVE FILE
      ========================================================== */
 
-  const handleRemoveFile =
-    (item) => {
-      setPendingFiles(
-        (prev) => {
-          const next = {
-            ...prev,
-          };
+  const handleRemoveFile = (item) => {
+    updateItem(item.itemId, {
+      selectedFile: undefined,
+      fileName: undefined,
+      fileSize: undefined,
+      fileType: undefined,
+      fileUrl: undefined,
+      hasFile: false,
 
-          delete next[
-            item.itemId
-          ];
+      status:
+        item.status === STATUS.RECEIVED
+          ? STATUS.PENDING
+          : item.status,
 
-          return next;
-        }
-      );
+      szreceivedyn: "N",
 
-      updateItem(
-        item.itemId,
-        {
-          fileName:
-            undefined,
-
-          fileSize:
-            undefined,
-
-          fileType:
-            undefined,
-
-          fileUrl:
-            undefined,
-
-          hasFile:
-            false,
-
-          status:
-            item.status ===
-              STATUS.RECEIVED
-              ? STATUS.PENDING
-              : item.status,
-
-          szreceivedyn:
-            "N",
-
-          dtrecieptdate:
-            null,
-        }
-      );
-    };
-
+      dtrecieptdate: null,
+    });
+  };
   /* ==========================================================
      PREVIEW
      ========================================================== */
 
-  const handlePreview =
-    async (item) => {
-      /*
-       * Local uploaded file
-       */
-      if (
-        item.fileUrl
-      ) {
-        setPreview(item);
-        return;
-      }
+  const handlePreview = (item) => {
+    if (item.selectedFile) {
+      const fileUrl = URL.createObjectURL(item.selectedFile);
 
-      /*
-       * Mock data
-       */
-      if (USE_MOCK_DATA) {
-        toast.info(
-          "Preview is available after uploading a file."
-        );
+      setPreview({
+        ...item,
+        fileUrl,
+        fileName: item.selectedFile.name,
+        fileType: item.selectedFile.type,
+      });
 
-        return;
-      }
+      return;
+    }
 
-      /*
-       * Backend file
-       */
-      if (
-        !applicationNo ||
-        !item.hasFile
-      ) {
-        return;
-      }
+    // existing backend logic...
+  };
 
-      try {
-        const data =
-          unwrapApiResponse(
-            await HAxiosService.GET(
-              LosDocumentAPI.file(
-                applicationNo,
-                item.itemId
-              )
-            )
-          );
 
-        const binary =
-          atob(
-            data.contentBase64 ||
-            ""
-          );
-
-        const bytes =
-          new Uint8Array(
-            binary.length
-          );
-
-        for (
-          let i = 0;
-          i < binary.length;
-          i += 1
-        ) {
-          bytes[i] =
-            binary.charCodeAt(
-              i
-            );
-        }
-
-        const blob =
-          new Blob(
-            [bytes],
-            {
-              type:
-                data.fileType ||
-                item.fileType ||
-                "application/octet-stream",
-            }
-          );
-
-        setPreview({
-          ...item,
-
-          fileName:
-            data.fileName ||
-            item.fileName,
-
-          fileType:
-            data.fileType ||
-            item.fileType,
-
-          fileUrl:
-            URL.createObjectURL(
-              blob
-            ),
-        });
-      } catch (error) {
-        toast.error(
-          error?.message ||
-          t(
-            "label.docupload.preview.unavailable",
-            "No preview available"
-          )
-        );
-      }
-    };
-
-  /* ==========================================================
-     UPLOAD FILES TO BACKEND
-     ========================================================== */
-
-  const persistFiles =
-    async (appNo) => {
-      /*
-       * Mock mode:
-       * files are already stored in local state.
-       */
-      if (USE_MOCK_DATA) {
-        return;
-      }
-
-      const entries =
-        Object.entries(
-          pendingFiles
-        );
-
-      for (
-        const [
-          itemId,
-          file,
-        ] of entries
-      ) {
-        const form =
-          new FormData();
-
-        form.append(
-          "file",
-          file
-        );
-
-        await HAxiosService.POST(
-          LosDocumentAPI.upload(
-            appNo,
-            itemId
-          ),
-          form,
-          {},
-          false,
-          {
-            Accept:
-              "application/json",
-          }
-        );
-      }
-    };
 
   /* ==========================================================
      SAVE
      ========================================================== */
 
-  const handleSave =
-    useCallback(
-      async () => {
-        try {
-          const appNo =
-            applicationNo ||
-            incomingApplicationNo ||
-            `APP-${Date.now()}`;
+const handleSave = useCallback(
+  async () => {
+    try {
+      const appNo =
+        applicationNo ||
+        incomingApplicationNo ||
+        `APP-${Date.now()}`;
 
-          if (!applicationNo) {
-            setApplicationNo(
-              appNo
-            );
+      if (!applicationNo) {
+        setApplicationNo(appNo);
+      }
+
+      const allItems  = flattenItems(families);
+
+        const originalById = new Map(
+        originalItemsRef.current.map((o) => [o.itemId, o])
+      );
+
+      const currentItems = allItems.filter((item) =>
+        isDocumentChanged(item, originalById.get(item.itemId))
+      );
+
+        const missingFile = currentItems.find(
+        (item) => item.status === STATUS.RECEIVED && !item.selectedFile
+      );
+
+      if (missingFile) {
+        toast.error(
+          `Please attach a file for "${missingFile.szDocCode || "this document"}" before saving`
+        );
+        return { success: false };
+      }
+
+      if (currentItems.length === 0) {
+        return { success: true };
+      }
+
+      console.log("current items = ",currentItems);
+
+      const requestPayload = currentItems.map((item) => ({
+        /*
+         * Primary Key
+         */
+         iDocumentsSrNo:  item.iDocumentsSrNo ??
+                          item.idocumentsSrNo ??
+                          item.idocumentsrno ??
+                          null,
+
+        /*
+         * Application
+         */
+        szApplicationNo:
+          item.szapplicationno ||
+          item.szApplicationNo ||
+          appNo,
+
+        szOrgId:
+          item.szorgid ||
+          item.szOrgId ||
+          orgId ||
+          "001",
+
+        /*
+         * Document
+         */
+        szDocCode:
+          item.szdoccode ||
+          item.szDocCode ||
+          item.docCode ||
+          item.docName ||
+          null,
+
+        szApplicantId:
+          item.szapplicantid ||
+          item.szApplicantId ||
+          applicableFor ||
+          null,
+
+        szAssetSrNo:
+          item.szassetsrno ??
+          item.szAssetSrNo ??
+          null,
+
+        /*
+         * Stage
+         */
+        szStageDue:
+          item.szstagedue ||
+          item.szStageDue ||
+          stage ||
+          null,
+
+        /*
+         * Waive allowed
+         */
+        szDocWaiveAllowYn:
+          item.szdocwaiveallowyn ||
+          item.szDocWaiveAllowYn ||
+          "N",
+
+        /*
+         * Status
+         */
+        szReceivedYn:
+          item.status === STATUS.RECEIVED
+            ? "Y"
+            : "N",
+
+        szWaivedYn:
+          item.status === STATUS.WAIVED
+            ? "Y"
+            : "N",
+
+        szDifferYn:
+          item.status === STATUS.DEFERRED
+            ? "Y"
+            : "N",
+
+        /*
+         * Waiver
+         */
+        szWaiverDec:
+          item.waiveComments ||
+          item.szwaiverdec ||
+          item.szWaiverDec ||
+          null,
+
+        szWaiverReason:
+          item.waiveReason ||
+          item.szwaiverreason ||
+          item.szWaiverReason ||
+          null,
+
+        /*
+         * Mandatory / Original
+         */
+        szMandatoryYn:
+          item.szmandatoryyn ||
+          item.szMandatoryYn ||
+          "N",
+
+        szOriginalReqYn:
+          item.szoriginalreqyn ||
+          item.szOriginalReqYn ||
+          "N",
+
+        /*
+         * Verification
+         */
+        szVerfDecision:
+          item.szverfdecision ||
+          item.szVerfDecision ||
+          null,
+
+        szVerifiedBy:
+          item.szverifiedby ||
+          item.szVerifiedBy ||
+          null,
+
+        /*
+         * User specified
+         */
+        szUserSpecifiedYn:
+          item.custom || item._isNew
+            ? "Y"
+            : item.szuserspecifiedyn ||
+              item.szUserSpecifiedYn ||
+              "N",
+
+        /*
+         * Existing DMS document ID
+         */
+        documentId:
+          item.documentid ??
+          item.documentId ??
+          null,
+
+        /*
+         * Document family
+         */
+        szDocFamilyCode:
+          item.szdocfamilycode ||
+          item.szDocFamilyCode ||
+          item.docFamilyCode ||
+          null,
+
+        szDocFamilyDesc:
+          item.szdocfamilydesc ||
+          item.szDocFamilyDesc ||
+          item.docFamilyName ||
+          null,
+
+        /*
+         * Fraud
+         */
+        cFraudYn:
+          item.cfraudyn ||
+          item.cFraudYn ||
+          "N",
+
+        /*
+         * Remarks
+         */
+        szRemarks:
+          item.remarks ||
+          item.szremarks ||
+          item.szRemarks ||
+          null,
+
+        /*
+         * Due information
+         */
+        iDueDays:
+          item.iduedays ??
+          item.idueDays ??
+          null,
+
+        dtDueDate:
+          item.dtduedate ||
+          item.dtDueDate ||
+          null,
+
+        /*
+         * Docket
+         */
+        szDocketLocation:
+          item.szdocketlocation ||
+          item.szDocketLocation ||
+          null,
+
+        /*
+         * Pages
+         */
+        iNoOfPages:
+          item.inoofpages ??
+          item.inoOfPages ??
+          null,
+
+        /*
+         * Level
+         */
+        cLevel:
+          item.clevel ||
+          item.cLevel ||
+          "P",
+
+        /*
+         * Receipt
+         */
+        dtRecieptDate:
+          item.dtrecieptdate ||
+          item.dtRecieptDate ||
+          null,
+
+        /*
+         * Audit
+         */
+        szCreatedBy:
+          item.szcreatedby ||
+          item.szCreatedBy ||
+          null,
+
+        szUpdatedBy:
+          item.szupdatedby ||
+          item.szUpdatedBy ||
+          null,
+
+        dtCreatedOn:
+          item.dtcreatedon ||
+          item.dtCreatedOn ||
+          null,
+
+        dtUpdatedOn:
+          item.dtupdatedon ||
+          item.dtUpdatedOn ||
+          null,
+
+        /*
+         * ==================================================
+         * IMPORTANT
+         *
+         * This tells backend which multipart file belongs
+         * to this particular DTO.
+         *
+         * Example:
+         * filePartName = file_1001
+         *             ↓
+         * multipart file_1001
+         * ==================================================
+         */
+        filePartName: item.selectedFile
+          ? `file_${item.itemId}`
+          : null,
+      }));
+
+      console.log(
+        "Document upload request:",
+        requestPayload
+      );
+
+      /*
+       * ==================================================
+       * CREATE MULTIPART REQUEST
+       * ==================================================
+       */
+      const formData = new FormData();
+
+      /*
+       * JSON part
+       *
+       * Backend:
+       * @RequestPart("request")
+       * ArrayList<DocumentUploadItemRequestDto>
+       *
+       * Blob content type = application/json
+       */
+      formData.append(
+        "request",
+        new Blob(
+          [JSON.stringify(requestPayload)],
+          {
+            type: "application/json",
           }
+        )
+      );
 
-          const payload = {
-            applicationNo:
-              appNo,
-
-            stage,
-
-            customerType,
-
-            applicableFor,
-
-            families,
-
-            items:
-              flattenItems(
-                families
-              ).map(
-                (item) => ({
-                  /*
-                   * UI fields
-                   */
-                  itemId:
-                    item.itemId,
-
-                  docFamilyCode:
-                    item.docFamilyCode,
-
-                  docFamilyName:
-                    item.docFamilyName,
-
-                  docCode:
-                    item.docCode,
-
-                  docName:
-                    item.docName,
-
-                  required:
-                    item.required,
-
-                  custom:
-                    item.custom,
-
-                  status:
-                    item.status,
-
-                  fileName:
-                    item.fileName,
-
-                  fileSize:
-                    item.fileSize,
-
-                  fileType:
-                    item.fileType,
-
-                  hasFile:
-                    Boolean(
-                      item.hasFile
-                    ),
-
-                  waiveReason:
-                    item.waiveReason,
-
-                  waiveComments:
-                    item.waiveComments,
-
-                  deferralStage:
-                    item.deferralStage,
-
-                  deferralDate:
-                    item.deferralDate,
-
-                  remarks:
-                    item.remarks,
-
-                  /*
-                   * LS_TRN_DOCUMENTS fields
-                   */
-                  idocumentsrno:
-                    item.idocumentsrno,
-
-                  szapplicationno:
-                    appNo,
-
-                  szorgid:
-                    item.szorgid ||
-                    "LOS",
-
-                  szapplicantid:
-                    item.szapplicantid,
-
-                  szassetsrno:
-                    item.szassetsrno,
-
-                  szstagedue:
-                    item.szstagedue ||
-                    stage,
-
-                  szdocwaiveallowyn:
-                    item.szdocwaiveallowyn,
-
-                  szreceivedyn:
-                    item.status ===
-                      STATUS.RECEIVED
-                      ? "Y"
-                      : "N",
-
-                  szwaivedyn:
-                    item.status ===
-                      STATUS.WAIVED
-                      ? "Y"
-                      : "N",
-
-                  szwaiverdec:
-                    item.szwaiverdec,
-
-                  szwaiverreason:
-                    item.waiveReason ||
-                    item.szwaiverreason,
-
-                  szdifferyn:
-                    item.status ===
-                      STATUS.DEFERRED
-                      ? "Y"
-                      : "N",
-
-                  szmandatoryyn:
-                    item.required
-                      ? "Y"
-                      : "N",
-
-                  szoriginalreqyn:
-                    item.szoriginalreqyn,
-
-                  szverfdecision:
-                    item.szverfdecision,
-
-                  szverifiedby:
-                    item.szverifiedby,
-
-                  szuserspecifiedyn:
-                    item.custom
-                      ? "Y"
-                      : "N",
-
-                  documentid:
-                    item.documentid,
-
-                  cfraudyn:
-                    item.cfraudyn ||
-                    "N",
-
-                  szremarks:
-                    item.remarks ||
-                    item.szremarks,
-
-                  iduedays:
-                    item.iduedays,
-
-                  dtduedate:
-                    item.dtduedate,
-
-                  szdocketlocation:
-                    item.szdocketlocation,
-
-                  inoofpages:
-                    item.inoofpages,
-
-                  clevel:
-                    item.clevel,
-
-                  dtrecieptdate:
-                    item.dtrecieptdate,
-
-                  szcreatedby:
-                    item.szcreatedby,
-
-                  szupdatedby:
-                    item.szupdatedby,
-                })
-              ),
-          };
-
-          /* ==================================================
-             MOCK SAVE
-             ================================================== */
-
-          if (USE_MOCK_DATA) {
-            console.log(
-              "MOCK SAVE PAYLOAD",
-              payload
-            );
-
-            /*
-             * Store mock data in local state
-             * so UI behaves like a real save.
-             */
-            setSavedItemIds(
-              new Set(
-                flattenItems(
-                  families
-                ).map(
-                  (item) =>
-                    item.itemId
-                )
-              )
-            );
-
-            toast.success(
-              "Documents saved successfully (Mock Mode)"
-            );
-
-            return {
-              success: true,
-            };
-          }
-
-          /* ==================================================
-             ACTUAL API SAVE
-             ================================================== */
-
-          const saved =
-            unwrapApiResponse(
-              await HAxiosService.PUT(
-                LosDocumentAPI.save(
-                  appNo
-                ),
-                payload
-              )
-            );
-
-          /*
-           * Upload physical files after
-           * saving document metadata.
-           */
-          await persistFiles(
-            appNo
+      /*
+       * ==================================================
+       * ADD FILES
+       *
+       * file_1001 → PDF 1
+       * file_1002 → PDF 2
+       * ==================================================
+       */
+      currentItems.forEach((item) => {
+        if (item.selectedFile) {
+          formData.append(
+            `file_${item.itemId}`,
+            item.selectedFile,
+            item.selectedFile.name
           );
-
-          /*
-           * Reload from backend.
-           */
-          const refreshed =
-            unwrapApiResponse(
-              await HAxiosService.GET(
-                LosDocumentAPI.getByAppNo(
-                  appNo,
-                  stage,
-                  customerType,
-                  applicableFor
-                )
-              )
-            );
-
-          applyFamilies(
-            refreshed ||
-            saved
-          );
-
-          setPendingFiles(
-            {}
-          );
-
-          toast.success(
-            t(
-              "label.docupload.msg.saved",
-              "Documents saved"
-            )
-          );
-
-          return {
-            success: true,
-          };
-        } catch (error) {
-          toast.error(
-            error?.message ||
-            t(
-              "label.docupload.msg.saveFailed",
-              "Save failed"
-            )
-          );
-
-          return {
-            success: false,
-          };
         }
-      },
-      [
-        applicationNo,
-        incomingApplicationNo,
-        stage,
-        customerType,
-        applicableFor,
-        families,
-        pendingFiles,
-        applyFamilies,
-        t,
-        toast,
-      ]
-    );
+      });
 
+      /*
+       * ==================================================
+       * BACKEND UPLOAD CALL
+       *
+       * POST /documents/upload
+       *
+       * NO Idempotency-Key HEADER
+       *
+       * Backend generates it internally.
+       * ==================================================
+       */
+      const saved = unwrapApiResponse(
+        await HAxiosService.POST(
+          LosDocumentAPI.LosDocumentAPI(
+            "ECF-DocumentUpload"
+          ) + "/documents/upload" +
+            `?applicationNo=${encodeURIComponent(appNo)}` +
+            `&orgId=${encodeURIComponent(orgId || "001")}`,
+          formData
+        )
+      );
+
+      console.log(
+        "Documents uploaded successfully:",
+        saved
+      );
+
+      /*
+       * ==================================================
+       * RELOAD FROM BACKEND
+       * ==================================================
+       */
+      const refreshed = unwrapApiResponse(
+        await HAxiosService.GET(
+          LosDocumentAPI.LosDocumentAPI(
+            "ECF-DocumentUpload"
+          ) +
+            "/documents" +
+            `?applicationNo=${encodeURIComponent(appNo)}` +
+            `&orgId=${encodeURIComponent(orgId || "001")}`
+        )
+      );
+
+      applyFamilies(
+        refreshed || saved
+      );
+
+      /*
+       * ==================================================
+       * SUCCESS
+       * ==================================================
+       */
+      toast.success(
+        t(
+          "label.docupload.msg.saved",
+          "Documents saved successfully"
+        )
+      );
+
+      return {
+        success: true,
+      };
+
+    } catch (error) {
+      console.error(
+        "Failed to upload documents",
+        error
+      );
+
+      toast.error(
+        error?.message ||
+          t(
+            "label.docupload.msg.saveFailed",
+            "Save failed"
+          )
+      );
+
+      return {
+        success: false,
+      };
+    }
+  },
+  [
+    applicationNo,
+    incomingApplicationNo,
+    stage,
+    applicableFor,
+    families,
+    savedItemIds,
+    orgId,
+    applyFamilies,
+    t,
+    toast,
+  ]
+);
   /* ==========================================================
      RESET
      ========================================================== */
 
-  const handleReset =
-    useCallback(
-      async () => {
-        if (USE_MOCK_DATA) {
-          const mockPayload =
-            JSON.parse(
-              JSON.stringify(
-                MOCK_DOCUMENT_DATA
-              )
-            );
+  const handleReset = useCallback(
+    async () => {
+      setFamilies((prev) =>
+        prev.map((family) => ({
+          ...family,
 
-          mockPayload.stage =
-            stage;
+          items: (family.items || []).map((item) => ({
+            ...item,
 
-          mockPayload.customerType =
-            customerType;
+            // Remove uploaded file
+            selectedFile: undefined,
+            fileName: undefined,
+            fileSize: undefined,
+            fileType: undefined,
+            fileUrl: undefined,
+            hasFile: false,
 
-          mockPayload.applicableFor =
-            applicableFor;
+            // Reset upload status
+            status: STATUS.PENDING,
+            szreceivedyn: "N",
+            dtrecieptdate: null,
 
-          applyFamilies(
-            mockPayload
-          );
+          })),
+        }))
+      );
 
-          setPendingFiles({});
-          setAddingFor("");
-          setNewDocName("");
+      // Clear any open preview
+      setPreview(null);
 
-          toast.success(
-            "Form reset successfully"
-          );
+      // Clear custom-document input
+      setAddingFor("");
+      setNewDocName("");
 
-          return {
-            success: true,
-          };
-        }
+      toast.success("Documents re-generated successfully");
 
-        await loadChecklist();
-
-        toast.success(
-          t(
-            "label.docupload.msg.reset",
-            "Form reset"
-          )
-        );
-
-        return {
-          success: true,
-        };
-      },
-      [
-        stage,
-        customerType,
-        applicableFor,
-        applyFamilies,
-        loadChecklist,
-        t,
-        toast,
-      ]
-    );
-
+      return {
+        success: true,
+      };
+    },
+    [toast]
+  );
   /* ==========================================================
      RENDER
      ========================================================== */
 
   return (
     <IntlProvider locale={intl.locale} messages={localeOverrides}>
-    <HBox>
+      <HBox>
 
-      {/* ======================================================
+        {/* ======================================================
           BREADCRUMB
           ====================================================== */}
 
-      <HBreadCrumb />
+        <HBreadCrumb />
 
 
-      {/* ======================================================
+        {/* ======================================================
           PAGE TITLE
           ====================================================== */}
 
-      <TitleBar
-        title={t(
-          "label.docupload.title",
-          "Document Checklist"
-        )}
-      />
+        <TitleBar
+          title={t(
+            "label.docupload.title",
+            "Document Checklist"
+          )}
+        />
 
 
-      {/* ======================================================
+        {/* ======================================================
           MAIN PAPER
           ====================================================== */}
 
-      <HBox>
+        <HBox>
 
-        <HPaper>
+          <HPaper>
 
-          {/* ==================================================
+            {/* ==================================================
               TOP FILTER BAR
 
               Lovable layout:
@@ -1527,198 +1602,150 @@ const ApplicationDocumentUpload = () => {
               Applicable for | Stage | Customer Type
               ================================================== */}
 
-          <HBox
-            style={{
-              display: "flex",
-              flexDirection: "row",
-              alignItems: "center",
-              width: "100%",
-              marginBottom : "8px"
-            }}
-          >
-            {/* APPLICABLE FOR */}
             <HBox
               style={{
                 display: "flex",
                 flexDirection: "row",
                 alignItems: "center",
-                width: "33.33%",
-                paddingRight: "12px",
-                boxSizing: "border-box",
+                width: "100%",
+                marginBottom: "8px"
               }}
             >
-              <HLabel
-                value="label.docupload.field.applicableFor"
-                required
-                align="left"
-                colon={false}
+              {/* APPLICABLE FOR */}
+              <HBox
                 style={{
-                  width: "95px",
-                  minWidth: "95px",
-                  whiteSpace: "nowrap",
-                  marginRight: "10px",
+                  display: "flex",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  width: "33.33%",
+                  paddingRight: "12px",
+                  boxSizing: "border-box",
                 }}
-              />
+              >
+                <HLabel
+                  value="label.docupload.field.applicableFor"
+                  required
+                  align="left"
+                  colon={false}
+                  style={{
+                    width: "95px",
+                    minWidth: "95px",
+                    whiteSpace: "nowrap",
+                    marginRight: "10px",
+                  }}
+                />
 
-              <HDropdown
-                name="applicableFor"
-                options={applicantOptions}
-                value={applicableFor}
-                onChange={(e) => {
-                  const selectedValue = e.target.value;
-                  setApplicableFor(selectedValue);
-                  const selectedApplicant = applicantOptions.find(
-                    (option) => option.value === selectedValue
-                  );
-                  setCustomerType(
-                    selectedApplicant?.customerType || ""
-                  );
+                <HDropdown
+                  name="applicableFor"
+                  options={applicantOptions}
+                  value={applicableFor}
+                  onChange={(e) => {
+                    const selectedValue = e.target.value;
+                    setApplicableFor(selectedValue);
+                    const selectedApplicant = applicantOptions.find(
+                      (option) => option.value === selectedValue
+                    );
+                    setCustomerType(
+                      selectedApplicant?.customerType || ""
+                    );
+                  }}
+                  width="300px"
+                />
+              </HBox>
+
+
+              {/* STAGE */}
+              <HBox
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  width: "33.33%",
+                  paddingRight: "12px",
+                  boxSizing: "border-box",
                 }}
-                width="300px"
-              />
+              >
+                <HLabel
+                  value="label.docupload.field.stage"
+                  required
+                  align="left"
+                  colon={false}
+                  style={{
+                    width: "55px",
+                    minWidth: "55px",
+                    whiteSpace: "nowrap",
+                    marginRight: "10px",
+                  }}
+                />
+
+                <HDropdown
+                  name="stage"
+                  options={stageOptions}
+                  value={stage}
+                  onChange={(e) =>
+                    setStage(e.target.value)
+                  }
+                  width="220px"
+                />
+              </HBox>
+
+
+              {/* CUSTOMER TYPE */}
+              <HBox
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  width: "33.33%",
+                  boxSizing: "border-box",
+                }}
+              >
+                <HLabel
+                  value="label.docupload.field.customerType"
+                  required
+                  align="left"
+                  colon={false}
+                  style={{
+                    width: "95px",
+                    minWidth: "95px",
+                    whiteSpace: "nowrap",
+                    marginRight: "10px",
+                  }}
+                />
+
+                <HTextField
+                  name="customerType"
+                  value={customerType}
+                  sx={{ mb: 2, ml: 1 }}
+                />
+              </HBox>
             </HBox>
 
-
-            {/* STAGE */}
-            <HBox
-              style={{
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                width: "33.33%",
-                paddingRight: "12px",
-                boxSizing: "border-box",
-              }}
-            >
-              <HLabel
-                value="label.docupload.field.stage"
-                required
-                align="left"
-                colon={false}
-                style={{
-                  width: "55px",
-                  minWidth: "55px",
-                  whiteSpace: "nowrap",
-                  marginRight: "10px",
-                }}
-              />
-
-              <HDropdown
-                name="stage"
-                options={stageOptions}
-                value={stage}
-                onChange={(e) =>
-                  setStage(e.target.value)
-                }
-                width="220px"
-              />
-            </HBox>
-
-
-            {/* CUSTOMER TYPE */}
-            <HBox
-              style={{
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                width: "33.33%",
-                boxSizing: "border-box",
-              }}
-            >
-              <HLabel
-                value="label.docupload.field.customerType"
-                required
-                align="left"
-                colon={false}
-                style={{
-                  width: "95px",
-                  minWidth: "95px",
-                  whiteSpace: "nowrap",
-                  marginRight: "10px",
-                }}
-              />
-
-              <HTextField
-                name="customerType"
-                value={customerType}
-                sx={{mb:2 , ml:1}}
-              />
-            </HBox>
-          </HBox>
-
-          {/* ==================================================
+            {/* ==================================================
               CHECKLIST HEADER
               ================================================== */}
 
-<HBox
-  style={{
-    display: "flex",
-    flexDirection: "column",
-    width: "100%",
-    marginBottom: "16px"
-  }}
->
-
-  {/* Title on its own line */}
-
-  <HLabel
-    value="label.docupload.checklist.title"
-    align="left"
-    colon={false}
-    style={{
-      fontWeight: 600,
-    }}
-  />
-
-  {/* Hint (left) + received count (right) on the same line */}
-
-  <HBox
-    style={{
-      display: "flex",
-      flexDirection: "row",
-      alignItems: "center",
-      justifyContent: "space-between",
-      width: "100%",
-    }}
-  >
-
-    <HLabel
-      value="label.docupload.checklist.hint"
-      align="left"
-      colon={false}
-    />
-
-    <HLabel
-      value={`${receivedCount}/${items.length} received`}
-      translate={false}
-      align="left"
-      colon={false}
-    />
-
-  </HBox>
-
-</HBox>
-
-
-          {/* ==================================================
-              DOCUMENT FAMILIES
-              ================================================== */}
-
-          {families.map((family) => (
             <HBox
-              key={family.docFamilyCode}
               style={{
-                border: "1px solid #e0c5d3",
-                borderRadius: "6px",
-                marginBottom: "12px",
-                overflow: "hidden",
+                display: "flex",
+                flexDirection: "column",
                 width: "100%",
+                marginBottom: "16px"
               }}
             >
 
-              {/* ==================================================
-        FAMILY HEADER
-        ================================================== */}
+              {/* Title on its own line */}
+
+              <HLabel
+                value="label.docupload.checklist.title"
+                align="left"
+                colon={false}
+                style={{
+                  fontWeight: 600,
+                }}
+              />
+
+              {/* Hint (left) + received count (right) on the same line */}
 
               <HBox
                 style={{
@@ -1727,815 +1754,866 @@ const ApplicationDocumentUpload = () => {
                   alignItems: "center",
                   justifyContent: "space-between",
                   width: "100%",
-                  padding: "8px 12px",
-                  boxSizing: "border-box",
-                  backgroundColor: "transaparent",
-                  borderBottom: "1px solid #e0c5d3",
                 }}
               >
 
-                {/* Section title */}
+                <HLabel
+                  value="label.docupload.checklist.hint"
+                  align="left"
+                  colon={false}
+                />
 
                 <HLabel
-                  value={family.docFamilyName}
+                  value={`${receivedCount}/${items.length} received`}
                   translate={false}
                   align="left"
                   colon={false}
-                  style={{
-                    fontWeight: 600,
-                  }}
-                />
-
-                {/* Add Document */}
-
-                <HButton
-                  label="label.docupload.button.addDocument"
-                  variant="outlined"
-                  inline
-                  onClick={() =>
-                    setAddingFor(
-                      addingFor === family.docFamilyCode
-                        ? ""
-                        : family.docFamilyCode
-                    )
-                  }
                 />
 
               </HBox>
 
+            </HBox>
 
-              {/* ==================================================
-        ADD DOCUMENT AREA
+
+            {/* ==================================================
+              DOCUMENT FAMILIES
+              ================================================== */}
+
+            {families.map((family) => (
+              <HBox
+                key={family.docFamilyCode}
+                style={{
+                  border: "1px solid #e0c5d3",
+                  borderRadius: "6px",
+                  marginBottom: "12px",
+                  overflow: "hidden",
+                  width: "100%",
+                }}
+              >
+
+                {/* ==================================================
+        FAMILY HEADER
         ================================================== */}
 
-              {addingFor === family.docFamilyCode ? (
                 <HBox
                   style={{
                     display: "flex",
                     flexDirection: "row",
                     alignItems: "center",
-                    gap: "8px",
-                    padding: "10px 12px",
+                    justifyContent: "space-between",
                     width: "100%",
+                    padding: "8px 12px",
                     boxSizing: "border-box",
+                    backgroundColor: "transparent",
+                    borderBottom: "1px solid #e0c5d3",
                   }}
                 >
 
-                  <HTextField
-                    value={newDocName}
-                    onChange={(e) =>
-                      setNewDocName(e.target.value)
-                    }
-                    editable
-                    placeholder="label.docupload.placeholder.docName"
-                    width="100%"
-                  />
+                  {/* Section title */}
 
-                  <HButton
-                    label="label.docupload.button.add"
-                    variant="contained"
-                    inline
-                    onClick={() =>
-                      handleAddCustom(family)
-                    }
-                  />
-
-                  <HButton
-                    label="label.docupload.button.cancel"
-                    variant="outlined"
-                    inline
-                    onClick={() => {
-                      setAddingFor("");
-                      setNewDocName("");
+                  <HLabel
+                    value={family.docFamilyName}
+                    translate={false}
+                    align="left"
+                    colon={false}
+                    style={{
+                      fontWeight: 600,
                     }}
                   />
 
+                  {/* Add Document */}
+
+                  <HButton
+                    label="label.docupload.button.addDocument"
+                    variant="outlined"
+                    inline
+                    onClick={() =>
+                      setAddingFor(
+                        addingFor === family.docFamilyCode
+                          ? ""
+                          : family.docFamilyCode
+                      )
+                    }
+                  />
+
                 </HBox>
-              ) : null}
 
 
-              {/* ==================================================
+                {/* ==================================================
+        ADD DOCUMENT AREA
+        ================================================== */}
+
+                {addingFor === family.docFamilyCode ? (
+                  <HBox
+                    style={{
+                      display: "flex",
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: "8px",
+                      padding: "10px 12px",
+                      width: "100%",
+                      boxSizing: "border-box",
+                    }}
+                  >
+
+                    <HTextField
+                      value={newDocName}
+                      onChange={(e) =>
+                        setNewDocName(e.target.value)
+                      }
+                      editable
+                      placeholder="label.docupload.placeholder.docName"
+                      width="100%"
+                    />
+
+                    <HButton
+                      label="label.docupload.button.add"
+                      variant="contained"
+                      inline
+                      onClick={() =>
+                        handleAddCustom(family)
+                      }
+                    />
+
+                    <HButton
+                      label="label.docupload.button.cancel"
+                      variant="outlined"
+                      inline
+                      onClick={() => {
+                        setAddingFor("");
+                        setNewDocName("");
+                      }}
+                    />
+
+                  </HBox>
+                ) : null}
+
+
+                {/* ==================================================
         DOCUMENT LIST
         ================================================== */}
 
-              <HBox
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  width: "100%",
-                }}
-              >
+                <HBox
+                  style={{
+                    display: "flex",
+                    flexDirection: "column",
+                    width: "100%",
+                  }}
+                >
 
-                {(family.items || []).length === 0 ? (
-                  <HLabel
-                    value="label.docupload.empty.section"
-                    align="left"
-                    colon={false}
-                  />
-                ) : (
-                  (family.items || []).map((item) => (
-                    <HBox
-                      key={item.itemId}
-                      style={{
-                        display: "flex",
-                        flexDirection: "row",
-                        alignItems: "center",
-                        width: "100%",
-                        padding: "10px 12px",
-                        boxSizing: "border-box",
-                        borderBottom: "1px solid #eeeeee",
-                      }}
-                    >
-
-                      {/* ========================================
-                DOCUMENT NAME
-                ======================================== */}
-
+                  {(family.items || []).length === 0 ? (
+                    <HLabel
+                      value="label.docupload.empty.section"
+                      align="left"
+                      colon={false}
+                    />
+                  ) : (
+                    (family.items || []).map((item) => (
                       <HBox
-                        style={{
-                          display: "flex",
-                          flexDirection: "row",
-                          alignItems: "flex-start",
-                          width: "35%",
-                          minWidth: "35%",
-                        }}
-                      >
-
-                        {/* Document icon */}
-
-                        <DescriptionOutlinedIcon
-                          sx={{
-                            fontSize: 20,
-                            marginTop: "2px",
-                          }}
-                        />
-
-                        {/* Document information */}
-
-                        <HBox
-                          style={{
-                            display: "flex",
-                            flexDirection: "column",
-                            marginLeft: "8px",
-                          }}
-                        >
-
-                          <HLabel
-                            value={item.docName}
-                            translate={false}
-                            align="left"
-                            colon={false}
-                          />
-
-                          <HLabel
-                            value={
-                              item.custom
-                                ? "Custom"
-                                : "System generated"
-                            }
-                            translate={false}
-                            align="left"
-                            colon={false}
-                          />
-
-                        </HBox>
-
-                      </HBox>
-
-
-                      {/* ========================================
-                FILE INPUT
-                ======================================== */}
-
-                      <input
-                        ref={(element) => {
-                          fileInputs.current[item.itemId] =
-                            element;
-                        }}
-                        type="file"
-                        hidden
-                        onChange={(e) => {
-                          handleFilePicked(
-                            item,
-                            e.target.files?.[0]
-                          );
-
-                          /*
-                           * Allow selecting
-                           * the same file again.
-                           */
-                          e.target.value = "";
-                        }}
-                      />
-
-
-                      {/* ========================================
-                UPLOAD
-                ======================================== */}
-
-                      <HBox
+                        key={item.itemId}
                         style={{
                           display: "flex",
                           flexDirection: "row",
                           alignItems: "center",
-                          gap: "8px",
-                          width: "65%",
+                          width: "100%",
+                          padding: "10px 12px",
+                          boxSizing: "border-box",
+                          borderBottom: "1px solid #eeeeee",
                         }}
                       >
 
-                        <HButton
-                          label={
-                            item.fileName
-                              ? "Replace"
-                              : "Upload"
-                          }
-                          translate={false}
-                          variant="outlined"
-                          inline
-                          onClick={() =>
-                            fileInputs.current[
-                              item.itemId
-                            ]?.click()
-                          }
+                        {/* ========================================
+                DOCUMENT NAME
+                ======================================== */}
+
+                        <HBox
+                          style={{
+                            display: "flex",
+                            flexDirection: "row",
+                            alignItems: "flex-start",
+                            width: "35%",
+                            minWidth: "35%",
+                          }}
+                        >
+
+                          {/* Document icon */}
+
+                          <DescriptionOutlinedIcon
+                            sx={{
+                              fontSize: 20,
+                              marginTop: "2px",
+                            }}
+                          />
+
+                          {/* Document information */}
+
+                          <HBox
+                            style={{
+                              display: "flex",
+                              flexDirection: "column",
+                              marginLeft: "8px",
+                            }}
+                          >
+
+                            <HLabel
+                              value={item.szDocCode || item.szdoccode}
+                              translate={false}
+                              align="left"
+                              colon={false}
+                            />
+
+                            <HLabel
+                              value={
+                                item.custom
+                                  ? "Custom"
+                                  : "System generated"
+                              }
+                              translate={false}
+                              align="left"
+                              colon={false}
+                            />
+
+                          </HBox>
+
+                        </HBox>
+
+
+                        {/* ========================================
+                FILE INPUT
+                ======================================== */}
+
+                        <input
+                          ref={(element) => {
+                            fileInputs.current[item.itemId] =
+                              element;
+                          }}
+                          type="file"
+                          hidden
+                          onChange={(e) => {
+                            handleFilePicked(
+                              item,
+                              e.target.files?.[0]
+                            );
+
+                            /*
+                             * Allow selecting
+                             * the same file again.
+                             */
+                            e.target.value = "";
+                          }}
                         />
 
 
-                        {/* ====================================
+                        {/* ========================================
+                UPLOAD
+                ======================================== */}
+
+                        <HBox
+                          style={{
+                            display: "flex",
+                            flexDirection: "row",
+                            alignItems: "center",
+                            gap: "8px",
+                            width: "65%",
+                          }}
+                        >
+
+                          <HButton
+                            label={
+                              item.fileName
+                                ? "Replace"
+                                : "Upload"
+                            }
+                            translate={false}
+                            variant="outlined"
+                            inline
+                            onClick={() =>
+                              fileInputs.current[
+                                item.itemId
+                              ]?.click()
+                            }
+                          />
+
+
+                          {/* ====================================
                   RECEIVED
                   ==================================== */}
 
-                        <HButton
-                          label="Received"
-                          translate={false}
-                          variant={
-                            item.status ===
-                              STATUS.RECEIVED
-                              ? "contained"
-                              : "outlined"
-                          }
-                          inline
-                          onClick={() =>
-                            handleStatusClick(
-                              item,
-                              STATUS.RECEIVED
-                            )
-                          }
-                        />
+                          <HButton
+                            label="Received"
+                            translate={false}
+                            variant={
+                              item.status ===
+                                STATUS.RECEIVED
+                                ? "contained"
+                                : "outlined"
+                            }
+                            inline
+                            onClick={() =>
+                              handleStatusClick(
+                                item,
+                                STATUS.RECEIVED
+                              )
+                            }
+                          />
 
 
-                        {/* ====================================
+                          {/* ====================================
                   DEFERRED
                   ==================================== */}
 
-                        <HButton
-                          label="Deferred"
-                          translate={false}
-                          variant={
-                            item.status ===
-                              STATUS.DEFERRED
-                              ? "contained"
-                              : "outlined"
-                          }
-                          inline
-                          onClick={() =>
-                            handleStatusClick(
-                              item,
-                              STATUS.DEFERRED
-                            )
-                          }
-                        />
+                          <HButton
+                            label="Deferred"
+                            translate={false}
+                            variant={
+                              item.status ===
+                                STATUS.DEFERRED
+                                ? "contained"
+                                : "outlined"
+                            }
+                            inline
+                            onClick={() =>
+                              handleStatusClick(
+                                item,
+                                STATUS.DEFERRED
+                              )
+                            }
+                          />
 
 
-                        {/* ====================================
+                          {/* ====================================
                   WAIVED
                   ==================================== */}
 
-                        <HButton
-                          label="Waived"
-                          translate={false}
-                          variant={
-                            item.status ===
-                              STATUS.WAIVED
-                              ? "contained"
-                              : "outlined"
-                          }
-                          inline
-                          onClick={() =>
-                            handleStatusClick(
-                              item,
-                              STATUS.WAIVED
-                            )
-                          }
-                        />
+                          <HButton
+                            label="Waived"
+                            translate={false}
+                            variant={
+                              item.status ===
+                                STATUS.WAIVED
+                                ? "contained"
+                                : "outlined"
+                            }
+                            inline
+                            onClick={() =>
+                              handleStatusClick(
+                                item,
+                                STATUS.WAIVED
+                              )
+                            }
+                          />
 
 
-                        {/* ====================================
+                          {/* ====================================
                   STATUS
                   ==================================== */}
 
-                        <HLabel
-                          value={item.status}
-                          translate={false}
-                          align="left"
-                          colon={false}
-                        />
-
-
-                        {/* ====================================
-                  FILE NAME
-                  ==================================== */}
-
-                        {item.fileName ? (
                           <HLabel
-                            value={`${item.fileName} ${item.fileSize
-                                ? `(${formatFileSize(
-                                  item.fileSize
-                                )})`
-                                : ""
-                              }`}
+                            value={getDocumentStatus(item)}
                             translate={false}
                             align="left"
                             colon={false}
                           />
-                        ) : null}
 
 
-                        {/* ====================================
+                          {/* ====================================
+                  FILE NAME
+                  ==================================== */}
+
+                          {item.fileName ? (
+                            <HLabel
+                              value={`${item.fileName} ${item.fileSize
+                                ? `(${formatFileSize(
+                                  item.fileSize
+                                )})`
+                                : ""
+                                }`}
+                              translate={false}
+                              align="left"
+                              colon={false}
+                            />
+                          ) : null}
+
+
+                          {/* ====================================
                   PREVIEW
                   ==================================== */}
 
-                        {item.hasFile ||
-                          item.fileUrl ? (
-                          <HButton
-                            label="Preview"
-                            translate={false}
-                            variant="outlined"
-                            inline
-                            onClick={() =>
-                              handlePreview(item)
-                            }
-                          />
-                        ) : null}
+                          {item.hasFile ||
+                            item.fileUrl ? (
+                            <HButton
+                              label="Preview"
+                              translate={false}
+                              variant="outlined"
+                              inline
+                              onClick={() =>
+                                handlePreview(item)
+                              }
+                            />
+                          ) : null}
 
 
-                        {/* ====================================
+                          {/* ====================================
                   REMOVE FILE
                   ==================================== */}
 
-                        {item.fileName ? (
-                          <HButton
-                            label="Remove"
-                            translate={false}
-                            variant="outlined"
-                            inline
-                            onClick={() =>
-                              handleRemoveFile(item)
-                            }
-                          />
-                        ) : null}
+                          {item.fileName ? (
+                            <HButton
+                              label="Remove"
+                              translate={false}
+                              variant="outlined"
+                              inline
+                              onClick={() =>
+                                handleRemoveFile(item)
+                              }
+                            />
+                          ) : null}
 
 
-                        {/* ====================================
+                          {/* ====================================
                   DELETE CUSTOM DOCUMENT
                   ==================================== */}
 
-                        {item.custom ? (
-                          <HButton
-                            label="Delete"
-                            translate={false}
-                            variant="outlined"
-                            inline
-                            onClick={() =>
-                              handleDeleteCustom(item)
-                            }
-                          />
-                        ) : null}
+                          {item.custom ? (
+                            <HButton
+                              label="Delete"
+                              translate={false}
+                              variant="outlined"
+                              inline
+                              onClick={() =>
+                                handleDeleteCustom(item)
+                              }
+                            />
+                          ) : null}
+
+                        </HBox>
 
                       </HBox>
+                    ))
+                  )}
 
-                    </HBox>
-                  ))
-                )}
+                </HBox>
 
               </HBox>
+            ))}
 
-            </HBox>
-          ))}
+          </HPaper>
 
-        </HPaper>
-
-      </HBox>
+        </HBox>
 
 
-      {/* ======================================================
+        {/* ======================================================
           BOTTOM BUTTON BAR
           ====================================================== */}
 
-      <HButtonBar
-        onSave={
-          handleSave
-        }
-        onReset={
-          handleReset
-        }
-        onClose={() =>
-          navigate(
-            "/homelayout/welcomepage"
-          )
-        }
-        disableToast={{
-          save: true,
-          reset: true,
-          close: true,
-        }}
-      />
+        <HButtonBar
+          onSave={
+            handleSave
+          }
+          onReset={
+            handleReset
+          }
+          onClose={() =>
+            navigate(
+              "/homelayout/welcomepage"
+            )
+          }
+          disableToast={{
+            save: true,
+            reset: true,
+            close: true,
+          }}
+        />
 
 
-      {/* ======================================================
+        {/* ======================================================
           PREVIEW DIALOG
           ====================================================== */}
 
-      <HDialog
-        open={Boolean(
-          preview
-        )}
-        onClose={() =>
-          setPreview(null)
-        }
-        title={
-          preview?.docName ||
-          "Document preview"
-        }
-        maxWidth="md"
-        fullWidth
-        actions={
-          <HButton
-            label="Cancel"
-            translate={
-              false
-            }
-            variant="outlined"
-            inline
-            onClick={() =>
-              setPreview(null)
-            }
-          />
-        }
-      >
+        <HDialog
+          open={Boolean(
+            preview
+          )}
+          onClose={() =>
+            setPreview(null)
+          }
+          title={
+            preview?.docName ||
+            "Document preview"
+          }
+          maxWidth="md"
+          fullWidth
+          actions={
+            <HButton
+              label="Cancel"
+              translate={
+                false
+              }
+              variant="outlined"
+              inline
+              onClick={() =>
+                setPreview(null)
+              }
+            />
+          }
+        >
 
-        {preview?.fileUrl &&
-          (
-            preview.fileType ||
-            ""
-          ).startsWith(
-            "image/"
-          ) ? (
-          <img
-            src={
-              preview.fileUrl
-            }
-            alt={
-              preview.docName
-            }
-            width="100%"
-          />
-        ) : preview?.fileUrl &&
-          (
-            preview.fileType ||
-            ""
-          ).includes("pdf") ? (
-          <iframe
-            title={
-              preview.docName
-            }
-            src={
-              preview.fileUrl
-            }
-            width="100%"
-            height="480"
-          />
-        ) : (
+          {preview?.fileUrl &&
+            (
+              preview.fileType ||
+              ""
+            ).startsWith(
+              "image/"
+            ) ? (
+            <img
+              src={
+                preview.fileUrl
+              }
+              alt={
+                preview.docName
+              }
+              width="100%"
+            />
+          ) : preview?.fileUrl &&
+            (
+              preview.fileType ||
+              ""
+            ).includes("pdf") ? (
+            <iframe
+              title={
+                preview.docName
+              }
+              src={
+                preview.fileUrl
+              }
+              width="100%"
+              height="480"
+            />
+          ) : (
+            <HLabel
+              value="No preview available"
+              translate={
+                false
+              }
+              align="left"
+              colon={false}
+            />
+          )}
+
+        </HDialog>
+
+
+        {/* ======================================================
+          WAIVE DOCUMENT DIALOG
+          ====================================================== */}
+
+        <HDialog
+          open={Boolean(
+            waiveDialog
+          )}
+          onClose={() =>
+            setWaiveDialog(
+              null
+            )
+          }
+          title="Waive document"
+          maxWidth="sm"
+          fullWidth
+          actions={
+            <HBox>
+
+              <HButton
+                label="Cancel"
+                translate={
+                  false
+                }
+                variant="outlined"
+                inline
+                onClick={() =>
+                  setWaiveDialog(
+                    null
+                  )
+                }
+              />
+
+              <HButton
+                label="Confirm Waive"
+                translate={
+                  false
+                }
+                variant="contained"
+                inline
+                onClick={() => {
+                  if (!waiveDialog?.reason) {
+                    toast.error("Please select a waiver reason");
+                    return;
+                  }
+
+                  updateItem(
+                    waiveDialog.itemId,
+                    {
+                      status:
+                        STATUS.WAIVED,
+
+                      waiveReason:
+                        waiveDialog.reason,
+
+                      waiveComments:
+                        waiveDialog.comments,
+
+                      szreceivedyn:
+                        "N",
+
+                      szwaivedyn:
+                        "Y",
+
+                      szdifferyn:
+                        "N",
+
+                      szwaiverreason:
+                        waiveDialog.reason,
+                    }
+                  );
+
+                  setWaiveDialog(
+                    null
+                  );
+                }}
+              />
+
+            </HBox>
+          }
+        >
+
           <HLabel
-            value="No preview available"
+            value="Select a reason for waiving this document."
             translate={
               false
             }
             align="left"
             colon={false}
           />
-        )}
 
-      </HDialog>
+          <HLabel
+            value="Reason"
+            translate={
+              false
+            }
+            required
+            align="left"
+            colon={false}
+          />
 
+          <HDropdown
+            name="waiveReason"
+            options={
+              waiveReasonOptions
+            }
+            value={
+              waiveDialog?.reason ||
+              ""
+            }
+            onChange={(e) =>
+              setWaiveDialog(
+                (prev) => ({
+                  ...prev,
+                  reason:
+                    e.target.value,
+                })
+              )
+            }
+            width="100%"
+          />
 
-      {/* ======================================================
-          WAIVE DOCUMENT DIALOG
-          ====================================================== */}
+          <HLabel
+            value="Comments"
+            translate={
+              false
+            }
+            align="left"
+            colon={false}
+          />
 
-      <HDialog
-        open={Boolean(
-          waiveDialog
-        )}
-        onClose={() =>
-          setWaiveDialog(
-            null
-          )
-        }
-        title="Waive document"
-        maxWidth="sm"
-        fullWidth
-        actions={
-          <HBox>
+          <HTextarea
+            value={
+              waiveDialog?.comments ||
+              ""
+            }
+            onChange={(e) =>
+              setWaiveDialog(
+                (prev) => ({
+                  ...prev,
+                  comments:
+                    e.target.value,
+                })
+              )
+            }
+            maxLength={500}
+            maxLines={3}
+            width="100%"
+            placeholder="Enter comments"
+          />
 
-            <HButton
-              label="Cancel"
-              translate={
-                false
-              }
-              variant="outlined"
-              inline
-              onClick={() =>
-                setWaiveDialog(
-                  null
-                )
-              }
-            />
-
-            <HButton
-              label="Confirm Waive"
-              translate={
-                false
-              }
-              variant="contained"
-              inline
-              disabled={
-                !waiveDialog?.reason
-              }
-              onClick={() => {
-                updateItem(
-                  waiveDialog.itemId,
-                  {
-                    status:
-                      STATUS.WAIVED,
-
-                    waiveReason:
-                      waiveDialog.reason,
-
-                    waiveComments:
-                      waiveDialog.comments,
-
-                    szreceivedyn:
-                      "N",
-
-                    szwaivedyn:
-                      "Y",
-
-                    szdifferyn:
-                      "N",
-
-                    szwaiverreason:
-                      waiveDialog.reason,
-                  }
-                );
-
-                setWaiveDialog(
-                  null
-                );
-              }}
-            />
-
-          </HBox>
-        }
-      >
-
-        <HLabel
-          value="Select a reason for waiving this document."
-          translate={
-            false
-          }
-          align="left"
-          colon={false}
-        />
-
-        <HLabel
-          value="Reason"
-          translate={
-            false
-          }
-          required
-          align="left"
-          colon={false}
-        />
-
-        <HDropdown
-          name="waiveReason"
-          options={
-            waiveReasonOptions
-          }
-          value={
-            waiveDialog?.reason ||
-            ""
-          }
-          onChange={(e) =>
-            setWaiveDialog(
-              (prev) => ({
-                ...prev,
-                reason:
-                  e.target.value,
-              })
-            )
-          }
-          width="100%"
-        />
-
-        <HLabel
-          value="Comments"
-          translate={
-            false
-          }
-          align="left"
-          colon={false}
-        />
-
-        <HTextarea
-          value={
-            waiveDialog?.comments ||
-            ""
-          }
-          onChange={(e) =>
-            setWaiveDialog(
-              (prev) => ({
-                ...prev,
-                comments:
-                  e.target.value,
-              })
-            )
-          }
-          maxLength={500}
-          maxLines={3}
-          width="100%"
-          placeholder="Enter comments"
-        />
-
-      </HDialog>
+        </HDialog>
 
 
-      {/* ======================================================
+        {/* ======================================================
           DEFER DOCUMENT DIALOG
           ====================================================== */}
 
-      <HDialog
-        open={Boolean(
-          deferDialog
-        )}
-        onClose={() =>
-          setDeferDialog(
-            null
-          )
-        }
-        title="Defer document"
-        maxWidth="sm"
-        fullWidth
-        actions={
-          <HBox>
-
-            <HButton
-              label="Cancel"
-              translate={
-                false
-              }
-              variant="outlined"
-              inline
-              onClick={() =>
-                setDeferDialog(
-                  null
-                )
-              }
-            />
-
-            <HButton
-              label="Confirm Defer"
-              translate={
-                false
-              }
-              variant="contained"
-              inline
-              disabled={
-                !deferDialog?.stage ||
-                !deferDialog?.date
-              }
-              onClick={() => {
-                updateItem(
-                  deferDialog.itemId,
-                  {
-                    status:
-                      STATUS.DEFERRED,
-
-                    deferralStage:
-                      deferDialog.stage,
-
-                    deferralDate:
-                      deferDialog.date,
-
-                    szreceivedyn:
-                      "N",
-
-                    szwaivedyn:
-                      "N",
-
-                    szdifferyn:
-                      "Y",
-                  }
-                );
-
-                setDeferDialog(
-                  null
-                );
-              }}
-            />
-
-          </HBox>
-        }
-      >
-
-        <HLabel
-          value="Select the stage and date until which this document is deferred."
-          translate={
-            false
-          }
-          align="left"
-          colon={false}
-        />
-
-        <HLabel
-          value="Deferral Stage"
-          translate={
-            false
-          }
-          required
-          align="left"
-          colon={false}
-        />
-
-        <HDropdown
-          name="deferralStage"
-          options={
-            stageOptions
-          }
-          value={
-            deferDialog?.stage ||
-            ""
-          }
-          onChange={(e) =>
+        <HDialog
+          open={Boolean(
+            deferDialog
+          )}
+          onClose={() =>
             setDeferDialog(
-              (prev) => ({
-                ...prev,
-                stage:
-                  e.target.value,
-              })
+              null
             )
           }
-          width="100%"
-        />
+          title="Defer document"
+          maxWidth="sm"
+          fullWidth
+          actions={
+            <HBox>
 
-        <HLabel
-          value="Deferral Date"
-          translate={
-            false
-          }
-          required
-          align="left"
-          colon={false}
-        />
-
-        <HDatePicker
-          value={
-            deferDialog?.date
-              ? dayjs(
-                deferDialog.date
-              )
-              : null
-          }
-          onChange={(value) =>
-            setDeferDialog(
-              (prev) => ({
-                ...prev,
-
-                date: value
-                  ? value.format(
-                    "YYYY-MM-DD"
+              <HButton
+                label="Cancel"
+                translate={
+                  false
+                }
+                variant="outlined"
+                inline
+                onClick={() =>
+                  setDeferDialog(
+                    null
                   )
-                  : "",
-              })
-            )
+                }
+              />
+
+              <HButton
+                label="Confirm Defer"
+                translate={
+                  false
+                }
+                variant="contained"
+                inline
+                onClick={() => {
+                  if (!deferDialog?.stage || !deferDialog?.date) {
+                    toast.error("Please select a deferral stage and date");
+                    return;
+                  }
+
+                  updateItem(
+                    deferDialog.itemId,
+                    {
+                      status:
+                        STATUS.DEFERRED,
+
+                      deferralStage:
+                        deferDialog.stage,
+
+                      deferralDate:
+                        deferDialog.date,
+
+                      szreceivedyn:
+                        "N",
+
+                      szwaivedyn:
+                        "N",
+
+                      szdifferyn:
+                        "Y",
+                    }
+                  );
+
+                  setDeferDialog(
+                    null
+                  );
+                }}
+              />
+
+            </HBox>
           }
-          width="100%"
-        />
+        >
 
-      </HDialog>
+          <HLabel
+            value="Select the stage and date until which this document is deferred."
+            translate={
+              false
+            }
+            align="left"
+            colon={false}
+          />
 
-    </HBox>
-  </IntlProvider>
+          <HLabel
+            value="Deferral Stage"
+            translate={
+              false
+            }
+            required
+            align="left"
+            colon={false}
+          />
+
+          <HDropdown
+            name="deferralStage"
+            options={
+              stageOptions
+            }
+            value={
+              deferDialog?.stage ||
+              ""
+            }
+            onChange={(e) =>
+              setDeferDialog(
+                (prev) => ({
+                  ...prev,
+                  stage:
+                    e.target.value,
+                })
+              )
+            }
+            width="100%"
+          />
+
+          <HLabel
+            value="Deferral Date"
+            translate={
+              false
+            }
+            required
+            align="left"
+            colon={false}
+          />
+
+          <HDatePicker
+            value={
+              deferDialog?.date
+                ? dayjs(
+                  deferDialog.date
+                )
+                : null
+            }
+            onChange={(value) =>
+              setDeferDialog(
+                (prev) => ({
+                  ...prev,
+
+                  date: value
+                    ? value.format(
+                      "YYYY-MM-DD"
+                    )
+                    : "",
+                })
+              )
+            }
+            width="100%"
+          />
+
+        </HDialog>
+
+      </HBox>
+    </IntlProvider>
   );
 };
 
