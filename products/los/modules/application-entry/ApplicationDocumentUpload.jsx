@@ -386,7 +386,13 @@ const ApplicationDocumentUpload = () => {
                 fileSize: item.fileSize,
                 fileType: item.fileType,
                 fileUrl: item.fileUrl,
-                hasFile: item.hasFile || false,
+                hasFile: Boolean(
+                  item.hasFile ||
+                  item.documentId ||
+                  item.documentid ||
+                  item.szReceivedYn === "Y" ||
+                  item.szreceivedyn === "Y"
+                ),
 
                 /*
                  * UI waiver information
@@ -695,51 +701,34 @@ const ApplicationDocumentUpload = () => {
     item,
     status
   ) => {
-    /* Clicking selected status again
-       returns document to Pending */
-    if (
-      item.status === status
-    ) {
 
-      /* Received — the backend requires a file on every Received
-      row, so route to the file picker instead of creating a
-      Received row with nothing attached */
-      if (status === STATUS.RECEIVED) {
-        const hasFile =
-          !!item.selectedFile || !!item.fileName || !!item.documentid;
+    /* =========================================================
+       Clicking the currently selected status again
+       returns the document to Pending
+       ========================================================= */
+    if (item.status === status) {
 
-        if (!hasFile) {
-          fileInputs.current[item.itemId]?.click();
-          return;
-        }
-      }
       updateItem(
         item.itemId,
         {
-          status:
-            STATUS.PENDING,
+          status: STATUS.PENDING,
 
-          szreceivedyn:
-            "N",
-
-          szwaivedyn:
-            "N",
-
-          szdifferyn:
-            "N",
+          szreceivedyn: "N",
+          szwaivedyn: "N",
+          szdifferyn: "N",
         }
       );
 
       return;
     }
 
-    /* Waived */
-    if (
-      status === STATUS.WAIVED
-    ) {
+    /* =========================================================
+       WAIVED
+       ========================================================= */
+    if (status === STATUS.WAIVED) {
+
       setWaiveDialog({
-        itemId:
-          item.itemId,
+        itemId: item.itemId,
 
         reason:
           item.waiveReason ||
@@ -753,13 +742,13 @@ const ApplicationDocumentUpload = () => {
       return;
     }
 
-    /* Deferred */
-    if (
-      status === STATUS.DEFERRED
-    ) {
+    /* =========================================================
+       DEFERRED
+       ========================================================= */
+    if (status === STATUS.DEFERRED) {
+
       setDeferDialog({
-        itemId:
-          item.itemId,
+        itemId: item.itemId,
 
         stage:
           item.deferralStage ||
@@ -773,22 +762,32 @@ const ApplicationDocumentUpload = () => {
       return;
     }
 
-    /* Received */
-    updateItem(
-      item.itemId,
-      {
-        status,
+    /* =========================================================
+       RECEIVED
+       
+       File is OPTIONAL.
+       
+       Clicking Received only changes the status.
+       If a file exists, it will be uploaded during Save.
+       If no file exists, backend only saves
+       szReceivedYn = Y.
+       ========================================================= */
+    if (status === STATUS.RECEIVED) {
 
-        szreceivedyn:
-          status ===
-            STATUS.RECEIVED
-            ? "Y"
-            : "N",
+      updateItem(
+        item.itemId,
+        {
+          status: STATUS.RECEIVED,
 
-        szwaivedyn: "N",
-        szdifferyn: "N",
-      }
-    );
+          szreceivedyn: "Y",
+
+          szwaivedyn: "N",
+          szdifferyn: "N",
+        }
+      );
+
+      return;
+    }
   };
 
   /* ==========================================================
@@ -1057,7 +1056,30 @@ const ApplicationDocumentUpload = () => {
      PREVIEW
      ========================================================== */
 
-  const handlePreview = (item) => {
+  // const handlePreview = (item) => {
+  //   if (item.selectedFile) {
+  //     const fileUrl = URL.createObjectURL(item.selectedFile);
+
+  //     setPreview({
+  //       ...item,
+  //       fileUrl,
+  //       fileName: item.selectedFile.name,
+  //       fileType: item.selectedFile.type,
+  //     });
+
+  //     return;
+  //   }
+
+  //   // existing backend logic...
+  // };
+
+  const handlePreview = async (item) => {
+    setPreview((current) => {
+    if (current?.fileUrl) {
+      URL.revokeObjectURL(current.fileUrl);
+    }
+    return current;
+  });
     if (item.selectedFile) {
       const fileUrl = URL.createObjectURL(item.selectedFile);
 
@@ -1071,10 +1093,50 @@ const ApplicationDocumentUpload = () => {
       return;
     }
 
-    // existing backend logic...
+    const docSrNo =
+      item.iDocumentsSrNo ??
+      item.idocumentsSrNo ??
+      item.idocumentsrno ??
+      null;
+
+    if (!docSrNo) {
+      toast.error(
+        t(
+          "label.docupload.msg.previewUnavailable",
+          "No uploaded file available to preview"
+        )
+      );
+      return;
+    }
+
+    try {
+      const response = await HAxiosService.GET(
+        LosDocumentAPI.LosDocumentAPI("ECF-DocumentUpload") +
+        `/documents/${docSrNo}/preview` +
+        `?applicationNo=${encodeURIComponent(applicationNo)}` +
+        `&orgId=${encodeURIComponent(orgId)}`,
+        { responseType: "blob" }
+      );
+
+      const blob = response.data ?? response;
+      const fileUrl = URL.createObjectURL(blob);
+
+      setPreview({
+        ...item,
+        fileUrl,
+        fileName: item.fileName || item.szDocCode || item.szdoccode,
+        fileType: blob.type,
+      });
+    } catch (error) {
+      toast.error(
+        error?.message ||
+        t(
+          "label.docupload.msg.previewFailed",
+          "Unable to load preview"
+        )
+      );
+    }
   };
-
-
 
   /* ==========================================================
      SAVE
@@ -1101,17 +1163,6 @@ const ApplicationDocumentUpload = () => {
         const currentItems = allItems.filter((item) =>
           isDocumentChanged(item, originalById.get(item.itemId))
         );
-
-        const missingFile = currentItems.find(
-          (item) => item.status === STATUS.RECEIVED && !item.selectedFile
-        );
-
-        if (missingFile) {
-          toast.error(
-            `Please attach a file for "${missingFile.szDocCode || "this document"}" before saving`
-          );
-          return { success: false };
-        }
 
         if (currentItems.length === 0) {
           return { success: true };
@@ -2245,9 +2296,12 @@ const ApplicationDocumentUpload = () => {
           open={Boolean(
             preview
           )}
-          onClose={() =>
-            setPreview(null)
-          }
+          onClose={() => {
+            if (preview?.fileUrl) {
+              URL.revokeObjectURL(preview.fileUrl);
+            }
+            setPreview(null);
+          }}
           title={
             preview?.docName ||
             "Document preview"
