@@ -324,162 +324,167 @@ const ApplicationDocumentUpload = () => {
      APPLY DATA
      ========================================================== */
 
- const applyFamilies = useCallback(
-  (payload) => {
-    const nextFamilies = (payload?.families || []).map(
-      (family) => {
-        const normalizedItems = (family.items || []).map(
-          (item) => {
-            let itemId = item.itemId;
+  const applyFamilies = useCallback(
+    (payload) => {
+      const nextFamilies = (payload?.families || []).map(
+        (family) => {
+          const normalizedItems = (family.items || []).map(
+            (item) => {
+              let itemId = item.itemId;
 
-            /*
-             * Existing DB document:
-             * Use database primary key as frontend row ID.
-             */
+              /*
+               * Existing DB document:
+               * Use database primary key as frontend row ID.
+               */
 
-            const documentSrNo =
-  item.iDocumentsSrNo ??
-  item.idocumentsSrNo ??
-  item.idocumentsrno ??
-  null;
-            if (
+              const documentSrNo =
+                item.iDocumentsSrNo ??
+                item.idocumentsSrNo ??
+                item.idocumentsrno ??
+                null;
+              if (
                 !itemId &&
-  documentSrNo !== null
-            ) {
-              itemId = String(item.idocumentsSrNo);
+                documentSrNo !== null
+              ) {
+                itemId = String(documentSrNo);
+              }
+
+              /*
+               * New/custom document:
+               * Generate frontend ID.
+               */
+              if (!itemId) {
+                itemId = newCustomId();
+              }
+
+              /*
+               * Derive UI status from backend flags.
+               */
+              const status =
+                (item.szWaivedYn || item.szwaivedyn) === "Y"
+                  ? STATUS.WAIVED
+                  : (item.szDifferYn || item.szdifferyn) === "Y"
+                    ? STATUS.DEFERRED
+                    : (item.szReceivedYn || item.szreceivedyn) === "Y"
+                      ? STATUS.RECEIVED
+                      : STATUS.PENDING;
+
+              return {
+                ...item,
+
+                itemId,
+                iDocumentsSrNo: documentSrNo,
+
+                status,
+
+                /*
+                 * UI file information.
+                 * These do not come from LS_TRN_DOCUMENTS.
+                 */
+                selectedFile: item.selectedFile,
+                fileName: item.fileName,
+                fileSize: item.fileSize,
+                fileType: item.fileType,
+                fileUrl: item.fileUrl,
+                hasFile: item.hasFile || false,
+
+                /*
+                 * UI waiver information
+                 */
+                waiveReason:
+                  item.waiveReason ||
+                  item.szWaiverReason ||
+                  item.szwaiverreason ||
+                  "",
+
+                waiveComments:
+                  item.waiveComments ||
+                  item.szWaiverDec ||
+                  item.szwaiverdec ||
+                  "",
+
+                /*
+                 * UI deferral information
+                 */
+                deferralStage:
+                  item.deferralStage ||
+                  item.szStageDue ||
+                  item.szstagedue ||
+                  "",
+
+                deferralDate:
+                  item.deferralDate ||
+                  item.dtDeferralDate ||
+                  item.dtdeferraldate ||
+                  "",
+              };
             }
+          );
 
-            /*
-             * New/custom document:
-             * Generate frontend ID.
-             */
-            if (!itemId) {
-              itemId = newCustomId();
-            }
-
-            /*
-             * Derive UI status from backend flags.
-             */
-            const status =
-              item.szWaivedYn === "Y"
-                ? STATUS.WAIVED
-                : item.szDifferYn === "Y"
-                  ? STATUS.DEFERRED
-                  : item.szReceivedYn === "Y"
-                    ? STATUS.RECEIVED
-                    : STATUS.PENDING;
-
-            return {
-              ...item,
-
-              itemId,
-              iDocumentsSrNo: documentSrNo,
-
-              status,
-
-              /*
-               * UI file information.
-               * These do not come from LS_TRN_DOCUMENTS.
-               */
-              selectedFile: item.selectedFile,
-              fileName: item.fileName,
-              fileSize: item.fileSize,
-              fileType: item.fileType,
-              fileUrl: item.fileUrl,
-              hasFile: item.hasFile || false,
-
-              /*
-               * UI waiver information
-               */
-              waiveReason:
-                item.waiveReason ||
-                item.szWaiverReason ||
-                "",
-
-              waiveComments:
-                item.waiveComments ||
-                item.szWaiverDec ||
-                "",
-
-              /*
-               * UI deferral information
-               */
-              deferralStage:
-                item.deferralStage ||
-                item.szStageDue ||
-                "",
-
-              deferralDate:
-                item.deferralDate ||
-                "",
-            };
-          }
-        );
-
-        return {
-          ...family,
-          items: normalizedItems,
-        };
-      }
-    );
-
-    /*
-     * Keep original backend data for change detection.
-     */
-    originalItemsRef.current = JSON.parse(
-      JSON.stringify(
-        flattenItems(nextFamilies)
-      )
-    );
-
-    setFamilies(nextFamilies);
-
-    /*
-     * Existing saved rows.
-     */
-    setSavedItemIds(
-      new Set(
-        flattenItems(nextFamilies).map(
-          (item) => item.itemId
-        )
-      )
-    );
-
-    /*
-     * Expand each family.
-     */
-    setExpanded((prev) => {
-      const next = {
-        ...prev,
-      };
-
-      nextFamilies.forEach((family) => {
-        if (
-          next[family.docFamilyCode] === undefined
-        ) {
-          next[family.docFamilyCode] = true;
+          return {
+            ...family,
+            items: normalizedItems,
+          };
         }
+      );
+
+      /*
+       * Keep original backend data for change detection.
+       */
+      originalItemsRef.current = JSON.parse(
+        JSON.stringify(
+          flattenItems(nextFamilies)
+        )
+      );
+
+      setFamilies(nextFamilies);
+
+      /*
+       * Existing saved rows.
+       */
+      setSavedItemIds(
+        new Set(
+          flattenItems(nextFamilies).map(
+            (item) => item.itemId
+          )
+        )
+      );
+
+      /*
+       * Expand each family.
+       */
+      setExpanded((prev) => {
+        const next = {
+          ...prev,
+        };
+
+        nextFamilies.forEach((family) => {
+          if (
+            next[family.docFamilyCode] === undefined
+          ) {
+            next[family.docFamilyCode] = true;
+          }
+        });
+
+        return next;
       });
 
-      return next;
-    });
+      /*
+       * Application number.
+       */
+      if (payload?.applicationNo) {
+        setApplicationNo(payload.applicationNo);
+      }
 
-    /*
-     * Application number.
-     */
-    if (payload?.applicationNo) {
-      setApplicationNo(payload.applicationNo);
-    }
-
-    /*
-     * Applicable applicant.
-     */
-    if (payload?.applicableFor) {
-      setApplicableFor(payload.applicableFor);
-    }
-  },
-  []
-);
+      /*
+       * Applicable applicant.
+       */
+      if (payload?.applicableFor) {
+        setApplicableFor(payload.applicableFor);
+      }
+    },
+    []
+  );
   /* ==========================================================
      LOAD MASTER DATA
      ========================================================== */
@@ -696,18 +701,18 @@ const ApplicationDocumentUpload = () => {
       item.status === status
     ) {
 
-       /* Received — the backend requires a file on every Received
-       row, so route to the file picker instead of creating a
-       Received row with nothing attached */
-    if (status === STATUS.RECEIVED) {
-      const hasFile =
-        !!item.selectedFile || !!item.fileName || !!item.documentid;
+      /* Received — the backend requires a file on every Received
+      row, so route to the file picker instead of creating a
+      Received row with nothing attached */
+      if (status === STATUS.RECEIVED) {
+        const hasFile =
+          !!item.selectedFile || !!item.fileName || !!item.documentid;
 
-      if (!hasFile) {
-        fileInputs.current[item.itemId]?.click();
-        return;
+        if (!hasFile) {
+          fileInputs.current[item.itemId]?.click();
+          return;
+        }
       }
-    }
       updateItem(
         item.itemId,
         {
@@ -1075,445 +1080,451 @@ const ApplicationDocumentUpload = () => {
      SAVE
      ========================================================== */
 
-const handleSave = useCallback(
-  async () => {
-    try {
-      const appNo =
-        applicationNo ||
-        incomingApplicationNo ||
-        `APP-${Date.now()}`;
+  const handleSave = useCallback(
+    async () => {
+      try {
+        const appNo =
+          applicationNo ||
+          incomingApplicationNo ||
+          `APP-${Date.now()}`;
 
-      if (!applicationNo) {
-        setApplicationNo(appNo);
-      }
+        if (!applicationNo) {
+          setApplicationNo(appNo);
+        }
 
-      const allItems  = flattenItems(families);
+        const allItems = flattenItems(families);
 
         const originalById = new Map(
-        originalItemsRef.current.map((o) => [o.itemId, o])
-      );
+          originalItemsRef.current.map((o) => [o.itemId, o])
+        );
 
-      const currentItems = allItems.filter((item) =>
-        isDocumentChanged(item, originalById.get(item.itemId))
-      );
+        const currentItems = allItems.filter((item) =>
+          isDocumentChanged(item, originalById.get(item.itemId))
+        );
 
         const missingFile = currentItems.find(
-        (item) => item.status === STATUS.RECEIVED && !item.selectedFile
-      );
-
-      if (missingFile) {
-        toast.error(
-          `Please attach a file for "${missingFile.szDocCode || "this document"}" before saving`
+          (item) => item.status === STATUS.RECEIVED && !item.selectedFile
         );
-        return { success: false };
-      }
 
-      if (currentItems.length === 0) {
-        return { success: true };
-      }
+        if (missingFile) {
+          toast.error(
+            `Please attach a file for "${missingFile.szDocCode || "this document"}" before saving`
+          );
+          return { success: false };
+        }
 
-      console.log("current items = ",currentItems);
+        if (currentItems.length === 0) {
+          return { success: true };
+        }
 
-      const requestPayload = currentItems.map((item) => ({
-        /*
-         * Primary Key
-         */
-         iDocumentsSrNo:  item.iDocumentsSrNo ??
-                          item.idocumentsSrNo ??
-                          item.idocumentsrno ??
-                          null,
+        console.log("current items = ", currentItems);
 
-        /*
-         * Application
-         */
-        szApplicationNo:
-          item.szapplicationno ||
-          item.szApplicationNo ||
-          appNo,
+        const requestPayload = currentItems.map((item) => ({
+          /*
+           * Primary Key
+           */
+          iDocumentsSrNo: item.iDocumentsSrNo ??
+            item.idocumentsSrNo ??
+            item.idocumentsrno ??
+            null,
 
-        szOrgId:
-          item.szorgid ||
-          item.szOrgId ||
-          orgId ||
-          "001",
+          /*
+           * Application
+           */
+          szApplicationNo:
+            item.szapplicationno ||
+            item.szApplicationNo ||
+            appNo,
 
-        /*
-         * Document
-         */
-        szDocCode:
-          item.szdoccode ||
-          item.szDocCode ||
-          item.docCode ||
-          item.docName ||
-          null,
+          szOrgId:
+            item.szorgid ||
+            item.szOrgId ||
+            orgId ||
+            "001",
 
-        szApplicantId:
-          item.szapplicantid ||
-          item.szApplicantId ||
-          applicableFor ||
-          null,
+          /*
+           * Document
+           */
+          szDocCode:
+            item.szdoccode ||
+            item.szDocCode ||
+            item.docCode ||
+            item.docName ||
+            null,
 
-        szAssetSrNo:
-          item.szassetsrno ??
-          item.szAssetSrNo ??
-          null,
+          szApplicantId:
+            item.szapplicantid ||
+            item.szApplicantId ||
+            applicableFor ||
+            null,
 
-        /*
-         * Stage
-         */
-        szStageDue:
-          item.szstagedue ||
-          item.szStageDue ||
-          stage ||
-          null,
+          szAssetSrNo:
+            item.szassetsrno ??
+            item.szAssetSrNo ??
+            null,
 
-        /*
-         * Waive allowed
-         */
-        szDocWaiveAllowYn:
-          item.szdocwaiveallowyn ||
-          item.szDocWaiveAllowYn ||
-          "N",
+          /*
+           * Stage
+           */
+          szStageDue:
+            item.szstagedue ||
+            item.szStageDue ||
+            stage ||
+            null,
 
-        /*
-         * Status
-         */
-        szReceivedYn:
-          item.status === STATUS.RECEIVED
-            ? "Y"
-            : "N",
+          /*
+           * Waive allowed
+           */
+          szDocWaiveAllowYn:
+            item.szdocwaiveallowyn ||
+            item.szDocWaiveAllowYn ||
+            "N",
 
-        szWaivedYn:
-          item.status === STATUS.WAIVED
-            ? "Y"
-            : "N",
+          /*
+           * Status
+           */
+          szReceivedYn:
+            item.status === STATUS.RECEIVED
+              ? "Y"
+              : "N",
 
-        szDifferYn:
-          item.status === STATUS.DEFERRED
-            ? "Y"
-            : "N",
+          szWaivedYn:
+            item.status === STATUS.WAIVED
+              ? "Y"
+              : "N",
 
-        /*
-         * Waiver
-         */
-        szWaiverDec:
-          item.waiveComments ||
-          item.szwaiverdec ||
-          item.szWaiverDec ||
-          null,
+          szDifferYn:
+            item.status === STATUS.DEFERRED
+              ? "Y"
+              : "N",
 
-        szWaiverReason:
-          item.waiveReason ||
-          item.szwaiverreason ||
-          item.szWaiverReason ||
-          null,
+          /*
+           * Waiver
+           */
+          szWaiverDec:
+            item.waiveComments ||
+            item.szwaiverdec ||
+            item.szWaiverDec ||
+            null,
 
-        /*
-         * Mandatory / Original
-         */
-        szMandatoryYn:
-          item.szmandatoryyn ||
-          item.szMandatoryYn ||
-          "N",
+          szWaiverReason:
+            item.waiveReason ||
+            item.szwaiverreason ||
+            item.szWaiverReason ||
+            null,
 
-        szOriginalReqYn:
-          item.szoriginalreqyn ||
-          item.szOriginalReqYn ||
-          "N",
+          /*
+           * Mandatory / Original
+           */
+          szMandatoryYn:
+            item.szmandatoryyn ||
+            item.szMandatoryYn ||
+            "N",
 
-        /*
-         * Verification
-         */
-        szVerfDecision:
-          item.szverfdecision ||
-          item.szVerfDecision ||
-          null,
+          szOriginalReqYn:
+            item.szoriginalreqyn ||
+            item.szOriginalReqYn ||
+            "N",
 
-        szVerifiedBy:
-          item.szverifiedby ||
-          item.szVerifiedBy ||
-          null,
+          /*
+           * Verification
+           */
+          szVerfDecision:
+            item.szverfdecision ||
+            item.szVerfDecision ||
+            null,
 
-        /*
-         * User specified
-         */
-        szUserSpecifiedYn:
-          item.custom || item._isNew
-            ? "Y"
-            : item.szuserspecifiedyn ||
+          szVerifiedBy:
+            item.szverifiedby ||
+            item.szVerifiedBy ||
+            null,
+
+          /*
+           * User specified
+           */
+          szUserSpecifiedYn:
+            item.custom || item._isNew
+              ? "Y"
+              : item.szuserspecifiedyn ||
               item.szUserSpecifiedYn ||
               "N",
 
-        /*
-         * Existing DMS document ID
-         */
-        documentId:
-          item.documentid ??
-          item.documentId ??
-          null,
+          /*
+           * Existing DMS document ID
+           */
+          documentId:
+            item.documentid ??
+            item.documentId ??
+            null,
 
-        /*
-         * Document family
-         */
-        szDocFamilyCode:
-          item.szdocfamilycode ||
-          item.szDocFamilyCode ||
-          item.docFamilyCode ||
-          null,
+          /*
+           * Document family
+           */
+          szDocFamilyCode:
+            item.szdocfamilycode ||
+            item.szDocFamilyCode ||
+            item.docFamilyCode ||
+            null,
 
-        szDocFamilyDesc:
-          item.szdocfamilydesc ||
-          item.szDocFamilyDesc ||
-          item.docFamilyName ||
-          null,
+          szDocFamilyDesc:
+            item.szdocfamilydesc ||
+            item.szDocFamilyDesc ||
+            item.docFamilyName ||
+            null,
 
-        /*
-         * Fraud
-         */
-        cFraudYn:
-          item.cfraudyn ||
-          item.cFraudYn ||
-          "N",
+          /*
+           * Fraud
+           */
+          cFraudYn:
+            item.cfraudyn ||
+            item.cFraudYn ||
+            "N",
 
-        /*
-         * Remarks
-         */
-        szRemarks:
-          item.remarks ||
-          item.szremarks ||
-          item.szRemarks ||
-          null,
+          /*
+           * Remarks
+           */
+          szRemarks:
+            item.remarks ||
+            item.szremarks ||
+            item.szRemarks ||
+            null,
 
-        /*
-         * Due information
-         */
-        iDueDays:
-          item.iduedays ??
-          item.idueDays ??
-          null,
+          /*
+           * Due information
+           */
+          iDueDays:
+            item.iduedays ??
+            item.idueDays ??
+            null,
 
-        dtDueDate:
-          item.dtduedate ||
-          item.dtDueDate ||
-          null,
+          dtDueDate:
+            item.dtduedate ||
+            item.dtDueDate ||
+            null,
 
-        /*
-         * Docket
-         */
-        szDocketLocation:
-          item.szdocketlocation ||
-          item.szDocketLocation ||
-          null,
+          /*
+           * Docket
+           */
+          szDocketLocation:
+            item.szdocketlocation ||
+            item.szDocketLocation ||
+            null,
 
-        /*
-         * Pages
-         */
-        iNoOfPages:
-          item.inoofpages ??
-          item.inoOfPages ??
-          null,
+          /*
+           * Pages
+           */
+          iNoOfPages:
+            item.inoofpages ??
+            item.inoOfPages ??
+            null,
 
-        /*
-         * Level
-         */
-        cLevel:
-          item.clevel ||
-          item.cLevel ||
-          "P",
+          /*
+           * Level
+           */
+          cLevel:
+            item.clevel ||
+            item.cLevel ||
+            "P",
 
-        /*
-         * Receipt
-         */
-        dtRecieptDate:
-          item.dtrecieptdate ||
-          item.dtRecieptDate ||
-          null,
+          /*
+           * Receipt
+           */
+          dtRecieptDate:
+            item.dtrecieptdate ||
+            item.dtRecieptDate ||
+            null,
 
-        /*
-         * Audit
-         */
-        szCreatedBy:
-          item.szcreatedby ||
-          item.szCreatedBy ||
-          null,
+          dtDeferralDate:
+            item.deferralDate ||
+            item.dtdeferraldate ||
+            item.dtDeferralDate ||
+            null,
 
-        szUpdatedBy:
-          item.szupdatedby ||
-          item.szUpdatedBy ||
-          null,
+          /*
+           * Audit
+           */
+          szCreatedBy:
+            item.szcreatedby ||
+            item.szCreatedBy ||
+            null,
 
-        dtCreatedOn:
-          item.dtcreatedon ||
-          item.dtCreatedOn ||
-          null,
+          szUpdatedBy:
+            item.szupdatedby ||
+            item.szUpdatedBy ||
+            null,
 
-        dtUpdatedOn:
-          item.dtupdatedon ||
-          item.dtUpdatedOn ||
-          null,
+          dtCreatedOn:
+            item.dtcreatedon ||
+            item.dtCreatedOn ||
+            null,
+
+          dtUpdatedOn:
+            item.dtupdatedon ||
+            item.dtUpdatedOn ||
+            null,
+
+          /*
+           * ==================================================
+           * IMPORTANT
+           *
+           * This tells backend which multipart file belongs
+           * to this particular DTO.
+           *
+           * Example:
+           * filePartName = file_1001
+           *             ↓
+           * multipart file_1001
+           * ==================================================
+           */
+          filePartName: item.selectedFile
+            ? `file_${item.itemId}`
+            : null,
+        }));
+
+        console.log(
+          "Document upload request:",
+          requestPayload
+        );
 
         /*
          * ==================================================
-         * IMPORTANT
-         *
-         * This tells backend which multipart file belongs
-         * to this particular DTO.
-         *
-         * Example:
-         * filePartName = file_1001
-         *             ↓
-         * multipart file_1001
+         * CREATE MULTIPART REQUEST
          * ==================================================
          */
-        filePartName: item.selectedFile
-          ? `file_${item.itemId}`
-          : null,
-      }));
+        const formData = new FormData();
 
-      console.log(
-        "Document upload request:",
-        requestPayload
-      );
+        /*
+         * JSON part
+         *
+         * Backend:
+         * @RequestPart("request")
+         * ArrayList<DocumentUploadItemRequestDto>
+         *
+         * Blob content type = application/json
+         */
+        formData.append(
+          "request",
+          new Blob(
+            [JSON.stringify(requestPayload)],
+            {
+              type: "application/json",
+            }
+          )
+        );
 
-      /*
-       * ==================================================
-       * CREATE MULTIPART REQUEST
-       * ==================================================
-       */
-      const formData = new FormData();
-
-      /*
-       * JSON part
-       *
-       * Backend:
-       * @RequestPart("request")
-       * ArrayList<DocumentUploadItemRequestDto>
-       *
-       * Blob content type = application/json
-       */
-      formData.append(
-        "request",
-        new Blob(
-          [JSON.stringify(requestPayload)],
-          {
-            type: "application/json",
+        /*
+         * ==================================================
+         * ADD FILES
+         *
+         * file_1001 → PDF 1
+         * file_1002 → PDF 2
+         * ==================================================
+         */
+        currentItems.forEach((item) => {
+          if (item.selectedFile) {
+            formData.append(
+              `file_${item.itemId}`,
+              item.selectedFile,
+              item.selectedFile.name
+            );
           }
-        )
-      );
+        });
 
-      /*
-       * ==================================================
-       * ADD FILES
-       *
-       * file_1001 → PDF 1
-       * file_1002 → PDF 2
-       * ==================================================
-       */
-      currentItems.forEach((item) => {
-        if (item.selectedFile) {
-          formData.append(
-            `file_${item.itemId}`,
-            item.selectedFile,
-            item.selectedFile.name
-          );
-        }
-      });
-
-      /*
-       * ==================================================
-       * BACKEND UPLOAD CALL
-       *
-       * POST /documents/upload
-       *
-       * NO Idempotency-Key HEADER
-       *
-       * Backend generates it internally.
-       * ==================================================
-       */
-      const saved = unwrapApiResponse(
-        await HAxiosService.POST(
-          LosDocumentAPI.LosDocumentAPI(
-            "ECF-DocumentUpload"
-          ) + "/documents/upload" +
+        /*
+         * ==================================================
+         * BACKEND UPLOAD CALL
+         *
+         * POST /documents/upload
+         *
+         * NO Idempotency-Key HEADER
+         *
+         * Backend generates it internally.
+         * ==================================================
+         */
+        const saved = unwrapApiResponse(
+          await HAxiosService.POST(
+            LosDocumentAPI.LosDocumentAPI(
+              "ECF-DocumentUpload"
+            ) + "/documents/upload" +
             `?applicationNo=${encodeURIComponent(appNo)}` +
             `&orgId=${encodeURIComponent(orgId || "001")}`,
-          formData
-        )
-      );
+            formData
+          )
+        );
 
-      console.log(
-        "Documents uploaded successfully:",
-        saved
-      );
+        console.log(
+          "Documents uploaded successfully:",
+          saved
+        );
 
-      /*
-       * ==================================================
-       * RELOAD FROM BACKEND
-       * ==================================================
-       */
-      const refreshed = unwrapApiResponse(
-        await HAxiosService.GET(
-          LosDocumentAPI.LosDocumentAPI(
-            "ECF-DocumentUpload"
-          ) +
+        /*
+         * ==================================================
+         * RELOAD FROM BACKEND
+         * ==================================================
+         */
+        const refreshed = unwrapApiResponse(
+          await HAxiosService.GET(
+            LosDocumentAPI.LosDocumentAPI(
+              "ECF-DocumentUpload"
+            ) +
             "/documents" +
             `?applicationNo=${encodeURIComponent(appNo)}` +
             `&orgId=${encodeURIComponent(orgId || "001")}`
-        )
-      );
+          )
+        );
 
-      applyFamilies(
-        refreshed || saved
-      );
+        applyFamilies(
+          refreshed || saved
+        );
 
-      /*
-       * ==================================================
-       * SUCCESS
-       * ==================================================
-       */
-      toast.success(
-        t(
-          "label.docupload.msg.saved",
-          "Documents saved successfully"
-        )
-      );
+        /*
+         * ==================================================
+         * SUCCESS
+         * ==================================================
+         */
+        toast.success(
+          t(
+            "label.docupload.msg.saved",
+            "Documents saved successfully"
+          )
+        );
 
-      return {
-        success: true,
-      };
+        return {
+          success: true,
+        };
 
-    } catch (error) {
-      console.error(
-        "Failed to upload documents",
-        error
-      );
+      } catch (error) {
+        console.error(
+          "Failed to upload documents",
+          error
+        );
 
-      toast.error(
-        error?.message ||
+        toast.error(
+          error?.message ||
           t(
             "label.docupload.msg.saveFailed",
             "Save failed"
           )
-      );
+        );
 
-      return {
-        success: false,
-      };
-    }
-  },
-  [
-    applicationNo,
-    incomingApplicationNo,
-    stage,
-    applicableFor,
-    families,
-    savedItemIds,
-    orgId,
-    applyFamilies,
-    t,
-    toast,
-  ]
-);
+        return {
+          success: false,
+        };
+      }
+    },
+    [
+      applicationNo,
+      incomingApplicationNo,
+      stage,
+      applicableFor,
+      families,
+      savedItemIds,
+      orgId,
+      applyFamilies,
+      t,
+      toast,
+    ]
+  );
   /* ==========================================================
      RESET
      ========================================================== */
@@ -2509,7 +2520,7 @@ const handleSave = useCallback(
                       status:
                         STATUS.DEFERRED,
 
-                      deferralStage:
+                      szstagedue:
                         deferDialog.stage,
 
                       deferralDate:
