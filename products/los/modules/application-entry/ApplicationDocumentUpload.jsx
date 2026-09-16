@@ -3,26 +3,11 @@ import { useLocation, useNavigate } from "react-router-dom";
 import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
 import FileUploadOutlinedIcon from "@mui/icons-material/FileUploadOutlined";
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
+import CloseIcon from "@mui/icons-material/Close";
+import DeleteOutline from "@mui/icons-material/DeleteOutline";
 import IconButton from "@mui/material/IconButton";
 import { IntlProvider, useIntl } from "react-intl";
-
-import {
-  HAccordion,
-  HAxiosService,
-  HBox,
-  HBreadCrumb,
-  HButton,
-  HButtonBar,
-  HDatePicker,
-  HDialog,
-  HDropdown,
-  HLabel,
-  HPaper,
-  HTextField,
-  HTextarea,
-  TitleBar,
-  useToast,
-} from "@helix/component-library";
+import {HAxiosService,HBox,HBreadCrumb,HButton,useDrsTheme,HButtonBar,HDatePicker,HDialog,HDropdown,HLabel,HPaper,HTextField,HTextarea,TitleBar,useToast,} from "@helix/component-library";
 
 import dayjs from "dayjs";
 
@@ -200,6 +185,7 @@ const isDocumentChanged = (item, originalItem) => {
 const ApplicationDocumentUpload = () => {
   const intl = useIntl();
   const toast = useToast();
+  const { themeVars } = useDrsTheme();
 
   const localeOverrides = useMemo(
     () => ({
@@ -2189,49 +2175,43 @@ const ApplicationDocumentUpload = () => {
                           ) : null}
 
                           {/* ====================================
-                  REMOVE FILE
+                  REMOVE FILE OR DELETE FILE (keep row, remove file)
                   ==================================== */}
 
-                          {item.fileName ? (
-                            <HButton
-                              label="Remove"
-                              translate={false}
-                              variant="outlined"
-                              inline
+                          {item.fileName || item.hasFile ? (
+                            <IconButton
                               onClick={() =>
-                                handleRemoveFile(item)
+                                item.selectedFile
+                                  ? handleRemoveFile(item)
+                                  : handleDeleteFile(item)
                               }
-                            />
+                              size="small"
+                              aria-label="Remove file"
+                              sx={{
+                                padding: "2px",
+                                color: "#d32f2f",
+                                "&:hover": {
+                                  backgroundColor: "transparent",
+                                  color: "#b71c1c",
+                                },
+                              }}
+                            >
+                              <CloseIcon sx={{ fontSize: 18 }} />
+                            </IconButton>
                           ) : null}
 
-                          {/* ====================================
-  DELETE FILE (keep row, remove file)
-  ==================================== */}
-
-                          {item.hasFile ? (
-                            <HButton
-                              label="Delete File"
-                              translate={false}
-                              variant="outlined"
-                              inline
-                              onClick={() =>
-                                handleDeleteFile(item)
-                              }
-                            />
-                          ) : null}
-
-
+                         
                           {/* ====================================DELETE CUSTOM DOCUMENT==================================== */}
 
                           {item.custom ? (
-                            <HButton
-                              label="Delete"
-                              translate={false}
-                              variant="outlined"
-                              inline
-                              onClick={() =>handleDeleteCustom(item)}
-                              sx={{ ...documentButtonStyle}}
-                            />
+                            <IconButton
+                              onClick={() => handleDeleteCustom(item)}
+                              size="small"
+                              aria-label="Delete custom document"
+                              sx={{padding: "2px",color: "error.main",}}
+                            >
+                              <DeleteOutline sx={{ fontSize: 18 }} />
+                            </IconButton>
                           ) : null}
 
                         </HBox>
