@@ -377,6 +377,12 @@ const ApplicationDocumentUpload = () => {
 
                 status,
 
+                custom: Boolean(
+                  item.custom ||
+                  item.szUserSpecifiedYn === "Y" ||
+                  item.szuserspecifiedyn === "Y"
+                ),
+
                 /*
                  * UI file information.
                  * These do not come from LS_TRN_DOCUMENTS.
@@ -939,6 +945,11 @@ const ApplicationDocumentUpload = () => {
 
   const handleDeleteCustom =
     async (item) => {
+      const docSrNo =
+        item.iDocumentsSrNo ??
+        item.idocumentsSrNo ??
+        item.idocumentsrno ??
+        null;
       if (!item.custom) {
         toast.error(
           t(
@@ -953,22 +964,25 @@ const ApplicationDocumentUpload = () => {
       /*
        * Actual API delete
        */
+
+
       if (
-        !USE_MOCK_DATA &&
         applicationNo &&
         savedItemIds.has(
-          item.itemId
+          String(docSrNo)
         )
       ) {
         try {
           unwrapApiResponse(
             await HAxiosService.DELETE(
               LosDocumentAPI.LosDocumentAPI("ECF-DocumentUpload") +
-              `/${encodeURIComponent(item.itemId)}` +
+              `/${encodeURIComponent(docSrNo)}` +
               `?applicationNo=${encodeURIComponent(applicationNo)}` +
               `&orgId=${encodeURIComponent(orgId)}`
             )
           );
+
+
         } catch (error) {
           toast.error(
             error?.message ||
@@ -1002,7 +1016,71 @@ const ApplicationDocumentUpload = () => {
           )
       );
 
+      toast.success(
+        t("label.docupload.msg.deleteSuccess", "Document deleted successfully")
+      );
+
     };
+
+  /* ==========================================================
+ DELETE UPLOADED FILE (row stays, resets to default state)
+ ========================================================== */
+
+  const handleDeleteFile = async (item) => {
+    const docSrNo =
+      item.iDocumentsSrNo ??
+      item.idocumentsSrNo ??
+      item.idocumentsrno ??
+      null;
+
+    if (docSrNo == null) {
+      toast.error(
+        t(
+          "label.docupload.msg.noFileToDelete",
+          "This document has no uploaded file yet"
+        )
+      );
+      return;
+    }
+
+    try {
+      await unwrapApiResponse(
+        await HAxiosService.DELETE(
+          LosDocumentAPI.LosDocumentAPI("ECF-DocumentUpload") +
+          `/documents/${encodeURIComponent(docSrNo)}/file` +
+          `?applicationNo=${encodeURIComponent(applicationNo)}` +
+          `&orgId=${encodeURIComponent(orgId)}`
+        )
+      );
+    } catch (error) {
+      toast.error(
+        error?.message ||
+        t("label.docupload.msg.fileDeleteFailed", "Unable to delete the uploaded file")
+      );
+      return;
+    }
+
+    updateItem(item.itemId, {
+      selectedFile: undefined,
+      fileName: undefined,
+      fileSize: undefined,
+      fileType: undefined,
+      fileUrl: undefined,
+      hasFile: false,
+
+      status: STATUS.PENDING,
+      szreceivedyn: "N",
+      szwaivedyn: "N",
+      szdifferyn: "N",
+
+      documentid: null,
+      dtrecieptdate: null,
+    });
+
+    toast.success(
+      t("label.docupload.msg.fileDeleteSuccess", "Document file deleted successfully")
+    );
+  };
 
   /* ==========================================================
      FILE PICKED
@@ -1075,11 +1153,11 @@ const ApplicationDocumentUpload = () => {
 
   const handlePreview = async (item) => {
     setPreview((current) => {
-    if (current?.fileUrl) {
-      URL.revokeObjectURL(current.fileUrl);
-    }
-    return current;
-  });
+      if (current?.fileUrl) {
+        URL.revokeObjectURL(current.fileUrl);
+      }
+      return current;
+    });
     if (item.selectedFile) {
       const fileUrl = URL.createObjectURL(item.selectedFile);
 
@@ -2081,11 +2159,7 @@ const ApplicationDocumentUpload = () => {
                         >
 
                           <HButton
-                            label={
-                              item.fileName
-                                ? "Replace"
-                                : "Upload"
-                            }
+                            label={(item.fileName || item.hasFile) ? "Replace" : "Upload"}
                             translate={false}
                             variant="outlined"
                             inline
@@ -2227,6 +2301,22 @@ const ApplicationDocumentUpload = () => {
                               inline
                               onClick={() =>
                                 handleRemoveFile(item)
+                              }
+                            />
+                          ) : null}
+
+                          {/* ====================================
+  DELETE FILE (keep row, remove file)
+  ==================================== */}
+
+                          {item.hasFile ? (
+                            <HButton
+                              label="Delete File"
+                              translate={false}
+                              variant="outlined"
+                              inline
+                              onClick={() =>
+                                handleDeleteFile(item)
                               }
                             />
                           ) : null}
