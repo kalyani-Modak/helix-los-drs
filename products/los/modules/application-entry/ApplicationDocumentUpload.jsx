@@ -7,7 +7,7 @@ import CloseIcon from "@mui/icons-material/Close";
 import DeleteOutline from "@mui/icons-material/DeleteOutline";
 import IconButton from "@mui/material/IconButton";
 import { IntlProvider, useIntl } from "react-intl";
-import {HAxiosService,HBox,HBreadCrumb,HButton,useDrsTheme,HButtonBar,HDatePicker,HDialog,HDropdown,HLabel,HPaper,HTextField,HTextarea,TitleBar,useToast,} from "@helix/component-library";
+import { HAxiosService, HBox, HBreadCrumb, HButton, useDrsTheme, HButtonBar, HDatePicker, HDialog, HDropdown, HLabel, HPaper, HTextField, HTextarea, TitleBar, useToast, } from "@helix/component-library";
 
 import dayjs from "dayjs";
 
@@ -187,13 +187,7 @@ const ApplicationDocumentUpload = () => {
   const toast = useToast();
   const { themeVars } = useDrsTheme();
 
-  const localeOverrides = useMemo(
-    () => ({
-      ...intl.messages,
-      "label.button.refresh": "Re-Generate Documents",
-    }),
-    [intl.messages]
-  );
+
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -221,6 +215,46 @@ const ApplicationDocumentUpload = () => {
     [intl]
   );
 
+
+  const getDocumentStatusLabel = useCallback(
+    (status) => {
+      const statusMessages = {
+        [STATUS.PENDING]: [
+          "label.docupload.status.pending",
+          "Pending",
+        ],
+        [STATUS.RECEIVED]: [
+          "label.docupload.status.received",
+          "Received",
+        ],
+        [STATUS.DEFERRED]: [
+          "label.docupload.status.deferred",
+          "Deferred",
+        ],
+        [STATUS.WAIVED]: [
+          "label.docupload.status.waived",
+          "Waived",
+        ],
+      };
+
+      const [id, defaultMessage] =
+        statusMessages[status] || [
+          "label.docupload.status.pending",
+          "Pending",
+        ];
+
+      return t(id, defaultMessage);
+    },
+    [t]
+  );
+
+  const localeOverrides = useMemo(
+    () => ({
+      ...intl.messages,
+      "label.button.refresh": "Re-Generate Documents",
+    }),
+    [intl.messages]
+  );
 
 
   /* ==========================================================
@@ -789,8 +823,11 @@ const ApplicationDocumentUpload = () => {
 
   const handleAddCustom = (family) => {
     if (!newDocName.trim()) {
-     toast.error("Please enter a valid, unique document name");
-     return;
+      toast.error(t(
+        "label.docupload.msg.invalidDocumentName",
+        "Please enter a valid, unique document name"
+      ));
+      return;
     }
 
     const item = {
@@ -1071,46 +1108,54 @@ const ApplicationDocumentUpload = () => {
      ========================================================== */
 
   const handleFilePicked = (item, file) => {
-  if (!file) return;
+    if (!file) return;
 
-  const allowedTypes = [
-    "application/pdf",
-    "image/jpeg",
-    "image/png",
-  ];
+    const allowedTypes = [
+      "application/pdf",
+      "image/jpeg",
+      "image/png",
+    ];
 
-  const maxFileSize = 10 * 1024 * 1024; // 10 MB
+    const maxFileSize = 10 * 1024 * 1024; // 10 MB
 
-  if (!allowedTypes.includes(file.type)) {
-    toast.error(
-      "Please upload a supported file within the permitted size limit: 10mb"
-    );
-    return;
-  }
+    if (!allowedTypes.includes(file.type)) {
+      toast.error(
+        t(
+          "label.docupload.msg.fileValidation",
+          "Please upload a supported file within the permitted size limit: {size} MB",
+          { size: 10 }
+        )
+      );
+      return;
+    }
 
-  if (file.size > maxFileSize) {
-    toast.error(
-      "Please upload a supported file within the permitted size limit: 10mb"
-    );
-    return;
-  }
+    if (file.size > maxFileSize) {
+      toast.error(
+        t(
+          "label.docupload.msg.fileValidation",
+          "Please upload a supported file within the permitted size limit: {size} MB",
+          { size: 10 }
+        )
+      );
+      return;
+    }
 
-  updateItem(item.itemId, {
-    selectedFile: file,
-    fileName: file.name,
-    fileSize: file.size,
-    fileType: file.type,
-    hasFile: true,
+    updateItem(item.itemId, {
+      selectedFile: file,
+      fileName: file.name,
+      fileSize: file.size,
+      fileType: file.type,
+      hasFile: true,
 
-    status: STATUS.RECEIVED,
+      status: STATUS.RECEIVED,
 
-    szreceivedyn: "Y",
-    szwaivedyn: "N",
-    szdifferyn: "N",
+      szreceivedyn: "Y",
+      szwaivedyn: "N",
+      szdifferyn: "N",
 
-    dtrecieptdate: new Date(),
-  });
-};
+      dtrecieptdate: new Date(),
+    });
+  };
   /* ==========================================================
      REMOVE FILE
      ========================================================== */
@@ -1184,7 +1229,7 @@ const ApplicationDocumentUpload = () => {
     if (!docSrNo) {
       toast.error(
         t(
-          "label.docupload.msg.previewUnavailable",
+          "label.docupload.msg.noPreview",
           "No uploaded file available to preview"
         )
       );
@@ -1220,59 +1265,71 @@ const ApplicationDocumentUpload = () => {
     }
   };
 
-  const validateHeaderFields = () => {
-  const errors = {};
+  const validateHeaderFields = useCallback(() => {
+    const errors = {};
 
-  if (!applicableFor?.trim()) {
-    errors.applicableFor ="Please select the applicable party for this checklist";
-  }
+    if (!applicableFor?.trim()) {
+      errors.applicableFor = t(
+        "label.docupload.validation.applicableFor",
+        "Please select the applicable party for this checklist"
+      );
+    }
 
-  if (!stage?.trim()) {
-    errors.stage = "Please select a Stage";
-  }
+    if (!stage?.trim()) {
+      errors.stage = t(
+        "label.docupload.validation.stage",
+        "Please select a Stage"
+      );
+    }
 
-  if (!customerType?.trim()) {
-    errors.customerType = "Please select a Customer Type";
-  }
+    if (!customerType?.trim()) {
+      errors.customerType = t(
+        "label.docupload.validation.customerType",
+        "Please select a Customer Type"
+      );
+    }
 
-  setValidationErrors(errors);
+    setValidationErrors(errors);
 
-  if (Object.keys(errors).length > 0) {
-    toast.error(Object.values(errors)[0]);
-    return false;
-  }
+    if (Object.keys(errors).length > 0) {
+      toast.error(Object.values(errors)[0]);
+      return false;
+    }
 
-  return true;
-};
+    return true;
+  }, [t, toast]);
 
-const validateMandatoryDocuments = () => {
-  const allItems = flattenItems(families);
+  const validateMandatoryDocuments = () => {
+    const allItems = flattenItems(families);
 
-  const mandatoryItems = allItems.filter(
-    (item) =>
-      (item.szmandatoryyn || item.szMandatoryYn) === "Y"
-  );
-
-  const invalidItems = mandatoryItems.filter((item) => {
-    const status = getDocumentStatus(item);
-
-    return ![
-      STATUS.RECEIVED,
-      STATUS.DEFERRED,
-      STATUS.WAIVED,
-    ].includes(status);
-  });
-
-  if (invalidItems.length > 0) {
-    toast.error(
-      "Please receive and upload all mandatory documents before submitting"
+    const mandatoryItems = allItems.filter(
+      (item) =>
+        (item.szmandatoryyn || item.szMandatoryYn) === "Y"
     );
 
-    return false;
-  }
+    const invalidItems = mandatoryItems.filter((item) => {
+      const status = getDocumentStatus(item);
 
-  return true;
-};
+      return ![
+        STATUS.RECEIVED,
+        STATUS.DEFERRED,
+        STATUS.WAIVED,
+      ].includes(status);
+    });
+
+    if (invalidItems.length > 0) {
+      toast.error(
+        t(
+          "label.docupload.validation.mandatoryDocuments",
+          "Please receive and upload all mandatory documents before submitting"
+        )
+      );
+
+      return false;
+    }
+
+    return true;
+  };
   /* ==========================================================
      SAVE
      ========================================================== */
@@ -1286,13 +1343,13 @@ const validateMandatoryDocuments = () => {
           };
         }
 
-         if (!validateMandatoryDocuments()) {
-        return {
-          success: false,
-        };
-      }
+        if (!validateMandatoryDocuments()) {
+          return {
+            success: false,
+          };
+        }
 
-        const appNo =applicationNo ||incomingApplicationNo || `APP-${Date.now()}`;
+        const appNo = applicationNo || incomingApplicationNo || `APP-${Date.now()}`;
 
         if (!applicationNo) {
           setApplicationNo(appNo);
@@ -1744,6 +1801,8 @@ const validateMandatoryDocuments = () => {
             // Reset upload status
             status: STATUS.PENDING,
             szreceivedyn: "N",
+            szwaivedyn: "N",
+            szdifferyn: "N",
             dtrecieptdate: null,
 
           })),
@@ -1757,13 +1816,16 @@ const validateMandatoryDocuments = () => {
       setAddingFor("");
       setNewDocName("");
 
-      toast.success("Documents re-generated successfully");
+      toast.success(t(
+        "label.docupload.msg.resetSuccess",
+        "Documents re-generated successfully"
+      ));
 
       return {
         success: true,
       };
     },
-    [toast]
+    [toast, t]
   );
   /* ==========================================================
      RENDER
@@ -1970,7 +2032,14 @@ const validateMandatoryDocuments = () => {
                 />
 
                 <HLabel
-                  value={`${receivedCount}/${items.length} received`}
+                  value={t(
+                    "label.docupload.checklist.receivedCount",
+                    "{received}/{total} received",
+                    {
+                      received: receivedCount,
+                      total: items.length,
+                    }
+                  )}
                   translate={false}
                   align="left"
                   colon={false}
@@ -2064,7 +2133,7 @@ const validateMandatoryDocuments = () => {
 
                     <HTextField
                       value={newDocName}
-                      onChange={(e) =>setNewDocName(e.target.value)}
+                      onChange={(e) => setNewDocName(e.target.value)}
                       editable
                       placeholder="label.docupload.placeholder.docName"
                       width="100%"
@@ -2074,16 +2143,16 @@ const validateMandatoryDocuments = () => {
                       label="label.docupload.button.add"
                       variant="outlined"
                       inline
-                      onClick={() =>handleAddCustom(family)}
-                      sx={{mt:1}}
+                      onClick={() => handleAddCustom(family)}
+                      sx={{ mt: 1 }}
                     />
 
                     <HButton
                       label="label.docupload.button.cancel"
                       variant="outlined"
                       inline
-                      onClick={() => {setAddingFor("");setNewDocName("");}}
-                      sx={{mt:1}}
+                      onClick={() => { setAddingFor(""); setNewDocName(""); }}
+                      sx={{ mt: 1 }}
                     />
 
                   </HBox>
@@ -2094,7 +2163,7 @@ const validateMandatoryDocuments = () => {
         DOCUMENT LIST
         ================================================== */}
 
-                <HBox style={{display: "flex",flexDirection: "column",width: "100%",}}>
+                <HBox style={{ display: "flex", flexDirection: "column", width: "100%", }}>
 
                   {(family.items || []).length === 0 ? (
                     <HLabel
@@ -2121,15 +2190,15 @@ const validateMandatoryDocuments = () => {
                 DOCUMENT NAME
                 ======================================== */}
 
-                        <HBox style={{display: "flex",flexDirection: "row",alignItems: "flex-start",width: "35%",minWidth: "35%",}}>
+                        <HBox style={{ display: "flex", flexDirection: "row", alignItems: "flex-start", width: "35%", minWidth: "35%", }}>
 
                           {/* Document icon */}
 
-                          <DescriptionOutlinedIcon sx={{fontSize: 20,marginTop: "2px",}} />
+                          <DescriptionOutlinedIcon sx={{ fontSize: 20, marginTop: "2px", }} />
 
                           {/* Document information */}
 
-                          <HBox style={{display: "flex",flexDirection: "column",marginLeft: "8px",}}>
+                          <HBox style={{ display: "flex", flexDirection: "column", marginLeft: "8px", }}>
 
                             <HLabel
                               value={item.szDocCode || item.szdoccode}
@@ -2139,7 +2208,12 @@ const validateMandatoryDocuments = () => {
                             />
 
                             <HLabel
-                              value={item.custom? "Custom": "System generated"}
+                              value={t(
+                                item.custom
+                                  ? "label.docupload.flag.custom"
+                                  : "label.docupload.flag.system",
+                                item.custom ? "Custom" : "System generated"
+                              )}
                               translate={false}
                               align="left"
                               colon={false}
@@ -2153,67 +2227,78 @@ const validateMandatoryDocuments = () => {
                         {/* ========================================FILE INPUT======================================== */}
 
                         <input
-                          ref={(element) => {fileInputs.current[item.itemId] =element;}}
+                          ref={(element) => { fileInputs.current[item.itemId] = element; }}
                           type="file"
                           hidden
-                          onChange={(e) => {handleFilePicked(item,e.target.files?.[0] );e.target.value = "";}}
+                          onChange={(e) => { handleFilePicked(item, e.target.files?.[0]); e.target.value = ""; }}
                         />
 
 
                         {/* ================  UPLOAD========================*/}
 
-                        <HBox style={{display: "flex",flexDirection: "row",alignItems: "center",gap: "8px",width: "65%",}}>
+                        <HBox style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "8px", width: "65%", }}>
 
                           <HButton
-                            label={(item.fileName || item.hasFile) ? "Replace" : "Upload"}
+                            label={t(
+                              item.fileName || item.hasFile
+                                ? "label.docupload.button.replace"
+                                : "label.docupload.button.upload",
+                              item.fileName || item.hasFile ? "Replace" : "Upload"
+                            )}
                             translate={false}
                             variant="outlined"
                             startIcon={<FileUploadOutlinedIcon sx={{ fontSize: 16 }} />}
-                            onClick={() =>fileInputs.current[item.itemId]?.click()}
-                            sx={{ ...documentButtonStyle,width: "280px"}}
+                            onClick={() => fileInputs.current[item.itemId]?.click()}
+                            sx={{ ...documentButtonStyle, width: "280px" }}
                           />
-
 
                           {/* ====================================RECEIVED==================================== */}
 
                           <HButton
-                            label="Received"
+                            label={t(
+                              "label.docupload.button.received",
+                              "Received"
+                            )}
                             translate={false}
-                            variant={item.status === STATUS.RECEIVED ? "contained": "outlined"}
+                            variant={item.status === STATUS.RECEIVED ? "contained" : "outlined"}
                             inline
-                            onClick={() =>handleStatusClick(item, STATUS.RECEIVED)}
-                            sx={{ ...documentButtonStyle}}
+                            onClick={() => handleStatusClick(item, STATUS.RECEIVED)}
+                            sx={{ ...documentButtonStyle }}
                           />
-
 
                           {/* ====================================DEFERRED==================================== */}
 
                           <HButton
-                            label="Deferred"
+                            label={t(
+                              "label.docupload.button.deferred",
+                              "Deferred"
+                            )}
                             translate={false}
-                            variant={item.status === STATUS.DEFERRED ? "contained": "outlined"}
+                            variant={item.status === STATUS.DEFERRED ? "contained" : "outlined"}
                             inline
-                            onClick={() =>handleStatusClick(item, STATUS.DEFERRED)}
-                            sx={{ ...documentButtonStyle}}
+                            onClick={() => handleStatusClick(item, STATUS.DEFERRED)}
+                            sx={{ ...documentButtonStyle }}
                           />
-
 
                           {/* ====================================WAIVED==================================== */}
 
                           <HButton
-                            label="Waived"
+                            label={t(
+                              "label.docupload.button.waived",
+                              "Waived"
+                            )}
                             translate={false}
-                            variant={item.status === STATUS.WAIVED ? "contained": "outlined"}
+                            variant={item.status === STATUS.WAIVED ? "contained" : "outlined"}
                             inline
-                            onClick={() =>handleStatusClick(item,STATUS.WAIVED)}
-                            sx={{ ...documentButtonStyle}}
+                            onClick={() => handleStatusClick(item, STATUS.WAIVED)}
+                            sx={{ ...documentButtonStyle }}
                           />
 
 
                           {/* ====================================STATUS==================================== */}
 
                           <HLabel
-                            value={getDocumentStatus(item)}
+                            value={getDocumentStatusLabel(getDocumentStatus(item))}
                             translate={false}
                             align="left"
                             colon={false}
@@ -2265,7 +2350,10 @@ const validateMandatoryDocuments = () => {
                                   : handleDeleteFile(item)
                               }
                               size="small"
-                              aria-label="Remove file"
+                              aria-label={t(
+                                "label.docupload.accessibility.removeFile",
+                                "Remove file"
+                              )}
                               sx={{
                                 padding: "2px",
                                 color: "#d32f2f",
@@ -2279,15 +2367,18 @@ const validateMandatoryDocuments = () => {
                             </IconButton>
                           ) : null}
 
-                         
+
                           {/* ====================================DELETE CUSTOM DOCUMENT==================================== */}
 
                           {item.custom ? (
                             <IconButton
                               onClick={() => handleDeleteCustom(item)}
                               size="small"
-                              aria-label="Delete custom document"
-                              sx={{padding: "2px",color: "error.main",}}
+                              aria-label={t(
+                                "label.docupload.accessibility.deleteCustomDocument",
+                                "Delete custom document"
+                              )}
+                              sx={{ padding: "2px", color: "error.main", }}
                             >
                               <DeleteOutline sx={{ fontSize: 18 }} />
                             </IconButton>
@@ -2345,24 +2436,30 @@ const validateMandatoryDocuments = () => {
           }}
           title={
             preview?.docName ||
-            "Document preview"
+            t(
+              "label.docupload.dialog.previewTitle",
+              "Document preview"
+            )
           }
           maxWidth="md"
           fullWidth
           actions={
             <HButton
-              label="Cancel"
+              label={t(
+                "label.docupload.button.cancel",
+                "Cancel"
+              )}
               translate={false}
               variant="outlined"
               inline
-              onClick={() =>setPreview(null)}
+              onClick={() => setPreview(null)}
             />
           }
         >
 
           {preview?.fileUrl &&
             (
-              preview.fileType ||""
+              preview.fileType || ""
             ).startsWith(
               "image/"
             ) ? (
@@ -2383,7 +2480,10 @@ const validateMandatoryDocuments = () => {
             />
           ) : (
             <HLabel
-              value="No preview available"
+              value={t(
+                "label.docupload.msg.noPreview",
+                "No preview available"
+              )}
               translate={false}
               align="left"
               colon={false}
@@ -2397,49 +2497,61 @@ const validateMandatoryDocuments = () => {
 
         <HDialog
           open={Boolean(waiveDialog)}
-          onClose={() =>setWaiveDialog(null)}
-          title="Waive document"
+          onClose={() => setWaiveDialog(null)}
+          title={t(
+            "label.docupload.dialog.waive",
+            "Waive document"
+          )}
           maxWidth="sm"
           fullWidth
           actions={
             <HBox>
 
               <HButton
-                label="Cancel"
+                label={t(
+                  "label.docupload.button.cancel",
+                  "Cancel"
+                )}
                 translate={false}
                 variant="outlined"
                 inline
-                onClick={() =>setWaiveDialog(null)}
-                sx={{mr: 1}}
+                onClick={() => setWaiveDialog(null)}
+                sx={{ mr: 1 }}
               />
 
               <HButton
-                label="Confirm Waive"
+                label={t(
+                  "label.docupload.button.confirmWaive",
+                  "Confirm Waive"
+                )}
                 translate={false}
                 variant="contained"
                 inline
                 onClick={() => {
                   if (!waiveDialog?.reason || !waiveDialog?.comments) {
-                    toast.error("Please provide a reason and comments for waiving this document");
+                    toast.error(t(
+                      "label.docupload.msg.waiveValidation",
+                      "Please provide a reason and comments for waiving this document"
+                    ));
                     return;
                   }
 
                   updateItem(
                     waiveDialog.itemId,
                     {
-                      status:STATUS.WAIVED,
+                      status: STATUS.WAIVED,
 
-                      waiveReason:waiveDialog.reason,
+                      waiveReason: waiveDialog.reason,
 
-                      waiveComments:waiveDialog.comments,
+                      waiveComments: waiveDialog.comments,
 
-                      szreceivedyn:"N",
+                      szreceivedyn: "N",
 
-                      szwaivedyn:"Y",
+                      szwaivedyn: "Y",
 
-                      szdifferyn:"N",
+                      szdifferyn: "N",
 
-                      szwaiverreason:waiveDialog.reason,
+                      szwaiverreason: waiveDialog.reason,
                     }
                   );
 
@@ -2454,14 +2566,20 @@ const validateMandatoryDocuments = () => {
         >
 
           <HLabel
-            value="Select a reason for waiving this document."
+            value={t(
+              "label.docupload.dialog.waiveHint",
+              "Select a reason for waiving this document."
+            )}
             translate={false}
             align="left"
             colon={false}
           />
 
           <HLabel
-            value="Reason"
+            value={t(
+              "label.docupload.field.reason",
+              "Reason"
+            )}
             translate={false}
             required
             align="left"
@@ -2471,36 +2589,41 @@ const validateMandatoryDocuments = () => {
           <HDropdown
             name="waiveReason"
             options={waiveReasonOptions}
-            value={waiveDialog?.reason ||""}
+            value={waiveDialog?.reason || ""}
             onChange={(e) =>
               setWaiveDialog(
-                (prev) => ({...prev, reason: e.target.value,})
+                (prev) => ({ ...prev, reason: e.target.value, })
               )
             }
             width="100%"
           />
 
           <HLabel
-            value="Comments"
+            value={t(
+              "label.docupload.field.comments",
+              "Comments"
+            )}
             translate={false}
             align="left"
             colon={false}
           />
 
           <HTextarea
-            value={waiveDialog?.comments ||""}
+            value={waiveDialog?.comments || ""}
             onChange={(e) =>
               setWaiveDialog(
-                (prev) => ({...prev, comments : e.target.value,})
+                (prev) => ({ ...prev, comments: e.target.value, })
               )
             }
             maxLength={500}
             maxLines={3}
             width="100%"
-            placeholder="Enter comments"
-            required ={true}
+            placeholder={t(
+              "label.docupload.placeholder.comments",
+              "Enter comments"
+            )}
+            required={true}
           />
-
         </HDialog>
 
 
@@ -2508,47 +2631,59 @@ const validateMandatoryDocuments = () => {
 
         <HDialog
           open={Boolean(deferDialog)}
-          onClose={() =>setDeferDialog(null)}
-          title="Defer document"
+          onClose={() => setDeferDialog(null)}
+          title={t(
+            "label.docupload.dialog.deferTitle",
+            "Defer document"
+          )}
           maxWidth="sm"
           fullWidth
           actions={
             <HBox>
 
               <HButton
-                label="Cancel"
+                label={t(
+                  "label.docupload.button.cancel",
+                  "Cancel"
+                )}
                 translate={false}
                 variant="outlined"
                 inline
-                onClick={() =>setDeferDialog(null)}
-                sx={{mr:1}}
+                onClick={() => setDeferDialog(null)}
+                sx={{ mr: 1 }}
               />
 
               <HButton
-                label="Confirm Defer"
+                label={t(
+                  "label.docupload.button.confirmDefer",
+                  "Confirm Defer"
+                )}
                 translate={false}
                 variant="contained"
                 inline
                 onClick={() => {
                   if (!deferDialog?.stage || !deferDialog?.date) {
-                    toast.error("Please specify the deferred stage and date");
+                    toast.error(t(
+                      "label.docupload.msg.deferValidation",
+                      "Please specify the deferred stage and date"
+                    ));
                     return;
                   }
 
                   updateItem(
                     deferDialog.itemId,
                     {
-                      status:STATUS.DEFERRED,
+                      status: STATUS.DEFERRED,
 
-                      szstagedue:deferDialog.stage,
+                      szstagedue: deferDialog.stage,
 
-                      deferralDate:deferDialog.date,
+                      deferralDate: deferDialog.date,
 
-                      szreceivedyn:"N",
+                      szreceivedyn: "N",
 
-                      szwaivedyn:"N",
+                      szwaivedyn: "N",
 
-                      szdifferyn:"Y",
+                      szdifferyn: "Y",
                     }
                   );
 
@@ -2561,14 +2696,20 @@ const validateMandatoryDocuments = () => {
         >
 
           <HLabel
-            value="Select the stage and date until which this document is deferred."
+            value={t(
+              "label.docupload.dialog.deferHint",
+              "Select the stage and date until which this document is deferred."
+            )}
             translate={false}
             align="left"
             colon={false}
           />
 
           <HLabel
-            value="Deferral Stage"
+            value={t(
+              "label.docupload.field.deferralStage",
+              "Deferral Stage"
+            )}
             translate={false}
             required
             align="left"
@@ -2578,16 +2719,19 @@ const validateMandatoryDocuments = () => {
           <HDropdown
             name="deferralStage"
             options={stageOptions}
-            value={deferDialog?.stage ||""}
+            value={deferDialog?.stage || ""}
             onChange={(e) =>
-              setDeferDialog((prev) => ({...prev, stage: e.target.value,})
+              setDeferDialog((prev) => ({ ...prev, stage: e.target.value, })
               )
             }
             width="100%"
           />
 
           <HLabel
-            value="Deferral Date"
+            value={t(
+              "label.docupload.field.deferralDate",
+              "Deferral Date"
+            )}
             translate={false}
             required
             align="left"
@@ -2595,10 +2739,10 @@ const validateMandatoryDocuments = () => {
           />
 
           <HDatePicker
-            value={deferDialog?.date ? dayjs( deferDialog.date): null}
+            value={deferDialog?.date ? dayjs(deferDialog.date) : null}
             onChange={(value) =>
               setDeferDialog(
-                (prev) => ({...prev,date: value? value.format("YYYY-MM-DD"): "",})
+                (prev) => ({ ...prev, date: value ? value.format("YYYY-MM-DD") : "", })
               )
             }
             width="100%"
