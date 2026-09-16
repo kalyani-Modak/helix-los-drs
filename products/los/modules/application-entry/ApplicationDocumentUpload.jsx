@@ -261,7 +261,7 @@ const ApplicationDocumentUpload = () => {
   const [waiveDialog, setWaiveDialog] = useState(null);
 
   const [deferDialog, setDeferDialog] = useState(null);
-
+  const [validationErrors, setValidationErrors] = useState({});
   const fileInputs = useRef({});
 
 
@@ -310,17 +310,17 @@ const ApplicationDocumentUpload = () => {
         ? payload
         : payload?.families || [];
 
+      if (responseFamilies.length === 0) {
+        setFamilies([]);
+        toast.error("System failure — document checklist master not configured");
+        return;
+      }
+
       const nextFamilies = responseFamilies.map(
         (family) => {
           const normalizedItems = (family.items || []).map(
             (item) => {
               let itemId = item.itemId;
-
-              /*
-               * Existing DB document:
-               * Use database primary key as frontend row ID.
-               */
-
               const documentSrNo =
                 item.iDocumentsSrNo ??
                 item.idocumentsSrNo ??
@@ -787,13 +787,10 @@ const ApplicationDocumentUpload = () => {
      ADD CUSTOM DOCUMENT
      ========================================================== */
 
-  const handleAddCustom = (
-    family
-  ) => {
-    if (
-      !newDocName.trim()
-    ) {
-      return;
+  const handleAddCustom = (family) => {
+    if (!newDocName.trim()) {
+     toast.error("Please enter a valid, unique document name");
+     return;
     }
 
     const item = {
@@ -1074,26 +1071,46 @@ const ApplicationDocumentUpload = () => {
      ========================================================== */
 
   const handleFilePicked = (item, file) => {
-    if (!file) return;
+  if (!file) return;
 
-    updateItem(item.itemId, {
-      selectedFile: file,
-      fileName: file.name,
-      fileSize: file.size,
-      fileType: file.type,
-      hasFile: true,
+  const allowedTypes = [
+    "application/pdf",
+    "image/jpeg",
+    "image/png",
+  ];
 
-      // Automatically mark document as Received
-      status: STATUS.RECEIVED,
+  const maxFileSize = 10 * 1024 * 1024; // 10 MB
 
-      // LS_TRN_DOCUMENTS flags
-      szreceivedyn: "Y",
-      szwaivedyn: "N",
-      szdifferyn: "N",
+  if (!allowedTypes.includes(file.type)) {
+    toast.error(
+      "Please upload a supported file within the permitted size limit: 10mb"
+    );
+    return;
+  }
 
-      dtrecieptdate: new Date(),
-    });
-  };
+  if (file.size > maxFileSize) {
+    toast.error(
+      "Please upload a supported file within the permitted size limit: 10mb"
+    );
+    return;
+  }
+
+  updateItem(item.itemId, {
+    selectedFile: file,
+    fileName: file.name,
+    fileSize: file.size,
+    fileType: file.type,
+    hasFile: true,
+
+    status: STATUS.RECEIVED,
+
+    szreceivedyn: "Y",
+    szwaivedyn: "N",
+    szdifferyn: "N",
+
+    dtrecieptdate: new Date(),
+  });
+};
   /* ==========================================================
      REMOVE FILE
      ========================================================== */
@@ -1203,6 +1220,59 @@ const ApplicationDocumentUpload = () => {
     }
   };
 
+  const validateHeaderFields = () => {
+  const errors = {};
+
+  if (!applicableFor?.trim()) {
+    errors.applicableFor ="Please select the applicable party for this checklist";
+  }
+
+  if (!stage?.trim()) {
+    errors.stage = "Please select a Stage";
+  }
+
+  if (!customerType?.trim()) {
+    errors.customerType = "Please select a Customer Type";
+  }
+
+  setValidationErrors(errors);
+
+  if (Object.keys(errors).length > 0) {
+    toast.error(Object.values(errors)[0]);
+    return false;
+  }
+
+  return true;
+};
+
+const validateMandatoryDocuments = () => {
+  const allItems = flattenItems(families);
+
+  const mandatoryItems = allItems.filter(
+    (item) =>
+      (item.szmandatoryyn || item.szMandatoryYn) === "Y"
+  );
+
+  const invalidItems = mandatoryItems.filter((item) => {
+    const status = getDocumentStatus(item);
+
+    return ![
+      STATUS.RECEIVED,
+      STATUS.DEFERRED,
+      STATUS.WAIVED,
+    ].includes(status);
+  });
+
+  if (invalidItems.length > 0) {
+    toast.error(
+      "Please receive and upload all mandatory documents before submitting"
+    );
+
+    return false;
+  }
+
+  return true;
+};
   /* ==========================================================
      SAVE
      ========================================================== */
@@ -1210,10 +1280,19 @@ const ApplicationDocumentUpload = () => {
   const handleSave = useCallback(
     async () => {
       try {
-        const appNo =
-          applicationNo ||
-          incomingApplicationNo ||
-          `APP-${Date.now()}`;
+        if (!validateHeaderFields()) {
+          return {
+            success: false,
+          };
+        }
+
+         if (!validateMandatoryDocuments()) {
+        return {
+          success: false,
+        };
+      }
+
+        const appNo =applicationNo ||incomingApplicationNo || `APP-${Date.now()}`;
 
         if (!applicationNo) {
           setApplicationNo(appNo);
@@ -2340,8 +2419,8 @@ const ApplicationDocumentUpload = () => {
                 variant="contained"
                 inline
                 onClick={() => {
-                  if (!waiveDialog?.reason) {
-                    toast.error("Please select a waiver reason");
+                  if (!waiveDialog?.reason || !waiveDialog?.comments) {
+                    toast.error("Please provide a reason and comments for waiving this document");
                     return;
                   }
 
@@ -2419,6 +2498,7 @@ const ApplicationDocumentUpload = () => {
             maxLines={3}
             width="100%"
             placeholder="Enter comments"
+            required ={true}
           />
 
         </HDialog>
@@ -2451,7 +2531,7 @@ const ApplicationDocumentUpload = () => {
                 inline
                 onClick={() => {
                   if (!deferDialog?.stage || !deferDialog?.date) {
-                    toast.error("Please select a deferral stage and date");
+                    toast.error("Please specify the deferred stage and date");
                     return;
                   }
 
