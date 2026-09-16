@@ -1,6 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
+import FileUploadOutlinedIcon from "@mui/icons-material/FileUploadOutlined";
+import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
+import IconButton from "@mui/material/IconButton";
 import { IntlProvider, useIntl } from "react-intl";
 
 import {
@@ -67,20 +70,6 @@ const MOCK_STAGE_OPTIONS = [
   },
 ];
 
-const MOCK_CUSTOMER_TYPE_OPTIONS = [
-  {
-    label: "Salaried",
-    value: "SALARIED",
-  },
-  {
-    label: "Self Employed",
-    value: "SELF_EMPLOYED",
-  },
-  {
-    label: "Business",
-    value: "BUSINESS",
-  },
-];
 
 const MOCK_WAIVE_REASON_OPTIONS = [
   {
@@ -101,15 +90,18 @@ const MOCK_WAIVE_REASON_OPTIONS = [
   },
 ];
 
-/* ============================================================
-   MOCK LS_TRN_DOCUMENTS DATA
-   ============================================================ */
 
 const MOCK_DOCUMENT_DATA = {}
 
-/* ============================================================
-   HELPERS
-   ============================================================ */
+const documentButtonStyle = {
+  height: "30px",
+  minHeight: "30px",
+  padding: "0px 14px",
+  fontSize: "12px",
+  minWidth: "90px",
+  borderRadius: "6px",
+  boxSizing: "border-box",
+};
 
 const toDropdownOptions = (rows = []) =>
   (Array.isArray(rows) ? rows : []).map((row) => ({
@@ -253,6 +245,8 @@ const ApplicationDocumentUpload = () => {
 
   const [applicantOptions, setApplicantOptions] = useState([]);
 
+  const [applicantsLoaded, setApplicantsLoaded] = useState(false);
+
   const [stageOptions, setStageOptions] = useState(USE_MOCK_DATA ? MOCK_STAGE_OPTIONS : []);
 
   const [waiveReasonOptions, setWaiveReasonOptions,] = useState(USE_MOCK_DATA ? MOCK_WAIVE_REASON_OPTIONS : []);
@@ -326,7 +320,11 @@ const ApplicationDocumentUpload = () => {
 
   const applyFamilies = useCallback(
     (payload) => {
-      const nextFamilies = (payload?.families || []).map(
+      const responseFamilies = Array.isArray(payload)
+        ? payload
+        : payload?.families || [];
+
+      const nextFamilies = responseFamilies.map(
         (family) => {
           const normalizedItems = (family.items || []).map(
             (item) => {
@@ -601,12 +599,12 @@ const ApplicationDocumentUpload = () => {
 
   const loadChecklist = useCallback(async () => {
     try {
-      if (!applicationNo) {
+      if (!applicationNo || !applicantsLoaded || !applicableFor || !stage) {
         setFamilies([]);
         return;
       }
 
-      const payload = await HAxiosService.GET(LosDocumentAPI.LosDocumentAPI("ECF-DocumentUpload") + "/documents" + `?applicationNo=${applicationNo}&orgId=${orgId}`).then(unwrapApiResponse);
+      const payload = await HAxiosService.GET(LosDocumentAPI.LosDocumentAPI("ECF-DocumentUpload") + "/documents" + `?szApplicantId=${applicableFor}&szStageDue=${stage}`).then(unwrapApiResponse);
 
       console.log("Incomming payload = ", payload);
       applyFamilies(payload);
@@ -617,10 +615,14 @@ const ApplicationDocumentUpload = () => {
       console.error("Failed to load document checklist", error);
       setFamilies([]);
     }
-  }, [applicationNo, orgId, applyFamilies]);
+  }, [applicationNo, applicantsLoaded, applicableFor, stage, applyFamilies]);
 
   const loadApplicantOptions = useCallback(async () => {
+    setApplicantsLoaded(false);
+
     if (!applicationNo || !orgId) {
+      setApplicantOptions([]);
+      setApplicableFor("");
       return;
     }
 
@@ -633,10 +635,7 @@ const ApplicationDocumentUpload = () => {
 
       // Set first applicant as default
       setApplicableFor((current) => {
-        const selectedValue =
-          current && options.some((option) => option.value === current)
-            ? current
-            : options[0]?.value || "";
+        const selectedValue = options[0]?.value || "";
         const selectedApplicant = options.find(
           (option) => option.value === selectedValue
         );
@@ -645,12 +644,14 @@ const ApplicationDocumentUpload = () => {
         );
         return selectedValue;
       });
+      setApplicantsLoaded(true);
     } catch (error) {
       toast.error(error?.message || t("label.docupload.msg.loadApplicantFailed", "Unable to load applicants")
       );
 
       setApplicantOptions([]);
       setApplicableFor("");
+      setApplicantsLoaded(false);
     }
   },
     [applicationNo, orgId, t, toast,]
@@ -1597,8 +1598,8 @@ const ApplicationDocumentUpload = () => {
               "ECF-DocumentUpload"
             ) +
             "/documents" +
-            `?applicationNo=${encodeURIComponent(appNo)}` +
-            `&orgId=${encodeURIComponent(orgId || "001")}`
+            `?szApplicantId=${encodeURIComponent(applicableFor)}` +
+            `&szStageDue=${encodeURIComponent(stage)}`
           )
         );
 
@@ -1998,9 +1999,7 @@ const ApplicationDocumentUpload = () => {
 
                     <HTextField
                       value={newDocName}
-                      onChange={(e) =>
-                        setNewDocName(e.target.value)
-                      }
+                      onChange={(e) =>setNewDocName(e.target.value)}
                       editable
                       placeholder="label.docupload.placeholder.docName"
                       width="100%"
@@ -2008,21 +2007,18 @@ const ApplicationDocumentUpload = () => {
 
                     <HButton
                       label="label.docupload.button.add"
-                      variant="contained"
+                      variant="outlined"
                       inline
-                      onClick={() =>
-                        handleAddCustom(family)
-                      }
+                      onClick={() =>handleAddCustom(family)}
+                      sx={{mt:1}}
                     />
 
                     <HButton
                       label="label.docupload.button.cancel"
                       variant="outlined"
                       inline
-                      onClick={() => {
-                        setAddingFor("");
-                        setNewDocName("");
-                      }}
+                      onClick={() => {setAddingFor("");setNewDocName("");}}
+                      sx={{mt:1}}
                     />
 
                   </HBox>
@@ -2033,13 +2029,7 @@ const ApplicationDocumentUpload = () => {
         DOCUMENT LIST
         ================================================== */}
 
-                <HBox
-                  style={{
-                    display: "flex",
-                    flexDirection: "column",
-                    width: "100%",
-                  }}
-                >
+                <HBox style={{display: "flex",flexDirection: "column",width: "100%",}}>
 
                   {(family.items || []).length === 0 ? (
                     <HLabel
@@ -2066,34 +2056,15 @@ const ApplicationDocumentUpload = () => {
                 DOCUMENT NAME
                 ======================================== */}
 
-                        <HBox
-                          style={{
-                            display: "flex",
-                            flexDirection: "row",
-                            alignItems: "flex-start",
-                            width: "35%",
-                            minWidth: "35%",
-                          }}
-                        >
+                        <HBox style={{display: "flex",flexDirection: "row",alignItems: "flex-start",width: "35%",minWidth: "35%",}}>
 
                           {/* Document icon */}
 
-                          <DescriptionOutlinedIcon
-                            sx={{
-                              fontSize: 20,
-                              marginTop: "2px",
-                            }}
-                          />
+                          <DescriptionOutlinedIcon sx={{fontSize: 20,marginTop: "2px",}} />
 
                           {/* Document information */}
 
-                          <HBox
-                            style={{
-                              display: "flex",
-                              flexDirection: "column",
-                              marginLeft: "8px",
-                            }}
-                          >
+                          <HBox style={{display: "flex",flexDirection: "column",marginLeft: "8px",}}>
 
                             <HLabel
                               value={item.szDocCode || item.szdoccode}
@@ -2103,11 +2074,7 @@ const ApplicationDocumentUpload = () => {
                             />
 
                             <HLabel
-                              value={
-                                item.custom
-                                  ? "Custom"
-                                  : "System generated"
-                              }
+                              value={item.custom? "Custom": "System generated"}
                               translate={false}
                               align="left"
                               colon={false}
@@ -2118,131 +2085,67 @@ const ApplicationDocumentUpload = () => {
                         </HBox>
 
 
-                        {/* ========================================
-                FILE INPUT
-                ======================================== */}
+                        {/* ========================================FILE INPUT======================================== */}
 
                         <input
-                          ref={(element) => {
-                            fileInputs.current[item.itemId] =
-                              element;
-                          }}
+                          ref={(element) => {fileInputs.current[item.itemId] =element;}}
                           type="file"
                           hidden
-                          onChange={(e) => {
-                            handleFilePicked(
-                              item,
-                              e.target.files?.[0]
-                            );
-
-                            /*
-                             * Allow selecting
-                             * the same file again.
-                             */
-                            e.target.value = "";
-                          }}
+                          onChange={(e) => {handleFilePicked(item,e.target.files?.[0] );e.target.value = "";}}
                         />
 
 
-                        {/* ========================================
-                UPLOAD
-                ======================================== */}
+                        {/* ================  UPLOAD========================*/}
 
-                        <HBox
-                          style={{
-                            display: "flex",
-                            flexDirection: "row",
-                            alignItems: "center",
-                            gap: "8px",
-                            width: "65%",
-                          }}
-                        >
+                        <HBox style={{display: "flex",flexDirection: "row",alignItems: "center",gap: "8px",width: "65%",}}>
 
                           <HButton
                             label={(item.fileName || item.hasFile) ? "Replace" : "Upload"}
                             translate={false}
                             variant="outlined"
-                            inline
-                            onClick={() =>
-                              fileInputs.current[
-                                item.itemId
-                              ]?.click()
-                            }
+                            startIcon={<FileUploadOutlinedIcon sx={{ fontSize: 16 }} />}
+                            onClick={() =>fileInputs.current[item.itemId]?.click()}
+                            sx={{ ...documentButtonStyle,width: "280px"}}
                           />
 
 
-                          {/* ====================================
-                  RECEIVED
-                  ==================================== */}
+                          {/* ====================================RECEIVED==================================== */}
 
                           <HButton
                             label="Received"
                             translate={false}
-                            variant={
-                              item.status ===
-                                STATUS.RECEIVED
-                                ? "contained"
-                                : "outlined"
-                            }
+                            variant={item.status === STATUS.RECEIVED ? "contained": "outlined"}
                             inline
-                            onClick={() =>
-                              handleStatusClick(
-                                item,
-                                STATUS.RECEIVED
-                              )
-                            }
+                            onClick={() =>handleStatusClick(item, STATUS.RECEIVED)}
+                            sx={{ ...documentButtonStyle}}
                           />
 
 
-                          {/* ====================================
-                  DEFERRED
-                  ==================================== */}
+                          {/* ====================================DEFERRED==================================== */}
 
                           <HButton
                             label="Deferred"
                             translate={false}
-                            variant={
-                              item.status ===
-                                STATUS.DEFERRED
-                                ? "contained"
-                                : "outlined"
-                            }
+                            variant={item.status === STATUS.DEFERRED ? "contained": "outlined"}
                             inline
-                            onClick={() =>
-                              handleStatusClick(
-                                item,
-                                STATUS.DEFERRED
-                              )
-                            }
+                            onClick={() =>handleStatusClick(item, STATUS.DEFERRED)}
+                            sx={{ ...documentButtonStyle}}
                           />
 
 
-                          {/* ====================================
-                  WAIVED
-                  ==================================== */}
+                          {/* ====================================WAIVED==================================== */}
 
                           <HButton
                             label="Waived"
                             translate={false}
-                            variant={
-                              item.status ===
-                                STATUS.WAIVED
-                                ? "contained"
-                                : "outlined"
-                            }
+                            variant={item.status === STATUS.WAIVED ? "contained": "outlined"}
                             inline
-                            onClick={() =>
-                              handleStatusClick(
-                                item,
-                                STATUS.WAIVED
-                              )
-                            }
+                            onClick={() =>handleStatusClick(item,STATUS.WAIVED)}
+                            sx={{ ...documentButtonStyle}}
                           />
 
 
-                          {/* ====================================
-                  STATUS
-                  ==================================== */}
+                          {/* ====================================STATUS==================================== */}
 
                           <HLabel
                             value={getDocumentStatus(item)}
@@ -2252,9 +2155,7 @@ const ApplicationDocumentUpload = () => {
                           />
 
 
-                          {/* ====================================
-                  FILE NAME
-                  ==================================== */}
+                          {/* ====================================FILE NAME==================================== */}
 
                           {item.fileName ? (
                             <HLabel
@@ -2271,23 +2172,21 @@ const ApplicationDocumentUpload = () => {
                           ) : null}
 
 
-                          {/* ====================================
-                  PREVIEW
-                  ==================================== */}
+                          {/* ====================================PREVIEW==================================== */}
 
                           {item.hasFile ||
                             item.fileUrl ? (
-                            <HButton
-                              label="Preview"
-                              translate={false}
-                              variant="outlined"
-                              inline
-                              onClick={() =>
-                                handlePreview(item)
-                              }
-                            />
+                            <IconButton
+                              onClick={() => handlePreview(item)}
+                              size="small"
+                              sx={{
+                                padding: "4px",
+                                color: "#1976d2",
+                              }}
+                            >
+                              <VisibilityOutlinedIcon sx={{ fontSize: 20 }} />
+                            </IconButton>
                           ) : null}
-
 
                           {/* ====================================
                   REMOVE FILE
@@ -2322,9 +2221,7 @@ const ApplicationDocumentUpload = () => {
                           ) : null}
 
 
-                          {/* ====================================
-                  DELETE CUSTOM DOCUMENT
-                  ==================================== */}
+                          {/* ====================================DELETE CUSTOM DOCUMENT==================================== */}
 
                           {item.custom ? (
                             <HButton
@@ -2332,9 +2229,8 @@ const ApplicationDocumentUpload = () => {
                               translate={false}
                               variant="outlined"
                               inline
-                              onClick={() =>
-                                handleDeleteCustom(item)
-                              }
+                              onClick={() =>handleDeleteCustom(item)}
+                              sx={{ ...documentButtonStyle}}
                             />
                           ) : null}
 
@@ -2354,9 +2250,7 @@ const ApplicationDocumentUpload = () => {
         </HBox>
 
 
-        {/* ======================================================
-          BOTTOM BUTTON BAR
-          ====================================================== */}
+        {/* ======================================================BOTTOM BUTTON BAR====================================================== */}
 
         <HButtonBar
           onSave={
@@ -2378,9 +2272,7 @@ const ApplicationDocumentUpload = () => {
         />
 
 
-        {/* ======================================================
-          PREVIEW DIALOG
-          ====================================================== */}
+        {/* ======================================================PREVIEW DIALOG====================================================== */}
 
         <HDialog
           open={Boolean(
@@ -2401,55 +2293,39 @@ const ApplicationDocumentUpload = () => {
           actions={
             <HButton
               label="Cancel"
-              translate={
-                false
-              }
+              translate={false}
               variant="outlined"
               inline
-              onClick={() =>
-                setPreview(null)
-              }
+              onClick={() =>setPreview(null)}
             />
           }
         >
 
           {preview?.fileUrl &&
             (
-              preview.fileType ||
-              ""
+              preview.fileType ||""
             ).startsWith(
               "image/"
             ) ? (
             <img
-              src={
-                preview.fileUrl
-              }
-              alt={
-                preview.docName
-              }
+              src={preview.fileUrl}
+              alt={preview.docName}
               width="100%"
             />
           ) : preview?.fileUrl &&
             (
-              preview.fileType ||
-              ""
+              preview.fileType || ""
             ).includes("pdf") ? (
             <iframe
-              title={
-                preview.docName
-              }
-              src={
-                preview.fileUrl
-              }
+              title={preview.docName}
+              src={preview.fileUrl}
               width="100%"
               height="480"
             />
           ) : (
             <HLabel
               value="No preview available"
-              translate={
-                false
-              }
+              translate={false}
               align="left"
               colon={false}
             />
@@ -2458,19 +2334,11 @@ const ApplicationDocumentUpload = () => {
         </HDialog>
 
 
-        {/* ======================================================
-          WAIVE DOCUMENT DIALOG
-          ====================================================== */}
+        {/* ======================================================WAIVE DOCUMENT DIALOG====================================================== */}
 
         <HDialog
-          open={Boolean(
-            waiveDialog
-          )}
-          onClose={() =>
-            setWaiveDialog(
-              null
-            )
-          }
+          open={Boolean(waiveDialog)}
+          onClose={() =>setWaiveDialog(null)}
           title="Waive document"
           maxWidth="sm"
           fullWidth
@@ -2479,23 +2347,16 @@ const ApplicationDocumentUpload = () => {
 
               <HButton
                 label="Cancel"
-                translate={
-                  false
-                }
+                translate={false}
                 variant="outlined"
                 inline
-                onClick={() =>
-                  setWaiveDialog(
-                    null
-                  )
-                }
+                onClick={() =>setWaiveDialog(null)}
+                sx={{mr: 1}}
               />
 
               <HButton
                 label="Confirm Waive"
-                translate={
-                  false
-                }
+                translate={false}
                 variant="contained"
                 inline
                 onClick={() => {
@@ -2507,26 +2368,19 @@ const ApplicationDocumentUpload = () => {
                   updateItem(
                     waiveDialog.itemId,
                     {
-                      status:
-                        STATUS.WAIVED,
+                      status:STATUS.WAIVED,
 
-                      waiveReason:
-                        waiveDialog.reason,
+                      waiveReason:waiveDialog.reason,
 
-                      waiveComments:
-                        waiveDialog.comments,
+                      waiveComments:waiveDialog.comments,
 
-                      szreceivedyn:
-                        "N",
+                      szreceivedyn:"N",
 
-                      szwaivedyn:
-                        "Y",
+                      szwaivedyn:"Y",
 
-                      szdifferyn:
-                        "N",
+                      szdifferyn:"N",
 
-                      szwaiverreason:
-                        waiveDialog.reason,
+                      szwaiverreason:waiveDialog.reason,
                     }
                   );
 
@@ -2542,18 +2396,14 @@ const ApplicationDocumentUpload = () => {
 
           <HLabel
             value="Select a reason for waiving this document."
-            translate={
-              false
-            }
+            translate={false}
             align="left"
             colon={false}
           />
 
           <HLabel
             value="Reason"
-            translate={
-              false
-            }
+            translate={false}
             required
             align="left"
             colon={false}
@@ -2561,20 +2411,11 @@ const ApplicationDocumentUpload = () => {
 
           <HDropdown
             name="waiveReason"
-            options={
-              waiveReasonOptions
-            }
-            value={
-              waiveDialog?.reason ||
-              ""
-            }
+            options={waiveReasonOptions}
+            value={waiveDialog?.reason ||""}
             onChange={(e) =>
               setWaiveDialog(
-                (prev) => ({
-                  ...prev,
-                  reason:
-                    e.target.value,
-                })
+                (prev) => ({...prev, reason: e.target.value,})
               )
             }
             width="100%"
@@ -2582,25 +2423,16 @@ const ApplicationDocumentUpload = () => {
 
           <HLabel
             value="Comments"
-            translate={
-              false
-            }
+            translate={false}
             align="left"
             colon={false}
           />
 
           <HTextarea
-            value={
-              waiveDialog?.comments ||
-              ""
-            }
+            value={waiveDialog?.comments ||""}
             onChange={(e) =>
               setWaiveDialog(
-                (prev) => ({
-                  ...prev,
-                  comments:
-                    e.target.value,
-                })
+                (prev) => ({...prev, comments : e.target.value,})
               )
             }
             maxLength={500}
@@ -2612,19 +2444,11 @@ const ApplicationDocumentUpload = () => {
         </HDialog>
 
 
-        {/* ======================================================
-          DEFER DOCUMENT DIALOG
-          ====================================================== */}
+        {/* ======================================================DEFER DOCUMENT DIALOG====================================================== */}
 
         <HDialog
-          open={Boolean(
-            deferDialog
-          )}
-          onClose={() =>
-            setDeferDialog(
-              null
-            )
-          }
+          open={Boolean(deferDialog)}
+          onClose={() =>setDeferDialog(null)}
           title="Defer document"
           maxWidth="sm"
           fullWidth
@@ -2633,23 +2457,16 @@ const ApplicationDocumentUpload = () => {
 
               <HButton
                 label="Cancel"
-                translate={
-                  false
-                }
+                translate={false}
                 variant="outlined"
                 inline
-                onClick={() =>
-                  setDeferDialog(
-                    null
-                  )
-                }
+                onClick={() =>setDeferDialog(null)}
+                sx={{mr:1}}
               />
 
               <HButton
                 label="Confirm Defer"
-                translate={
-                  false
-                }
+                translate={false}
                 variant="contained"
                 inline
                 onClick={() => {
@@ -2661,29 +2478,21 @@ const ApplicationDocumentUpload = () => {
                   updateItem(
                     deferDialog.itemId,
                     {
-                      status:
-                        STATUS.DEFERRED,
+                      status:STATUS.DEFERRED,
 
-                      szstagedue:
-                        deferDialog.stage,
+                      szstagedue:deferDialog.stage,
 
-                      deferralDate:
-                        deferDialog.date,
+                      deferralDate:deferDialog.date,
 
-                      szreceivedyn:
-                        "N",
+                      szreceivedyn:"N",
 
-                      szwaivedyn:
-                        "N",
+                      szwaivedyn:"N",
 
-                      szdifferyn:
-                        "Y",
+                      szdifferyn:"Y",
                     }
                   );
 
-                  setDeferDialog(
-                    null
-                  );
+                  setDeferDialog(null);
                 }}
               />
 
@@ -2693,18 +2502,14 @@ const ApplicationDocumentUpload = () => {
 
           <HLabel
             value="Select the stage and date until which this document is deferred."
-            translate={
-              false
-            }
+            translate={false}
             align="left"
             colon={false}
           />
 
           <HLabel
             value="Deferral Stage"
-            translate={
-              false
-            }
+            translate={false}
             required
             align="left"
             colon={false}
@@ -2712,20 +2517,10 @@ const ApplicationDocumentUpload = () => {
 
           <HDropdown
             name="deferralStage"
-            options={
-              stageOptions
-            }
-            value={
-              deferDialog?.stage ||
-              ""
-            }
+            options={stageOptions}
+            value={deferDialog?.stage ||""}
             onChange={(e) =>
-              setDeferDialog(
-                (prev) => ({
-                  ...prev,
-                  stage:
-                    e.target.value,
-                })
+              setDeferDialog((prev) => ({...prev, stage: e.target.value,})
               )
             }
             width="100%"
@@ -2733,33 +2528,17 @@ const ApplicationDocumentUpload = () => {
 
           <HLabel
             value="Deferral Date"
-            translate={
-              false
-            }
+            translate={false}
             required
             align="left"
             colon={false}
           />
 
           <HDatePicker
-            value={
-              deferDialog?.date
-                ? dayjs(
-                  deferDialog.date
-                )
-                : null
-            }
+            value={deferDialog?.date ? dayjs( deferDialog.date): null}
             onChange={(value) =>
               setDeferDialog(
-                (prev) => ({
-                  ...prev,
-
-                  date: value
-                    ? value.format(
-                      "YYYY-MM-DD"
-                    )
-                    : "",
-                })
+                (prev) => ({...prev,date: value? value.format("YYYY-MM-DD"): "",})
               )
             }
             width="100%"
