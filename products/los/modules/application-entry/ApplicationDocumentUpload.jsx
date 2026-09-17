@@ -1834,31 +1834,29 @@ const ApplicationDocumentUpload = () => {
   return (
     <IntlProvider locale={intl.locale} messages={localeOverrides}>
       <HBox>
-
-        {/* ======================================================
-          BREADCRUMB
-          ====================================================== */}
-
+       <HBox sx={{ width: "100%",padding:"0.5rem 1rem 0 1rem", flexDirection: "column", borderBottom: "1px solid var(--drs-border-divider, hsl(215 14% 90%))", }}>
         <HBreadCrumb />
-
-
-        {/* ======================================================
-          PAGE TITLE
-          ====================================================== */}
 
         <TitleBar
           title={t(
             "label.docupload.title",
-            "Document Checklist"
+            "Document Upload"
           )}
         />
+        <HLabel
+            value="Upload supporting documents required for the application."
+            align="left"
+            colon={false}
+
+          />
+        </HBox>
 
 
         {/* ======================================================
           MAIN PAPER
           ====================================================== */}
 
-        <HBox>
+        <HBox sx={{ width: "100%", padding:"0.5rem 1rem 0 1rem" }}>
 
           <HPaper>
 
@@ -2008,9 +2006,7 @@ const ApplicationDocumentUpload = () => {
                 value="label.docupload.checklist.title"
                 align="left"
                 colon={false}
-                style={{
-                  fontWeight: 600,
-                }}
+                sx={{fontWeight: "bold", fontSize: "14px"}}
               />
 
               {/* Hint (left) + received count (right) on the same line */}
