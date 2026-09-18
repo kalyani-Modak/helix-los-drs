@@ -12,81 +12,88 @@ const AuthSignatoryKycSection = ({
   onValidateAsAadhaarOtp,
   onCheckAsPanAadhaarLink,
   noAccordion,
-}) => (
-  <SectionBlock sectionKey="authSignatoryKyc" titleKey="label.qde.section.authSignatoryKyc" noAccordion={noAccordion}>
-    <KycVerifyRow
-      labelKey="label.qde.field.pan"
-      value={form.asPan}
-      onChange={(e) => setField("asPan", e.target.value.toUpperCase())}
-      status={form.asPanStatus}
-      verifying={verifying.asPan}
-      onVerify={onVerifyAsPan}
-      required
-      maxLength={10}
-      placeholder="ABCDE1234F"
-    />
+  errors = {},
+}) => {
+  const err = (name) => errors[name];
 
-    <KycVerifyRow
-      labelKey="label.qde.field.aadhaar"
-      value={form.asAadhaar}
-      onChange={(e) => setField("asAadhaar", e.target.value)}
-      status={form.asAadhaarStatus}
-      verifying={verifying.asAadhaarSend}
-      onVerify={onSendAsAadhaarOtp}
-      required
-      maxLength={12}
-      buttonLabelKey="label.qde.button.sendOtp"
-    />
+  return (
+    <SectionBlock sectionKey="authSignatoryKyc" titleKey="label.qde.section.authSignatoryKyc" noAccordion={noAccordion}>
+      <KycVerifyRow
+        labelKey="label.qde.field.pan"
+        value={form.asPan}
+        onChange={(e) => setField("asPan", e.target.value.toUpperCase())}
+        status={form.asPanStatus}
+        verifying={verifying.asPan}
+        onVerify={onVerifyAsPan}
+        required
+        maxLength={10}
+        placeholder="ABCDE1234F"
+        error={Boolean(err("asPan"))}
+      />
 
-    <HBox sx={{ display: "flex", flexDirection: "row", alignItems: "flex-start", width: "100%", mb: 0.2 }}>
-      <HBox sx={{ width: "280px", minWidth: "280px", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5 }}>
-        <HLabel value="label.qde.field.aadhaarOtp" align="left" colon={false} />
+      <KycVerifyRow
+        labelKey="label.qde.field.aadhaar"
+        value={form.asAadhaar}
+        onChange={(e) => setField("asAadhaar", e.target.value)}
+        status={form.asAadhaarStatus}
+        verifying={verifying.asAadhaarSend}
+        onVerify={onSendAsAadhaarOtp}
+        required
+        maxLength={12}
+        buttonLabelKey="label.qde.button.sendOtp"
+        error={Boolean(err("asAadhaar"))}
+      />
+
+      <HBox sx={{ display: "flex", flexDirection: "row", alignItems: "flex-start", width: "100%", mb: 0.2 }}>
+        <HBox sx={{ width: "280px", minWidth: "280px", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5 }}>
+          <HLabel value="label.qde.field.aadhaarOtp" align="left" colon={false} />
+        </HBox>
+
+        <HBox sx={{ display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0 }}>
+          <HBox sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+            <HTextField
+              value={form.asAadhaarOtp}
+              onChange={(e) => setField("asAadhaarOtp", e.target.value)}
+              editable={Boolean(form.asAadhaar)}
+              disabled={!form.asAadhaar}
+              type="number"
+              length={6}
+              width="120px"
+            />
+            <HButton
+              label="label.qde.button.validateOtp"
+              variant="contained"
+              size="small"
+              inline
+              loading={verifying.asAadhaarValidate}
+              disabled={!form.asAadhaarOtp}
+              onClick={onValidateAsAadhaarOtp}
+            />
+          </HBox>
+          <HLabel value={statusLabelKey(form.asAadhaarStatus)} align="left" colon={false} />
+        </HBox>
       </HBox>
 
-      <HBox sx={{ display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0 }}>
+      <HBox sx={{ display: "flex", flexDirection: "row", alignItems: "center", width: "100%", mb: 0.2 }}>
+        <HBox sx={{ width: "280px", minWidth: "280px", flexShrink: 0 }}>
+          <HLabel value="label.qde.field.panAadhaarLink" align="left" colon={false} />
+        </HBox>
+
         <HBox sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
-          <HTextField
-            value={form.asAadhaarOtp}
-            onChange={(e) => setField("asAadhaarOtp", e.target.value)}
-            editable={Boolean(form.asAadhaar)}
-            disabled={!form.asAadhaar}
-            type="number"
-            length={6}
-            width="120px"
-          />
           <HButton
-            label="label.qde.button.validateOtp"
-            variant="contained"
+            label="label.qde.button.verify"
+            variant="outlined"
             size="small"
             inline
-            loading={verifying.asAadhaarValidate}
-            disabled={!form.asAadhaarOtp}
-            onClick={onValidateAsAadhaarOtp}
+            loading={verifying.asPanAadhaar}
+            disabled={!form.asPan || !form.asAadhaar}
+            onClick={onCheckAsPanAadhaarLink}
           />
+          <HLabel value={statusLabelKey(form.asPanAadhaarLinked)} align="left" colon={false} />
         </HBox>
-        <HLabel value={statusLabelKey(form.asAadhaarStatus)} align="left" colon={false} />
       </HBox>
-    </HBox>
-
-    <HBox sx={{ display: "flex", flexDirection: "row", alignItems: "center", width: "100%", mb: 0.2 }}>
-      <HBox sx={{ width: "280px", minWidth: "280px", flexShrink: 0 }}>
-        <HLabel value="label.qde.field.panAadhaarLink" align="left" colon={false} />
-      </HBox>
-
-      <HBox sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
-        <HButton
-          label="label.qde.button.verify"
-          variant="outlined"
-          size="small"
-          inline
-          loading={verifying.asPanAadhaar}
-          disabled={!form.asPan || !form.asAadhaar}
-          onClick={onCheckAsPanAadhaarLink}
-        />
-        <HLabel value={statusLabelKey(form.asPanAadhaarLinked)} align="left" colon={false} />
-      </HBox>
-    </HBox>
-  </SectionBlock>
-);
+    </SectionBlock>
+  );
+};
 
 export default AuthSignatoryKycSection;

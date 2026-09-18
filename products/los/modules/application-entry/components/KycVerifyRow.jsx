@@ -14,6 +14,7 @@ const KycVerifyRow = ({
   placeholder = "",
   maxLength,
   disabled = false,
+  error = false,
   buttonLabelKey = "label.qde.button.verify",
   size = DEFAULT_SIZE,
 }) => (
@@ -49,6 +50,7 @@ const KycVerifyRow = ({
       editable={!disabled}
       disabled={disabled}
       required={required}
+      error={error}
       placeholder={placeholder}
       length={maxLength}
       width="330px"

@@ -4,7 +4,7 @@ import { HButton, HLabel } from "@helix/component-library";
 import PartyRow from "../components/PartyRow";
 import SectionBlock from "../components/SectionBlock";
 
-const CoApplicantSection = ({ items = [], onAdd, onRemove, onChange }) => {
+const CoApplicantSection = ({ items = [], onAdd, onRemove, onChange, errors = {}, primaryBorrowerType, kycHandlers, primaryAddress }) => {
   const intl = useIntl();
   const rowTitle = intl.formatMessage({
     id: "label.qde.coApplicant.item",
@@ -30,6 +30,10 @@ const CoApplicantSection = ({ items = [], onAdd, onRemove, onChange }) => {
             titleKey={rowTitle}
             onChange={onChange}
             onRemove={onRemove}
+            errors={errors[party.id] || {}}
+            primaryBorrowerType={primaryBorrowerType}
+            kycHandlers={kycHandlers}
+            primaryAddress={primaryAddress}
           />
         ))
       )}

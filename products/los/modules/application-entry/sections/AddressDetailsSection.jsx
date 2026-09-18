@@ -2,13 +2,12 @@ import { HDropdown, HTextField, HBox, HLabel } from "@helix/component-library";
 import SectionBlock from "../components/SectionBlock";
 import { ADDRESS_TYPES_INDIVIDUAL, ADDRESS_TYPES_NON_INDIVIDUAL } from "../constants/qdeOptions";
 
-const AddressDetailsSection = ({ form, setField, isNonIndividual, onPincodeLookup, noAccordion }) => {
+const AddressDetailsSection = ({ form, setField, isNonIndividual, noAccordion, errors = {}, readOnly = false }) => {
   const addressTypes = isNonIndividual ? ADDRESS_TYPES_NON_INDIVIDUAL : ADDRESS_TYPES_INDIVIDUAL;
+  const err = (name) => errors[name];
 
   const handlePincodeChange = (e) => {
-    const next = e.target.value;
-    setField("pincode", next);
-    if (next.length === 6) onPincodeLookup?.(next);
+    setField("pincode", e.target.value);
   };
 
   return (
@@ -21,7 +20,9 @@ const AddressDetailsSection = ({ form, setField, isNonIndividual, onPincodeLooku
             options={addressTypes}
             value={form.addressType}
             onChange={(e) => setField("addressType", e.target.value)}
+            disabled={readOnly}
             required
+            error={Boolean(err("addressType"))}
             width="100%"
           />
         </HBox>
@@ -31,8 +32,10 @@ const AddressDetailsSection = ({ form, setField, isNonIndividual, onPincodeLooku
           <HTextField
             value={form.addr1}
             onChange={(e) => setField("addr1", e.target.value)}
-            editable
+            editable={!readOnly}
+            disabled={readOnly}
             required
+            error={Boolean(err("addr1"))}
             width="100%"
           />
         </HBox>
@@ -42,7 +45,8 @@ const AddressDetailsSection = ({ form, setField, isNonIndividual, onPincodeLooku
           <HTextField
             value={form.addr2}
             onChange={(e) => setField("addr2", e.target.value)}
-            editable
+            editable={!readOnly}
+            disabled={readOnly}
             width="100%"
           />
         </HBox>
@@ -52,17 +56,22 @@ const AddressDetailsSection = ({ form, setField, isNonIndividual, onPincodeLooku
           <HTextField
             value={form.addr3}
             onChange={(e) => setField("addr3", e.target.value)}
-            editable
+            editable={!readOnly}
+            disabled={readOnly}
             width="100%"
           />
         </HBox>
 
+        {/* Landmark — mandatory only for Individual applicants, matching PartyRow's rule */}
         <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
-          <HLabel value="label.qde.field.landmark" align="left" colon={false} />
+          <HLabel value="label.qde.field.landmark" required={!isNonIndividual} align="left" colon={false} />
           <HTextField
             value={form.landmark}
             onChange={(e) => setField("landmark", e.target.value)}
-            editable
+            editable={!readOnly}
+            disabled={readOnly}
+            required={!isNonIndividual}
+            error={Boolean(err("landmark"))}
             width="100%"
           />
         </HBox>
@@ -72,11 +81,13 @@ const AddressDetailsSection = ({ form, setField, isNonIndividual, onPincodeLooku
           <HTextField
             value={form.pincode}
             onChange={handlePincodeChange}
-            onBlur={() => form.pincode && onPincodeLookup?.(form.pincode)}
-            editable
+            //onBlur={() => form.pincode && onPincodeLookup?.(form.pincode)}
+            editable={!readOnly}
+            disabled={readOnly}
             required
             type="number"
             length={6}
+            error={Boolean(err("pincode"))}
             width="100%"
           />
         </HBox>
@@ -86,7 +97,8 @@ const AddressDetailsSection = ({ form, setField, isNonIndividual, onPincodeLooku
           <HTextField
             value={form.city}
             onChange={(e) => setField("city", e.target.value)}
-            editable
+            editable={!readOnly}
+            disabled={readOnly}
             width="100%"
           />
         </HBox>
@@ -96,7 +108,8 @@ const AddressDetailsSection = ({ form, setField, isNonIndividual, onPincodeLooku
           <HTextField
             value={form.district}
             onChange={(e) => setField("district", e.target.value)}
-            editable
+            editable={!readOnly}
+            disabled={readOnly}
             width="100%"
           />
         </HBox>
@@ -106,7 +119,8 @@ const AddressDetailsSection = ({ form, setField, isNonIndividual, onPincodeLooku
           <HTextField
             value={form.state}
             onChange={(e) => setField("state", e.target.value)}
-            editable
+            editable={!readOnly}
+            disabled={readOnly}
             width="100%"
           />
         </HBox>
@@ -116,7 +130,8 @@ const AddressDetailsSection = ({ form, setField, isNonIndividual, onPincodeLooku
           <HTextField
             value={form.country}
             onChange={(e) => setField("country", e.target.value)}
-            editable
+            editable={!readOnly}
+            disabled={readOnly}
             width="100%"
           />
         </HBox>

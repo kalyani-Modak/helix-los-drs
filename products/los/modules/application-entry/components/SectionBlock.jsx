@@ -23,7 +23,7 @@ const SectionBlock = ({ sectionKey, titleKey, defaultExpanded = true, noAccordio
       </HBox>
     );
   }
-
+ 
   return (
     <HBox
       sx={{mb:2,

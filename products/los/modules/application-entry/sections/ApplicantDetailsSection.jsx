@@ -19,14 +19,17 @@ const ApplicantDetailsSection = ({
   onVerifyMobile,
   onVerifyEmail,
   verifyingMobile = false,
+  errors = {},
 }) => {
   const intl = useIntl();
+  const err = (name) => errors[name];
 
   return (
     <SectionBlock sectionKey="applicant" titleKey="label.qde.section.applicant">
       <HBox sx={{ width: "100%", display: "flex", flexDirection: "row", flexWrap: "wrap" }}>
         {isNonIndividual ? (
           <>
+            {/* ---- Non-Individual fields ---- */}
             <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1 }}>
               <HLabel
                 value={intl.formatMessage({
@@ -42,6 +45,7 @@ const ApplicantDetailsSection = ({
                 onChange={(e) => setField("entityName", e.target.value)}
                 editable
                 required
+                error={Boolean(err("entityName"))}
                 width="100%"
               />
             </HBox>
@@ -84,6 +88,7 @@ const ApplicantDetailsSection = ({
           </>
         ) : (
           <>
+            {/* ---- Individual fields ---- */}
             <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1 }}>
               <HLabel
                 value={intl.formatMessage({
@@ -100,6 +105,7 @@ const ApplicantDetailsSection = ({
                 editable
                 required
                 type="name"
+                error={Boolean(err("firstName"))}
                 width="100%"
               />
             </HBox>
@@ -138,6 +144,7 @@ const ApplicantDetailsSection = ({
                 editable
                 required
                 type="name"
+                error={Boolean(err("lastName"))}
                 width="100%"
               />
             </HBox>
@@ -158,27 +165,42 @@ const ApplicantDetailsSection = ({
                 value={form.gender}
                 onChange={(e) => setField("gender", e.target.value)}
                 required
+                error={Boolean(err("gender"))}
                 width="100%"
               />
             </HBox>
 
-            <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1 }}>
-              <HLabel
-                value={intl.formatMessage({
-                  id: "label.qde.field.dob",
-                  defaultMessage: "Date of Birth"
-                })}
-                required
-                align="left"
-                colon={false}
-              />
-              <HDatePicker
-                value={toPickerValue(form.dob)}
-                onChange={(value) => setField("dob", fromPickerValue(value))}
-                required
-                width="100%"
-              />
-            </HBox>
+            <HBox
+  sx={{
+    width: "33%",
+    flexShrink: 0,
+    display: "flex",
+    flexDirection: "column",
+    gap: 0.5,
+    minWidth: 0,
+    boxSizing: "border-box",
+    pr: 1,
+    mb: 1
+  }}
+>
+  <HLabel
+    value={intl.formatMessage({
+      id: "label.qde.field.dob",
+      defaultMessage: "Date of Birth"
+    })}
+    required
+    align="left"
+    colon={false}
+  />
+
+  <HDatePicker
+    value={toPickerValue(form.dob)}
+    onChange={(value) => setField("dob", fromPickerValue(value))}
+    required
+    error={Boolean(err("dob"))}
+    width="100%"
+  />
+</HBox>
 
             <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1 }}>
               <HLabel
@@ -216,12 +238,14 @@ const ApplicantDetailsSection = ({
               />
             </HBox>
 
+            {/* Mother's Name — required by IndividualDetailsDto, now validated */}
             <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1 }}>
               <HLabel
                 value={intl.formatMessage({
                   id: "label.qde.field.motherName",
                   defaultMessage: "Mother's Name"
                 })}
+                required
                 align="left"
                 colon={false}
               />
@@ -229,12 +253,16 @@ const ApplicantDetailsSection = ({
                 value={form.motherName}
                 onChange={(e) => setField("motherName", e.target.value)}
                 editable
+                required
                 type="name"
+                error={Boolean(err("motherName"))}
                 width="100%"
               />
             </HBox>
           </>
         )}
+
+        {/* ---- Common fields (both Individual & Non-Individual) ---- */}
 
         <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1 }}>
           <HLabel
@@ -255,6 +283,7 @@ const ApplicantDetailsSection = ({
                 required
                 type="phone"
                 length={10}
+                error={Boolean(err("mobile"))}
                 width="160px"
               />
               <HButton
@@ -277,6 +306,7 @@ const ApplicantDetailsSection = ({
               id: "label.qde.field.email",
               defaultMessage: "Email"
             })}
+            required
             align="left"
             colon={false}
           />
@@ -286,6 +316,8 @@ const ApplicantDetailsSection = ({
                 value={form.email}
                 onChange={(e) => setField("email", e.target.value)}
                 editable
+                required
+                error={Boolean(err("email"))}
                 width="200px"
               />
               <HButton

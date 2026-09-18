@@ -1,11 +1,10 @@
-import React from "react";
 import { Grid } from "@mui/material";
 import { useIntl } from "react-intl";
 import { HButton, HLabel } from "@helix/component-library";
 import PartyRow from "../components/PartyRow";
 import SectionBlock from "../components/SectionBlock";
 
-const GuarantorSection = ({ items = [], onAdd, onRemove, onChange }) => {
+const GuarantorSection = ({ items = [], onAdd, onRemove, onChange, errors = {}, primaryBorrowerType, kycHandlers, primaryAddress }) => {
   const intl = useIntl();
   const rowTitle = intl.formatMessage({
     id: "label.qde.guarantor.item",
@@ -31,6 +30,10 @@ const GuarantorSection = ({ items = [], onAdd, onRemove, onChange }) => {
             titleKey={rowTitle}
             onChange={onChange}
             onRemove={onRemove}
+            errors={errors[party.id] || {}}
+            primaryBorrowerType={primaryBorrowerType}
+            kycHandlers={kycHandlers}
+            primaryAddress={primaryAddress}
           />
         ))
       )}

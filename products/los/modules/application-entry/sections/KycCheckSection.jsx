@@ -19,6 +19,7 @@ const KycOtpRow = ({
   placeholder = "",
   maxLength,
   disabled = false,
+  error = false,
 }) => (
   <HBox sx={{ display: "flex", flexDirection: "row", alignItems: "center", width: "100%", gap: 1, mb: 0.2 }}>
     <HBox sx={{ width: "280px", minWidth: "280px", flexShrink: 0 }}>
@@ -36,6 +37,7 @@ const KycOtpRow = ({
       editable={!disabled}
       disabled={disabled}
       required={required}
+      error={error}
       placeholder={placeholder}
       length={maxLength}
       width="330px"
@@ -89,6 +91,7 @@ const IndividualKyc = ({
   setField,
   verifying,
   handlers,
+  errors = {},
 }) => (
   <>
     {/* PAN */}
@@ -102,6 +105,7 @@ const IndividualKyc = ({
       verifying={verifying.pan}
       onVerify={handlers.onVerifyPan}
       required
+      error={Boolean(errors.pan)}
       maxLength={10}
       placeholder="ABCDE1234F"
     />
@@ -124,9 +128,9 @@ const IndividualKyc = ({
       validating={verifying.aadhaarValidate}
       status={form.aadhaarStatus}
       required
+      error={Boolean(errors.aadhaar)}
       maxLength={12}
       placeholder="12-digit Aadhaar number"
-      disabled={!form.aadhaar}
     />
 
     {/* PAN - Aadhaar Link */}
@@ -217,6 +221,7 @@ const NonIndividualKyc = ({
   setField,
   verifying,
   handlers,
+  errors = {},
 }) => (
   <>
     {/* Business PAN */}
@@ -230,6 +235,7 @@ const NonIndividualKyc = ({
       verifying={verifying.bizPan}
       onVerify={handlers.onVerifyBusinessPan}
       required
+      error={Boolean(errors.pan)}
       maxLength={10}
       placeholder="AAACX1234K"
     />
@@ -251,7 +257,7 @@ const NonIndividualKyc = ({
     {/* CIN */}
     <HBox sx={{ display: "flex", alignItems: "center", width: "100%", gap: 1, mb: 0.2 }}>
       <HBox sx={{ width: "280px", minWidth: "280px", flexShrink: 0 }}>
-        <HLabel value="label.qde.field.cin" align="left" colon={false} />
+        <HLabel value="label.qde.field.cin" required align="left" colon={false} />
       </HBox>
 
       <HTextField
@@ -260,8 +266,14 @@ const NonIndividualKyc = ({
           setField("cin", e.target.value.toUpperCase())
         }
         editable
+        required
+        placeholder="CIN"
+        status={form.cinStatus}
+        verifying={verifying.cin}
+        onVerify={handlers.onVerifyCin}
         length={21}
         width="330px"
+        error={Boolean(errors.cin)}
       />
 
       <HLabel value="For reference only" align="left" colon={false} />
@@ -274,10 +286,13 @@ const NonIndividualKyc = ({
       onChange={(e) =>
         setField("shopAct", e.target.value)
       }
+      required
+      placeholder="Shop Act"
       status={form.shopActStatus}
       verifying={verifying.shopAct}
       onVerify={handlers.onVerifyShopAct}
       maxLength={30}
+      error={Boolean(errors.shopAct)}
     />
 
     {/* CKYC */}
@@ -301,11 +316,15 @@ const KycCheckSection = ({
   setField,
   isNonIndividual,
   verifying = {},
+  compact = false,
+  sectionKey = "kycCheck",
+  errors = {},
   ...handlers
 }) => (
   <SectionBlock
-    sectionKey="kycCheck"
+    sectionKey={sectionKey}
     titleKey="label.qde.section.kyc"
+    noAccordion={compact}
   >
     {isNonIndividual ? (
       <NonIndividualKyc
@@ -313,6 +332,7 @@ const KycCheckSection = ({
         setField={setField}
         verifying={verifying}
         handlers={handlers}
+        errors={errors}
       />
     ) : (
       <IndividualKyc
@@ -320,6 +340,7 @@ const KycCheckSection = ({
         setField={setField}
         verifying={verifying}
         handlers={handlers}
+        errors={errors}
       />
     )}
   </SectionBlock>

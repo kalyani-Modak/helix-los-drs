@@ -3,8 +3,9 @@ import SectionBlock from "../components/SectionBlock";
 import { APPLICATION_TYPES, PORTFOLIOS } from "../constants/qdeOptions";
 import { useIntl } from "react-intl";
 
-const BusinessUnitSection = ({ form, setField }) => {
+const BusinessUnitSection = ({ form, setField, errors = {} }) => {
   const intl = useIntl();
+  const err = (name) => errors[name];
 
   return (
     <SectionBlock sectionKey="businessUnit" titleKey="label.qde.section.businessUnit" >
@@ -30,6 +31,7 @@ const BusinessUnitSection = ({ form, setField }) => {
               setField("applicationType", e.target.value)
             }
             required
+            error={Boolean(err("applicationType"))}
             width="100%"
           />
         </HBox>
@@ -55,6 +57,7 @@ const BusinessUnitSection = ({ form, setField }) => {
               setField("portfolio", e.target.value)
             }
             required
+            error={Boolean(err("portfolio"))}
             width="100%"
           />
         </HBox>
@@ -141,11 +144,20 @@ const BusinessUnitSection = ({ form, setField }) => {
                 }
                 editable
                 required
+                error={Boolean(err("customerId"))}
                 width="100%"
               />
             </HBox>
 
             {/* Search Records */}
+            {/*
+              NOTE: this field is bound to the same "customerId" state as the
+              field above (value={form.customerId} + onChange -> setField("customerId", ...)).
+              Left the wiring exactly as originally written — flagging it here since
+              typing in this box overwrites/duplicates the Customer ID field above.
+              If it's meant to be a separate search box, give it its own field name
+              (e.g. "customerSearch") and a lookup handler.
+            */}
             <HBox
               sx={{ width: "25%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0 }}>
               <HLabel
