@@ -1,9 +1,11 @@
 import { HDropdown, HTextField, HBox, HLabel, HRadio } from "@helix/component-library";
+import { IconButton } from "@mui/material";
+import { Search as SearchIcon } from "@mui/icons-material";
 import SectionBlock from "../components/SectionBlock";
 import { APPLICATION_TYPES, PORTFOLIOS } from "../constants/qdeOptions";
 import { useIntl } from "react-intl";
 
-const BusinessUnitSection = ({ form, setField, errors = {} }) => {
+const BusinessUnitSection = ({ form, setField, errors = {}, onOpenApplicationSearch }) => {
   const intl = useIntl();
   const err = (name) => errors[name];
 
@@ -149,15 +151,7 @@ const BusinessUnitSection = ({ form, setField, errors = {} }) => {
               />
             </HBox>
 
-            {/* Search Records */}
-            {/*
-              NOTE: this field is bound to the same "customerId" state as the
-              field above (value={form.customerId} + onChange -> setField("customerId", ...)).
-              Left the wiring exactly as originally written — flagging it here since
-              typing in this box overwrites/duplicates the Customer ID field above.
-              If it's meant to be a separate search box, give it its own field name
-              (e.g. "customerSearch") and a lookup handler.
-            */}
+            {/* Search Records — pop search that opens the "Search Existing Applications" dialog */}
             <HBox
               sx={{ width: "25%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0 }}>
               <HLabel
@@ -169,15 +163,49 @@ const BusinessUnitSection = ({ form, setField, errors = {} }) => {
                 colon={false}
               />
 
-              <HTextField
-                value={form.customerId}
-                onChange={(e) =>
-                  setField("customerId", e.target.value)
-                }
-                editable
-                required
-                width="100%"
-              />
+              <HBox
+                sx={{
+                  position: "relative",
+                  display: "flex",
+                  alignItems: "center",
+                  width: "100%",
+                  minWidth: 0,
+                }}
+              >
+                <HTextField
+                  value={form.applicationNo || ""}
+                  editable={false}
+                  placeholder={intl.formatMessage({
+                    id: "label.qde.placeholder.searchRecords",
+                    defaultMessage: "Open search popup...",
+                  })}
+                  width="100%"
+                />
+
+                <IconButton
+                  aria-label={intl.formatMessage({
+                    id: "label.qde.button.search",
+                    defaultMessage: "Search",
+                  })}
+                  title={intl.formatMessage({
+                    id: "label.qde.button.search",
+                    defaultMessage: "Search",
+                  })}
+                  onClick={() => onOpenApplicationSearch?.()}
+                  size="small"
+                  sx={{
+                    position: "absolute",
+                    right: 4,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    color: "primary.main",
+                    backgroundColor: "background.paper",
+                    "&:hover": { backgroundColor: "action.hover" },
+                  }}
+                >
+                  <SearchIcon fontSize="small" />
+                </IconButton>
+              </HBox>
             </HBox>
           </HBox>
         )}

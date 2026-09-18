@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { useIntl } from "react-intl";
 import { useLocation, useNavigate } from "react-router-dom";
 import { HAxiosService, HBox, HBreadCrumb, HButtonBar, HPaper, TitleBar, useToast } from "@helix/component-library";
@@ -7,6 +7,7 @@ import { unwrapApiResponse } from "./unwrapApiResponse";
 import { VERIFICATION_STATUS } from "./constants/qdeOptions";
 
 import OtpVerifyDialog from "./components/OtpVerifyDialog";
+import SearchApplicationDialog from "./components/SearchApplicationDialog";
 import BusinessUnitSection from "./sections/BusinessUnitSection";
 import OcrUploadSection from "./sections/OcrUploadSection";
 import KycCheckSection from "./sections/KycCheckSection";
@@ -30,10 +31,24 @@ const yn = (value) =>
       ? "N"
       : value || "N";
 
+const ORG_ID = "001";
 const PAN_PATTERN = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
 const AADHAAR_PATTERN = /^[0-9]{12}$/;
 const CIN_PATTERN = /^[LU][0-9]{5}[A-Z]{2}[0-9]{4}[A-Z]{3}[0-9]{6}$/;
 const SHOP_ACT_PATTERN = /^[A-Z0-9][A-Z0-9\s/-]{0,29}$/i;
+
+const unwrapQdePayload = (response) => {
+  const unwrapped = unwrapApiResponse(response);
+  return (
+    unwrapped?.responseJson
+    || unwrapped?.data
+    || unwrapped
+    || response?.responseJson
+    || response?.data?.responseJson
+    || response?.data?.data
+    || {}
+  );
+};
 
 const validateKycFields = (obj, isNonInd, translate) => {
   const errors = {};
@@ -167,11 +182,13 @@ const ApplicationQuickDataEntry = () => {
   const [ocrStatusKey, setOcrStatusKey] = useState("label.qde.status.notStarted");
 
   // Field-level validation errors, wired down into each section that needs them.
+  const [searchDialogOpen, setSearchDialogOpen] = useState(false);
   const [formErrors, setFormErrors] = useState({
     applicant: {},
     coApplicants: {},
     guarantors: {},
   });
+  const persistedDraftRef = useRef(false);
 
   const isNonIndividual = form.borrowerType === "Non-Individual";
 
@@ -581,6 +598,172 @@ const ApplicationQuickDataEntry = () => {
     }));
   }, []);
 
+  /** Maps a party of the fetchQde response (QdeWrapperDto shape) into form party state. */
+  const partyFromQde = useCallback((party) => {
+    const individual = party?.individualDetails || {};
+    const entity = party?.nonIndividualDetails || {};
+    const kyc = party?.kycDetails || {};
+    const address = party?.address || {};
+    const signatory = party?.authorisedSignatory || {};
+    const signatoryKyc = party?.authorisedSignatoryKyc || {};
+    const isNonInd = party?.szBorrowerType === "NON_INDIVIDUAL";
+
+    return {
+      ...emptyParty(),
+      applicantId: party?.szApplicantId || "",
+      borrowerType: isNonInd ? "Non-Individual" : "Individual",
+      customerType: party?.szCustomerType === "EXISTING" ? "Existing" : "New",
+      customerId: party?.szCustomerId || "",
+      relationship: party?.szRelationshipWithPrimaryApplicant || "",
+
+      firstName: individual.szFirstName || "",
+      middleName: individual.szMiddleName || "",
+      lastName: individual.szLastName || "",
+      gender: individual.szGender || "",
+      dob: individual.dtDateOfBirth || "",
+      fatherName: individual.szFatherName || "",
+      motherName: individual.szMotherName || "",
+      category: individual.szApplicantCategory || "",
+      staff: individual.szStaffYn === "Y",
+      preApproved: individual.szPreApprovedYn === "Y",
+
+      entityName: entity.szEntityName || "",
+      entityType: entity.szEntityType || "",
+      doi: entity.dtDateofIncorporation || "",
+      gstRegistered: entity.szGstRegYn || "N",
+      msmeRegistered: entity.szMsmeRegYn || "N",
+
+      mobile: party?.szMobile || "",
+      email: party?.szEmail || "",
+
+      pan: kyc.szPanNumber || "",
+      urn: kyc.szUrnNo || "",
+      aadhaar: kyc.szAadhaarNumber || "",
+      ckycNumber: kyc.szCkycNumber || "",
+      digiRef: kyc.szDigiLockerDocumentId || "",
+      gstin: kyc.szGstNumber || "",
+      cin: kyc.szCin || "",
+      shopAct: kyc.szShopAct || "",
+
+      addressType: address.szAddressType || "",
+      addr1: address.szAddressLine1 || "",
+      addr2: address.szAddressLine2 || "",
+      addr3: address.szAddressLine3 || "",
+      landmark: address.szLandmark || "",
+      pincode: address.iPincode != null ? String(address.iPincode) : "",
+      city: address.szCity || "",
+      district: address.szDistrict || "",
+      state: address.szState || "",
+      country: address.szCountry || "INDIA",
+
+      asFirstName: signatory.szAuthFn || "",
+      asMiddleName: signatory.szAuthMn || "",
+      asLastName: signatory.szAuthLn || "",
+      asDob: signatory.dtAuthDob || "",
+      asDesignation: signatory.szAuthDsgn || "",
+      asMobile: signatory.szAuthMobile || "",
+      asEmail: signatory.szAuthMail || "",
+      asAadhaar: signatoryKyc.szAuthSignatoryAadhaar || "",
+      asPan: signatoryKyc.szAuthSignatoryPAN || "",
+    };
+  }, []);
+
+  /** Loads the QdeWrapperDto returned by GET /los/fetchQde/{orgId}/{appNo} into form state. */
+  const hydrateFromQdeResponse = useCallback((response) => {
+    if (!response || typeof response !== "object") return;
+
+    const control = response.applicationControl || {};
+    const applicant = response.applicantDetails || {};
+    const individual = applicant.individualDetails || {};
+    const entity = applicant.nonIndividualDetails || {};
+    const kyc = applicant.kycDetails || {};
+    const address = applicant.address || {};
+    const signatory = applicant.authorisedSignatory || {};
+    const signatoryKyc = applicant.authorisedSignatoryKyc || {};
+    const loan = response.loanDetails || {};
+    const sourcing = response.sourcingDetails || {};
+
+    setForm((prev) => ({
+      ...prev,
+      applicationNo: response.szApplicationNo || prev.applicationNo,
+      applicationType: control.szApplicationType || "",
+      portfolio: control.szPortfolioCode || null,
+      borrowerType: control.szBorrowerType === "NON_INDIVIDUAL" ? "Non-Individual" : "Individual",
+      customerType: control.szCustomerType === "EXISTING" ? "Existing" : "New",
+      customerId: applicant.szCustomerId || "",
+      applicantId: applicant.szApplicantId || "",
+
+      firstName: individual.szFirstName || "",
+      middleName: individual.szMiddleName || "",
+      lastName: individual.szLastName || "",
+      gender: individual.szGender || "",
+      dob: individual.dtDateOfBirth || "",
+      fatherName: individual.szFatherName || "",
+      motherName: individual.szMotherName || "",
+      profile: individual.szApplicantCategory || "",
+      staff: individual.szStaffYn === "Y",
+      preApproved: individual.szPreApprovedYn === "Y",
+
+      entityName: entity.szEntityName || "",
+      entityType: entity.szEntityType || "",
+      doi: entity.dtDateofIncorporation || "",
+      gstRegistered: entity.szGstRegYn || "N",
+      msmeRegistered: entity.szMsmeRegYn || "N",
+
+      mobile: applicant.szMobile || "",
+      email: applicant.szEmail || "",
+
+      pan: kyc.szPanNumber || "",
+      panStatus: kyc.szPanVerificationStatus || null,
+      panAadhaarLinked: kyc.szPanAadhaarLinkageStatus || null,
+      aadhaar: kyc.szAadhaarNumber || "",
+      aadhaarStatus: kyc.szAadhaarVerificationStatus || null,
+      ckycNumber: kyc.szCkycNumber || "",
+      ckycStatus: kyc.szCkycVerificationStatus || null,
+      digiRef: kyc.szDigiLockerDocumentId || "",
+      digiStatus: kyc.szDigiLockerVerificationStatus || null,
+      urn: kyc.szUrnNo || "",
+      gstin: kyc.szGstNumber || "",
+      cin: kyc.szCin || "",
+      shopAct: kyc.szShopAct || "",
+
+      addressType: address.szAddressType || "",
+      addr1: address.szAddressLine1 || "",
+      addr2: address.szAddressLine2 || "",
+      addr3: address.szAddressLine3 || "",
+      landmark: address.szLandmark || "",
+      pincode: address.iPincode != null ? String(address.iPincode) : "",
+      city: address.szCity || "",
+      district: address.szDistrict || "",
+      state: address.szState || "",
+      country: address.szCountry || "INDIA",
+
+      asFirstName: signatory.szAuthFn || "",
+      asMiddleName: signatory.szAuthMn || "",
+      asLastName: signatory.szAuthLn || "",
+      asDob: signatory.dtAuthDob || "",
+      asDesignation: signatory.szAuthDsgn || "",
+      asMobile: signatory.szAuthMobile || "",
+      asEmail: signatory.szAuthMail || "",
+      asAadhaar: signatoryKyc.szAuthSignatoryAadhaar || "",
+      asPan: signatoryKyc.szAuthSignatoryPAN || "",
+
+      coApplicants: (Array.isArray(response.coApplicants) ? response.coApplicants : []).map(partyFromQde),
+      guarantors: (Array.isArray(response.guarantors) ? response.guarantors : []).map(partyFromQde),
+
+      loanType: loan.szLoanType || null,
+      product: loan.szProductCode || "",
+      scheme: loan.szSchemeCode || "",
+      loanAmount: loan.fAppliedAmount != null ? String(loan.fAppliedAmount) : "",
+      tenure: loan.iAppliedTenor != null ? String(loan.iAppliedTenor) : "",
+      rate: loan.fInterestRate != null ? String(loan.fInterestRate) : "",
+
+      channel: sourcing.szSourcingChannel || "",
+      sourcingBranch: sourcing.szSourcingBranch || "",
+      servicingBranch: sourcing.szServicingBranch || "",
+    }));
+  }, [partyFromQde]);
+
   const t = useCallback(
     (id, defaultMessage) => intl.formatMessage({ id, defaultMessage }),
     [intl]
@@ -592,10 +775,58 @@ const ApplicationQuickDataEntry = () => {
 
   useEffect(() => {
     if (!incomingApplicationNo) return;
+    persistedDraftRef.current = false;
     HAxiosService.GET(LosQdeAPI.getByAppNo(incomingApplicationNo))
-      .then((res) => hydrateFromResponse(unwrapApiResponse(res)))
+      .then((res) => hydrateFromResponse(unwrapQdePayload(res)))
       .catch(() => toast.error(t("label.qde.msg.loadFailed", "Unable to load application")));
   }, [incomingApplicationNo, hydrateFromResponse, t, toast]);
+
+  /**
+   * "Search Existing Applications" pop search. Loads the matching application into the form,
+   * searching by application number, mobile number or Aadhaar number.
+   */
+  const handleSearchApplications = useCallback(
+    async ({ applicationNo, mobile, aadhaar }) => {
+      const appNo = (applicationNo || "").trim();
+      const mobileNo = (mobile || "").trim();
+      const aadhaarNo = (aadhaar || "").trim();
+
+      const url = appNo
+        ? LosQdeAPI.fetchQde(ORG_ID, appNo)
+        : mobileNo
+          ? LosQdeAPI.fetchQdeByMobile(ORG_ID, mobileNo)
+          : aadhaarNo
+            ? LosQdeAPI.fetchQdeByAadhaar(ORG_ID, aadhaarNo)
+            : null;
+
+      if (!url) {
+        toast.error(
+          t(
+            "label.qde.msg.searchCriteriaRequired",
+            "Enter an application number, mobile number or Aadhaar number."
+          )
+        );
+        return;
+      }
+
+      setBusy("appSearch", true);
+      try {
+        const data = unwrapQdePayload(await HAxiosService.GET(url));
+        persistedDraftRef.current = false;
+        hydrateFromQdeResponse(data);
+        setSearchDialogOpen(false);
+        const loadedAppNo = data?.szApplicationNo || appNo;
+        toast.success(
+          `${t("label.qde.msg.applicationLoaded", "Application loaded")}${loadedAppNo ? ` - ${loadedAppNo}` : ""}`
+        );
+      } catch (error) {
+        toast.error(error?.message || t("label.qde.msg.applicationNotFound", "Application not found"));
+      } finally {
+        setBusy("appSearch", false);
+      }
+    },
+    [hydrateFromQdeResponse, setBusy, t, toast]
+  );
 
   const runVerification = useCallback(
     async (key, url, payload, statusField, onSuccess) => {
@@ -908,15 +1139,27 @@ const ApplicationQuickDataEntry = () => {
   }, []);
 
   const persistDraft = useCallback(async () => {
+    const isUpdate = persistedDraftRef.current && Boolean(form.applicationNo);
     const payload = buildPayload();
 
-    const response = form.applicationNo  // remove an update API 
+    if (!isUpdate) {
+      // A fetched application number is only a search reference. The first
+      // save must create a new QDE application number.
+      payload.szApplicationNo = null;
+    }
+
+    const response = isUpdate
       ? await HAxiosService.PUT(LosQdeAPI.updateDraft(form.applicationNo), payload)
       : await HAxiosService.POST(LosQdeAPI.createDraft(), payload);
 
-    const data = unwrapApiResponse(response) || response?.responseJson || response?.data?.responseJson || response?.data?.data || {};
-    const appNo = data?.szApplicationNo || data?.applicationNumber || data?.applicationNo || form.applicationNo;
-    if (appNo && appNo !== form.applicationNo) setField("applicationNo", appNo);
+    const data = unwrapQdePayload(response);
+    const appNo = data?.szApplicationNo || data?.applicationNumber || data?.applicationNo;
+
+    if (appNo) {
+      persistedDraftRef.current = true;
+      setField("applicationNo", appNo);
+    }
+
     return appNo;
   }, [buildPayload, form.applicationNo, setField]);
 
@@ -1037,6 +1280,7 @@ const ApplicationQuickDataEntry = () => {
   }, [validateForm, persistDraft, t, toast]);
 
   const handleReset = useCallback(() => {
+    persistedDraftRef.current = false;
     resetForm();
     setOcrFileName("");
     setOcrStatusKey("label.qde.status.notStarted");
@@ -1053,7 +1297,12 @@ const ApplicationQuickDataEntry = () => {
         <HBox sx={{ display: "flex", flexDirection: "column", gap: 2, pb: 8 }}>
           <HPaper>
             <HBox sx={{ p: 2, width: "100%" }} data-menu-id={screenMenuId}>
-              <BusinessUnitSection form={form} setField={setField} errors={formErrors.applicant} />
+              <BusinessUnitSection
+                form={form}
+                setField={setField}
+                errors={formErrors.applicant}
+                onOpenApplicationSearch={() => setSearchDialogOpen(true)}
+              />
 
               <OcrUploadSection
                 form={form}
@@ -1161,6 +1410,13 @@ const ApplicationQuickDataEntry = () => {
         onReset={handleReset}
         onClose={() => navigate("/homelayout/welcomepage")}
         disableToast={{ save: true, reset: true, close: true }}
+      />
+
+      <SearchApplicationDialog
+        open={searchDialogOpen}
+        onClose={() => setSearchDialogOpen(false)}
+        onSearch={handleSearchApplications}
+        loading={Boolean(verifying.appSearch)}
       />
 
       <OtpVerifyDialog

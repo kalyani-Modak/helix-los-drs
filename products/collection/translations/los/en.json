@@ -1,6 +1,5 @@
 {
   "label.qde.title": "Quick data entry",
-
   "label.qde.section.businessUnit": "Business unit",
   "label.qde.section.ocr": "OCR upload",
   "label.qde.section.kyc": "KYC check",
@@ -12,7 +11,6 @@
   "label.qde.section.guarantor": "Guarantor details",
   "label.qde.section.loan": "Loan details",
   "label.qde.section.sourcing": "Sourcing details",
-
   "label.qde.field.applicationType": "Application type",
   "label.qde.field.portfolio": "Portfolio",
   "label.qde.field.applicationNo": "Application number",
@@ -46,8 +44,8 @@
   "label.qde.field.fatherName": "Father's name",
   "label.qde.field.motherName": "Mother's name",
   "label.qde.field.borrowerCategory": "Borrower category",
-  "label.qde.field.customerProfile":"Customer Profile",
-  "label.qde.field.relationship":"Relationship to Primary Applicant",
+  "label.qde.field.customerProfile": "Customer Profile",
+  "label.qde.field.relationship": "Relationship to Primary Applicant",
   "label.qde.field.mobile": "Mobile number",
   "label.qde.field.email": "Email",
   "label.qde.field.staff": "Staff",
@@ -81,7 +79,6 @@
   "label.qde.field.otp": "OTP",
   "label.qde.field.dealerName": "Dealer Name",
   "label.qde.field.dealerCode": "Dealer Code",
-
   "label.qde.button.submit": "Submit",
   "label.qde.button.verify": "Verify",
   "label.qde.button.sendOtp": "Send OTP",
@@ -92,28 +89,23 @@
   "label.qde.button.remove": "Remove",
   "label.qde.button.addCoApplicant": "Add co-applicant",
   "label.qde.button.addGuarantor": "Add guarantor",
-
   "label.qde.option.individual": "Individual",
   "label.qde.option.nonIndividual": "Non-individual",
   "label.qde.option.new": "New",
   "label.qde.option.existing": "Existing",
   "label.qde.option.yes": "Yes",
   "label.qde.option.no": "No",
-
   "label.qde.status.pending": "Pending",
   "label.qde.status.verified": "Verified",
   "label.qde.status.failed": "Failed",
   "label.qde.status.notStarted": "Not started",
-
   "label.qde.dialog.otpTitle": "OTP verification",
   "label.qde.dialog.otpSentTo": "OTP sent to {channel} {target}",
-
   "label.qde.ocr.noFile": "No file selected",
   "label.qde.coApplicant.item": "Co-applicant",
   "label.qde.coApplicant.empty": "No co-applicants added",
   "label.qde.guarantor.item": "Guarantor",
   "label.qde.guarantor.empty": "No guarantors added",
-
   "label.qde.validation.applicationTypeRequired": "Application type is mandatory.",
   "label.qde.validation.portfolioRequired": "Portfolio is mandatory.",
   "label.qde.validation.customerIdRequired": "Customer ID is mandatory for an existing customer.",
@@ -173,9 +165,7 @@
   "label.qde.msg.enterCkyc": "Enter a CKYC number first",
   "label.qde.msg.enterMobile": "Enter a mobile number first",
   "label.qde.msg.enterDigiRef": "Enter DigiLocker reference or mobile first",
-
   "label.qde.field.searchRecords": "Search Records",
-
   "label.docupload.title": "Document upload",
   "label.docupload.field.applicableFor": "Applicable for",
   "label.docupload.field.stage": "Stage",
@@ -221,5 +211,15 @@
   "label.docupload.msg.uploadFailed": "Unable to upload file",
   "label.docupload.msg.deleteFailed": "Unable to delete document",
   "label.docupload.msg.masterDeleteDenied": "Master checklist documents cannot be deleted",
-  "label.docupload.option.allBorrowers": "All Borrowers"
+  "label.docupload.option.allBorrowers": "All Borrowers",
+  "label.qde.dialog.searchApplicationsTitle": "Search Existing Applications",
+  "label.qde.dialog.searchOr": "— OR —",
+  "label.qde.button.search": "Search",
+  "label.qde.button.clear": "Clear",
+  "label.qde.placeholder.mobile": "10-digit mobile",
+  "label.qde.placeholder.searchRecords": "Open search popup...",
+  "label.qde.msg.applicationLoaded": "Application loaded",
+  "label.qde.msg.applicationNotFound": "Application not found",
+  "label.qde.placeholder.aadhaarSearch": "12-digit Aadhaar number",
+  "label.qde.msg.searchCriteriaRequired": "Enter an application number, mobile number or Aadhaar number."
 }

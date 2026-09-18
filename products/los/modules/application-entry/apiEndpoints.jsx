@@ -7,8 +7,13 @@ const base = () => {
 
 export const LosQdeAPI = {
   createDraft: () => `${base()}los/saveQde`,
-  updateDraft: (appNo) => `${base()}api/los/v1/qde/applications/${encodeURIComponent(appNo)}/draft`,
-  getByAppNo: (appNo) => `${base()}api/los/v1/qde/applications/${encodeURIComponent(appNo)}`,
+  updateDraft: (appNo) =>`${base()}los/updateQde?applicationNo=${encodeURIComponent(appNo)}`,
+  fetchQde: (orgId, appNo) =>`${base()}los/fetchQde?orgId=${encodeURIComponent(orgId)}&applicationNo=${encodeURIComponent(appNo)}`,
+  fetchQdeByMobile: (orgId, mobile) =>`${base()}los/fetchQdeByMobile?orgId=${encodeURIComponent(orgId)}&mobile=${encodeURIComponent(mobile)}`,
+  fetchQdeByAadhaar: (orgId, aadhaarNumber) =>`${base()}los/fetchQdeByAadhaar?orgId=${encodeURIComponent(orgId)}&aadhaarNumber=${encodeURIComponent(aadhaarNumber)}`,
+  listApplications: (orgId, { status, page = 0, size = 20 } = {}) =>
+  `${base()}los/fetchApplications?orgId=${encodeURIComponent(orgId)}&page=${page}&size=${size}${status ? `&status=${encodeURIComponent(status)}` : ""}`,
+
   // submit: (appNo) => `${base()}api/los/v1/qde/applications/${encodeURIComponent(appNo)}/submit`,
   // verifyPan: () => `${base()}api/los/v1/qde/verify/pan`,
   // aadhaarOtpSend: () => `${base()}api/los/v1/qde/verify/aadhaar/otp/send`,
