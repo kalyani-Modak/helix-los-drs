@@ -1,29 +1,30 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { useIntl } from "react-intl";
 import { useLocation, useNavigate } from "react-router-dom";
-import {
-  HAccordion,
-  HAxiosService,
-  HBox,
-  HBreadCrumb,
-  HButton,
-  HButtonBar,
-  HDatePicker,
-  HDialog,
-  HDropdown,
-  HLabel,
-  HPaper,
-  HTextField,
-  HTextarea,
-  TitleBar,
-  useToast,
-} from "@helix/component-library";
+import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
+import FileUploadOutlinedIcon from "@mui/icons-material/FileUploadOutlined";
+import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
+import CloseIcon from "@mui/icons-material/Close";
+import DeleteOutline from "@mui/icons-material/DeleteOutline";
+import IconButton from "@mui/material/IconButton";
+import { IntlProvider, useIntl } from "react-intl";
+import { HAxiosService, HBox, HBreadCrumb, HButton, useDrsTheme, HButtonBar, HDatePicker, HDialog, HDropdown, HLabel, HPaper, HTextField, HTextarea, TitleBar, useToast, } from "@helix/component-library";
+
 import dayjs from "dayjs";
 
 import { LosDocumentAPI } from "./apiEndpoints";
 import { unwrapApiResponse } from "./unwrapApiResponse";
 
-const ALL_BORROWERS = "ALL_BORROWERS";
+/* ============================================================
+   CONFIGURATION
+   ============================================================ */
+
+/*
+ * true  -> use hardcoded data
+ * false -> use actual backend APIs
+ */
+const USE_MOCK_DATA = true;
+
+
 const STATUS = {
   PENDING: "Pending",
   RECEIVED: "Received",
@@ -31,121 +32,657 @@ const STATUS = {
   WAIVED: "Waived",
 };
 
+/* ============================================================
+   MOCK MASTER DATA
+   ============================================================ */
+
+const MOCK_STAGE_OPTIONS = [
+  {
+    label: "Pre-Submission",
+    value: "PRE_SUBMISSION",
+  },
+  {
+    label: "Underwriting",
+    value: "UNDERWRITING",
+  },
+  {
+    label: "Pre-Approval",
+    value: "PRE_APPROVAL",
+  },
+  {
+    label: "Post-Approval",
+    value: "POST_APPROVAL",
+  },
+];
+
+
+const MOCK_WAIVE_REASON_OPTIONS = [
+  {
+    label: "Not Applicable",
+    value: "NOT_APPLICABLE",
+  },
+  {
+    label: "Already Available",
+    value: "ALREADY_AVAILABLE",
+  },
+  {
+    label: "Customer Request",
+    value: "CUSTOMER_REQUEST",
+  },
+  {
+    label: "Exception Approved",
+    value: "EXCEPTION_APPROVED",
+  },
+];
+
+
+const MOCK_DOCUMENT_DATA = {}
+
+const documentButtonStyle = {
+  height: "30px",
+  minHeight: "30px",
+  padding: "0px 14px",
+  fontSize: "12px",
+  minWidth: "90px",
+  borderRadius: "6px",
+  boxSizing: "border-box",
+};
+
 const toDropdownOptions = (rows = []) =>
   (Array.isArray(rows) ? rows : []).map((row) => ({
     label: row.label || row.value,
     value: row.value,
+    customerType: row.customerType || "",
   }));
 
 const newCustomId = () =>
   typeof crypto !== "undefined" && crypto.randomUUID
     ? crypto.randomUUID()
-    : `custom-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+    : `custom-${Date.now()}-${Math.random()
+      .toString(36)
+      .slice(2, 10)}`;
 
-const flattenItems = (families = []) => families.flatMap((family) => family.items || []);
+const flattenItems = (families = []) =>
+  families.flatMap((family) => family.items || []);
+
+const formatFileSize = (bytes) => {
+  if (!bytes) return "";
+
+  if (bytes < 1024) {
+    return `${bytes} B`;
+  }
+
+  if (bytes < 1024 * 1024) {
+    return `${(bytes / 1024).toFixed(1)} KB`;
+  }
+
+  return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+};
+
+const isDocumentChanged = (item, originalItem) => {
+  // New/custom document
+  if (!originalItem) {
+    return true;
+  }
+
+  // Uploaded/removed file
+  if (
+    item.fileName !== originalItem.fileName ||
+    item.fileSize !== originalItem.fileSize ||
+    item.fileType !== originalItem.fileType ||
+    item.hasFile !== originalItem.hasFile
+  ) {
+    return true;
+  }
+
+  // Status
+  if (item.status !== originalItem.status) {
+    return true;
+  }
+
+  // LS_TRN_DOCUMENTS status flags
+  if (
+    item.szreceivedyn !== originalItem.szreceivedyn ||
+    item.szwaivedyn !== originalItem.szwaivedyn ||
+    item.szdifferyn !== originalItem.szdifferyn
+  ) {
+    return true;
+  }
+
+  // Waiver details
+  if (
+    item.waiveReason !== originalItem.waiveReason ||
+    item.waiveComments !== originalItem.waiveComments ||
+    item.szwaiverreason !== originalItem.szwaiverreason ||
+    item.szwaiverdec !== originalItem.szwaiverdec
+  ) {
+    return true;
+  }
+
+  // Deferral details
+  if (
+    item.deferralStage !== originalItem.deferralStage ||
+    item.deferralDate !== originalItem.deferralDate
+  ) {
+    return true;
+  }
+
+  // Remarks / other editable fields
+  if (
+    item.szremarks !== originalItem.szremarks ||
+    item.remarks !== originalItem.remarks
+  ) {
+    return true;
+  }
+
+  return false;
+};
+
+/* ============================================================
+   COMPONENT
+   ============================================================ */
 
 const ApplicationDocumentUpload = () => {
   const intl = useIntl();
   const toast = useToast();
+  const { themeVars } = useDrsTheme();
+
+
+
   const navigate = useNavigate();
   const location = useLocation();
+
   const screenMenuId = location.state?.menuId;
+
   const incomingApplicationNo = location.state?.applicationNo;
+  const orgId = location.state?.orgId || "001";
+
   const borrowerType = location.state?.borrowerType || "Individual";
-  const applicantOptions = useMemo(() => {
-    const fromState = location.state?.applicants;
-    if (Array.isArray(fromState) && fromState.length > 0) {
-      return fromState.map((name) => ({ label: name, value: name }));
-    }
-    return [
-      {
-        label: intl.formatMessage({
-          id: "label.docupload.option.allBorrowers",
-          defaultMessage: "All Borrowers",
-        }),
-        value: ALL_BORROWERS,
-      },
-    ];
-  }, [intl, location.state?.applicants]);
+
+  /* ==========================================================
+     TRANSLATION HELPER
+     ========================================================== */
 
   const t = useCallback(
-    (id, defaultMessage, values) => intl.formatMessage({ id, defaultMessage }, values),
+    (id, defaultMessage, values) =>
+      intl.formatMessage(
+        {
+          id,
+          defaultMessage,
+        },
+        values
+      ),
     [intl]
   );
 
-  const [applicationNo, setApplicationNo] = useState(incomingApplicationNo || "");
-  const [stageOptions, setStageOptions] = useState([]);
-  const [customerTypeOptions, setCustomerTypeOptions] = useState([]);
-  const [waiveReasonOptions, setWaiveReasonOptions] = useState([]);
-  const [applicableFor, setApplicableFor] = useState(applicantOptions[0]?.value || ALL_BORROWERS);
-  const [stage, setStage] = useState("");
+
+  const getDocumentStatusLabel = useCallback(
+    (status) => {
+      const statusMessages = {
+        [STATUS.PENDING]: [
+          "label.docupload.status.pending",
+          "Pending",
+        ],
+        [STATUS.RECEIVED]: [
+          "label.docupload.status.received",
+          "Received",
+        ],
+        [STATUS.DEFERRED]: [
+          "label.docupload.status.deferred",
+          "Deferred",
+        ],
+        [STATUS.WAIVED]: [
+          "label.docupload.status.waived",
+          "Waived",
+        ],
+      };
+
+      const [id, defaultMessage] =
+        statusMessages[status] || [
+          "label.docupload.status.pending",
+          "Pending",
+        ];
+
+      return t(id, defaultMessage);
+    },
+    [t]
+  );
+
+  const localeOverrides = useMemo(
+    () => ({
+      ...intl.messages,
+      "label.button.refresh": "Re-Generate Documents",
+    }),
+    [intl.messages]
+  );
+
+
+  /* ==========================================================
+     STATE
+     ========================================================== */
+
+  const [applicationNo, setApplicationNo] = useState(incomingApplicationNo || "A1");
+
+  const [applicantOptions, setApplicantOptions] = useState([]);
+
+  const [applicantsLoaded, setApplicantsLoaded] = useState(false);
+
+  const [stageOptions, setStageOptions] = useState(USE_MOCK_DATA ? MOCK_STAGE_OPTIONS : []);
+
+  const [waiveReasonOptions, setWaiveReasonOptions,] = useState(USE_MOCK_DATA ? MOCK_WAIVE_REASON_OPTIONS : []);
+
+  const [applicableFor, setApplicableFor] = useState("");
+
+  const [stage, setStage] = useState(USE_MOCK_DATA ? MOCK_DOCUMENT_DATA.stage : "");
+
   const [customerType, setCustomerType] = useState("");
+
   const [families, setFamilies] = useState([]);
+
   const [expanded, setExpanded] = useState({});
+
   const [addingFor, setAddingFor] = useState("");
+
   const [newDocName, setNewDocName] = useState("");
-  const [pendingFiles, setPendingFiles] = useState({});
+
+
   const [savedItemIds, setSavedItemIds] = useState(() => new Set());
+
+  const originalItemsRef = useRef([]);
+
   const [preview, setPreview] = useState(null);
+
   const [waiveDialog, setWaiveDialog] = useState(null);
+
   const [deferDialog, setDeferDialog] = useState(null);
+  const [validationErrors, setValidationErrors] = useState({});
   const fileInputs = useRef({});
 
-  const items = useMemo(() => flattenItems(families), [families]);
-  const receivedCount = items.filter((item) => item.status === STATUS.RECEIVED).length;
 
-  const loadMasters = useCallback(async () => {
-    try {
-      const [stages, types, reasons] = await Promise.all([
-        HAxiosService.GET(LosDocumentAPI.stages()).then(unwrapApiResponse),
-        HAxiosService.GET(LosDocumentAPI.customerTypes(borrowerType)).then(unwrapApiResponse),
-        HAxiosService.GET(LosDocumentAPI.waiveReasons()).then(unwrapApiResponse),
-      ]);
-      const stageOpts = toDropdownOptions(stages);
-      const typeOpts = toDropdownOptions(types);
-      setStageOptions(stageOpts);
-      setCustomerTypeOptions(typeOpts);
-      setWaiveReasonOptions(toDropdownOptions(reasons));
-      setStage((current) => current || stageOpts.find((o) => o.value === "PRE_SUBMISSION")?.value || stageOpts[0]?.value || "");
-      setCustomerType((current) => current || typeOpts[0]?.value || "");
-    } catch (error) {
-      toast.error(error?.message || t("label.docupload.msg.loadFailed", "Unable to load document masters"));
+
+  /* ==========================================================
+     DERIVED DATA
+     ========================================================== */
+
+  const items = useMemo(
+    () => flattenItems(families),
+    [families]
+  );
+
+  const getDocumentStatus = (item) => {
+    if (item.status) {
+      return item.status;
     }
-  }, [borrowerType, t, toast]);
 
-  const applyFamilies = useCallback((payload) => {
-    const nextFamilies = payload?.families || [];
-    setFamilies(nextFamilies);
-    setSavedItemIds(new Set(flattenItems(nextFamilies).map((item) => item.itemId)));
-    setExpanded((prev) => {
-      const next = { ...prev };
-      nextFamilies.forEach((family) => {
-        if (next[family.docFamilyCode] === undefined) next[family.docFamilyCode] = true;
+    if (item.szwaivedyn === "Y") {
+      return STATUS.WAIVED;
+    }
+
+    if (item.szdifferyn === "Y") {
+      return STATUS.DEFERRED;
+    }
+
+    if (item.szreceivedyn === "Y") {
+      return STATUS.RECEIVED;
+    }
+
+    return STATUS.PENDING;
+  };
+
+  const receivedCount = items.filter(
+    (item) =>
+      item.status === STATUS.RECEIVED
+  ).length;
+
+  /* ==========================================================
+     APPLY DATA
+     ========================================================== */
+
+  const applyFamilies = useCallback(
+    (payload) => {
+      const responseFamilies = Array.isArray(payload)
+        ? payload
+        : payload?.families || [];
+
+      if (responseFamilies.length === 0) {
+        setFamilies([]);
+        toast.error("System failure — document checklist master not configured");
+        return;
+      }
+
+      const nextFamilies = responseFamilies.map(
+        (family) => {
+          const normalizedItems = (family.items || []).map(
+            (item) => {
+              let itemId = item.itemId;
+              const documentSrNo =
+                item.iDocumentsSrNo ??
+                item.idocumentsSrNo ??
+                item.idocumentsrno ??
+                null;
+              if (
+                !itemId &&
+                documentSrNo !== null
+              ) {
+                itemId = String(documentSrNo);
+              }
+
+              /*
+               * New/custom document:
+               * Generate frontend ID.
+               */
+              if (!itemId) {
+                itemId = newCustomId();
+              }
+
+              /*
+               * Derive UI status from backend flags.
+               */
+              const status =
+                (item.szWaivedYn || item.szwaivedyn) === "Y"
+                  ? STATUS.WAIVED
+                  : (item.szDifferYn || item.szdifferyn) === "Y"
+                    ? STATUS.DEFERRED
+                    : (item.szReceivedYn || item.szreceivedyn) === "Y"
+                      ? STATUS.RECEIVED
+                      : STATUS.PENDING;
+
+              return {
+                ...item,
+
+                itemId,
+                iDocumentsSrNo: documentSrNo,
+
+                status,
+
+                custom: Boolean(
+                  item.custom ||
+                  item.szUserSpecifiedYn === "Y" ||
+                  item.szuserspecifiedyn === "Y"
+                ),
+
+                /*
+                 * UI file information.
+                 * These do not come from LS_TRN_DOCUMENTS.
+                 */
+                selectedFile: item.selectedFile,
+                fileName: item.fileName,
+                fileSize: item.fileSize,
+                fileType: item.fileType,
+                fileUrl: item.fileUrl,
+                hasFile: Boolean(
+                  item.hasFile ||
+                  item.documentId ||
+                  item.documentid ||
+                  item.szReceivedYn === "Y" ||
+                  item.szreceivedyn === "Y"
+                ),
+
+                /*
+                 * UI waiver information
+                 */
+                waiveReason:
+                  item.waiveReason ||
+                  item.szWaiverReason ||
+                  item.szwaiverreason ||
+                  "",
+
+                waiveComments:
+                  item.waiveComments ||
+                  item.szWaiverDec ||
+                  item.szwaiverdec ||
+                  "",
+
+                /*
+                 * UI deferral information
+                 */
+                deferralStage:
+                  item.deferralStage ||
+                  item.szStageDue ||
+                  item.szstagedue ||
+                  "",
+
+                deferralDate:
+                  item.deferralDate ||
+                  item.dtDeferralDate ||
+                  item.dtdeferraldate ||
+                  "",
+              };
+            }
+          );
+
+          return {
+            ...family,
+            items: normalizedItems,
+          };
+        }
+      );
+
+      /*
+       * Keep original backend data for change detection.
+       */
+      originalItemsRef.current = JSON.parse(
+        JSON.stringify(
+          flattenItems(nextFamilies)
+        )
+      );
+
+      setFamilies(nextFamilies);
+
+      /*
+       * Existing saved rows.
+       */
+      setSavedItemIds(
+        new Set(
+          flattenItems(nextFamilies).map(
+            (item) => item.itemId
+          )
+        )
+      );
+
+      /*
+       * Expand each family.
+       */
+      setExpanded((prev) => {
+        const next = {
+          ...prev,
+        };
+
+        nextFamilies.forEach((family) => {
+          if (
+            next[family.docFamilyCode] === undefined
+          ) {
+            next[family.docFamilyCode] = true;
+          }
+        });
+
+        return next;
       });
-      return next;
-    });
-    if (payload?.applicationNo) setApplicationNo(payload.applicationNo);
-    if (payload?.applicableFor) setApplicableFor(payload.applicableFor);
-  }, []);
+
+      /*
+       * Application number.
+       */
+      if (payload?.applicationNo) {
+        setApplicationNo(payload.applicationNo);
+      }
+
+      /*
+       * Applicable applicant.
+       */
+      if (payload?.applicableFor) {
+        setApplicableFor(payload.applicableFor);
+      }
+    },
+    []
+  );
+  /* ==========================================================
+     LOAD MASTER DATA
+     ========================================================== */
+
+  const loadMasters = useCallback(
+    async () => {
+      /* ------------------------------------------
+         MOCK
+         ------------------------------------------ */
+
+      if (USE_MOCK_DATA) {
+        setStageOptions(
+          MOCK_STAGE_OPTIONS
+        );
+
+        setWaiveReasonOptions(
+          MOCK_WAIVE_REASON_OPTIONS
+        );
+
+        return;
+      }
+
+      /* ------------------------------------------
+         ACTUAL API
+         ------------------------------------------ */
+
+      try {
+        const [
+          stages,
+          types,
+          reasons,
+        ] = await Promise.all([
+          HAxiosService.GET(
+            LosDocumentAPI.stages()
+          ).then(unwrapApiResponse),
+
+          HAxiosService.GET(
+            LosDocumentAPI.customerTypes(
+              borrowerType
+            )
+          ).then(unwrapApiResponse),
+
+          HAxiosService.GET(
+            LosDocumentAPI.waiveReasons()
+          ).then(unwrapApiResponse),
+        ]);
+
+        const stageOpts =
+          toDropdownOptions(stages);
+
+        const typeOpts =
+          toDropdownOptions(types);
+
+        const reasonOpts =
+          toDropdownOptions(reasons);
+
+        setStageOptions(stageOpts);
+
+
+        setWaiveReasonOptions(
+          reasonOpts
+        );
+
+        setStage(
+          (current) =>
+            current ||
+            stageOpts.find(
+              (option) =>
+                option.value ===
+                "PRE_SUBMISSION"
+            )?.value ||
+            stageOpts[0]?.value ||
+            ""
+        );
+
+        setCustomerType(
+          (current) =>
+            current ||
+            typeOpts[0]?.value ||
+            ""
+        );
+      } catch (error) {
+        toast.error(
+          error?.message ||
+          t(
+            "label.docupload.msg.loadFailed",
+            "Unable to load document masters"
+          )
+        );
+      }
+    },
+    [
+      borrowerType,
+      t,
+      toast,
+    ]
+  );
+
+  /* ==========================================================
+     LOAD CHECKLIST
+     ========================================================== */
 
   const loadChecklist = useCallback(async () => {
-    if (!stage || !customerType) return;
     try {
-      const payload = incomingApplicationNo
-        ? unwrapApiResponse(
-            await HAxiosService.GET(
-              LosDocumentAPI.getByAppNo(incomingApplicationNo, stage, customerType, applicableFor)
-            )
-          )
-        : unwrapApiResponse(await HAxiosService.GET(LosDocumentAPI.checklist(stage, customerType)));
+      if (!applicationNo || !applicantsLoaded || !applicableFor || !stage) {
+        setFamilies([]);
+        return;
+      }
+
+      const payload = await HAxiosService.GET(LosDocumentAPI.LosDocumentAPI("ECF-DocumentUpload") + "/documents" + `?szApplicantId=${applicableFor}&szStageDue=${stage}`).then(unwrapApiResponse);
+
+      console.log("Incomming payload = ", payload);
       applyFamilies(payload);
-      setPendingFiles({});
+
       setAddingFor("");
       setNewDocName("");
     } catch (error) {
-      toast.error(error?.message || t("label.docupload.msg.loadFailed", "Unable to load document checklist"));
+      console.error("Failed to load document checklist", error);
+      setFamilies([]);
     }
-  }, [applicableFor, applyFamilies, customerType, incomingApplicationNo, stage, t, toast]);
+  }, [applicationNo, applicantsLoaded, applicableFor, stage, applyFamilies]);
+
+  const loadApplicantOptions = useCallback(async () => {
+    setApplicantsLoaded(false);
+
+    if (!applicationNo || !orgId) {
+      setApplicantOptions([]);
+      setApplicableFor("");
+      return;
+    }
+
+    try {
+      const applicants = await HAxiosService.GET(LosDocumentAPI.LosDocumentAPI("ECF-DocumentUpload") + `?applicationNo=${applicationNo}&orgId=${orgId}`).then(unwrapApiResponse);
+
+      const options = toDropdownOptions(applicants);
+
+      setApplicantOptions(options);
+
+      // Set first applicant as default
+      setApplicableFor((current) => {
+        const selectedValue = options[0]?.value || "";
+        const selectedApplicant = options.find(
+          (option) => option.value === selectedValue
+        );
+        setCustomerType(
+          selectedApplicant?.customerType || ""
+        );
+        return selectedValue;
+      });
+      setApplicantsLoaded(true);
+    } catch (error) {
+      toast.error(error?.message || t("label.docupload.msg.loadApplicantFailed", "Unable to load applicants")
+      );
+
+      setApplicantOptions([]);
+      setApplicableFor("");
+      setApplicantsLoaded(false);
+    }
+  },
+    [applicationNo, orgId, t, toast,]
+  );
+  /* ==========================================================
+     INITIAL LOAD
+     ========================================================== */
+  useEffect(() => {
+    loadApplicantOptions();
+  }, [loadApplicantOptions]);
+
 
   useEffect(() => {
     loadMasters();
@@ -155,264 +692,1441 @@ const ApplicationDocumentUpload = () => {
     loadChecklist();
   }, [loadChecklist]);
 
-  const updateItem = useCallback((itemId, patch) => {
-    setFamilies((prev) =>
-      prev.map((family) => ({
-        ...family,
-        items: (family.items || []).map((item) => (item.itemId === itemId ? { ...item, ...patch } : item)),
-      }))
-    );
-  }, []);
+  /* ==========================================================
+     UPDATE ITEM
+     ========================================================== */
 
-  const handleStatusClick = (item, status) => {
+  const updateItem = useCallback(
+    (itemId, patch) => {
+      setFamilies((prev) =>
+        prev.map((family) => ({
+          ...family,
+
+          items: (
+            family.items || []
+          ).map((item) =>
+            item.itemId === itemId
+              ? {
+                ...item,
+                ...patch,
+
+                // Mark existing document as changed
+                _dirty: true,
+              }
+              : item
+          ),
+        }))
+      );
+    },
+    []
+  );
+  /* ==========================================================
+     STATUS CLICK
+     ========================================================== */
+
+  const handleStatusClick = (
+    item,
+    status
+  ) => {
+
+    /* =========================================================
+       Clicking the currently selected status again
+       returns the document to Pending
+       ========================================================= */
     if (item.status === status) {
-      updateItem(item.itemId, { status: STATUS.PENDING });
+
+      updateItem(
+        item.itemId,
+        {
+          status: STATUS.PENDING,
+
+          szreceivedyn: "N",
+          szwaivedyn: "N",
+          szdifferyn: "N",
+        }
+      );
+
       return;
     }
+
+    /* =========================================================
+       WAIVED
+       ========================================================= */
     if (status === STATUS.WAIVED) {
+
       setWaiveDialog({
         itemId: item.itemId,
-        reason: item.waiveReason || "",
-        comments: item.waiveComments || "",
+
+        reason:
+          item.waiveReason ||
+          "",
+
+        comments:
+          item.waiveComments ||
+          "",
       });
+
       return;
     }
+
+    /* =========================================================
+       DEFERRED
+       ========================================================= */
     if (status === STATUS.DEFERRED) {
+
       setDeferDialog({
         itemId: item.itemId,
-        stage: item.deferralStage || stage,
-        date: item.deferralDate || "",
+
+        stage:
+          item.deferralStage ||
+          stage,
+
+        date:
+          item.deferralDate ||
+          "",
       });
+
       return;
     }
-    updateItem(item.itemId, { status });
+
+    /* =========================================================
+       RECEIVED
+       
+       File is OPTIONAL.
+       
+       Clicking Received only changes the status.
+       If a file exists, it will be uploaded during Save.
+       If no file exists, backend only saves
+       szReceivedYn = Y.
+       ========================================================= */
+    if (status === STATUS.RECEIVED) {
+
+      updateItem(
+        item.itemId,
+        {
+          status: STATUS.RECEIVED,
+
+          szreceivedyn: "Y",
+
+          szwaivedyn: "N",
+          szdifferyn: "N",
+        }
+      );
+
+      return;
+    }
   };
 
+  /* ==========================================================
+     ADD CUSTOM DOCUMENT
+     ========================================================== */
+
   const handleAddCustom = (family) => {
-    if (!newDocName.trim()) return;
+    if (!newDocName.trim()) {
+      toast.error(t(
+        "label.docupload.msg.invalidDocumentName",
+        "Please enter a valid, unique document name"
+      ));
+      return;
+    }
+
     const item = {
+
       itemId: newCustomId(),
-      docFamilyCode: family.docFamilyCode,
-      docFamilyName: family.docFamilyName,
-      docCode: "",
-      docName: newDocName.trim(),
-      required: false,
+
+      _isNew: true,
+
       custom: true,
-      status: STATUS.PENDING,
-      hasFile: false,
+
+
+      idocumentsrno: null,
+
+      szapplicationno:
+        applicationNo,
+
+      szorgid:
+        "001",
+
+      szdoccode: newDocName.trim(),
+
+      szapplicantid:
+        applicableFor,
+
+      szassetsrno: null,
+
+      szstagedue:
+        stage,
+
+      szdocwaiveallowyn:
+        "Y",
+
+      szreceivedyn:
+        "N",
+
+      szwaivedyn:
+        "N",
+
+      szwaiverdec:
+        null,
+
+      szwaiverreason:
+        null,
+
+      szdifferyn:
+        "N",
+
+      szmandatoryyn:
+        "N",
+
+      szoriginalreqyn:
+        "N",
+
+      szverfdecision:
+        null,
+
+      szverifiedby:
+        null,
+
+      szuserspecifiedyn:
+        "Y",
+
+      documentid:
+        null,
+
+      szdocfamilycode:
+        family.docFamilyCode,
+
+      szdocfamilydesc:
+        family.docFamilyName,
+
+      cfraudyn:
+        "N",
+
+      szremarks:
+        null,
+
+      iduedays:
+        null,
+
+      dtduedate:
+        null,
+
+      szdocketlocation:
+        null,
+
+      inoofpages:
+        null,
+
+      clevel:
+        "P",
+
+      dtrecieptdate:
+        null,
+
+      szcreatedby:
+        "USER",
+
+      dtcreatedon:
+        new Date(),
+
+      szupdatedby:
+        "USER",
+
+      dtupdatedon:
+        new Date(),
     };
-    setFamilies((prev) =>
-      prev.map((row) =>
-        row.docFamilyCode === family.docFamilyCode ? { ...row, items: [...(row.items || []), item] } : row
-      )
+
+    setFamilies(
+      (prev) =>
+        prev.map(
+          (row) =>
+            row.docFamilyCode ===
+              family.docFamilyCode
+              ? {
+                ...row,
+
+                items: [
+                  ...(row.items ||
+                    []),
+
+                  item,
+                ],
+              }
+              : row
+        )
     );
+
     setNewDocName("");
     setAddingFor("");
   };
 
-  const handleDeleteCustom = async (item) => {
-    if (!item.custom) {
-      toast.error(t("label.docupload.msg.masterDeleteDenied", "Master checklist documents cannot be deleted"));
-      return;
-    }
-    if (item.custom && applicationNo && savedItemIds.has(item.itemId)) {
-      try {
-        unwrapApiResponse(await HAxiosService.DELETE(LosDocumentAPI.deleteItem(applicationNo, item.itemId)));
-      } catch (error) {
-        toast.error(error?.message || t("label.docupload.msg.deleteFailed", "Unable to delete document"));
+  /* ==========================================================
+     DELETE CUSTOM DOCUMENT
+     ========================================================== */
+
+  const handleDeleteCustom =
+    async (item) => {
+      const docSrNo =
+        item.iDocumentsSrNo ??
+        item.idocumentsSrNo ??
+        item.idocumentsrno ??
+        null;
+      if (!item.custom) {
+        toast.error(
+          t(
+            "label.docupload.msg.masterDeleteDenied",
+            "Master checklist documents cannot be deleted"
+          )
+        );
+
         return;
       }
+
+      /*
+       * Actual API delete
+       */
+
+
+      if (
+        applicationNo &&
+        savedItemIds.has(
+          String(docSrNo)
+        )
+      ) {
+        try {
+          unwrapApiResponse(
+            await HAxiosService.DELETE(
+              LosDocumentAPI.LosDocumentAPI("ECF-DocumentUpload") +
+              `/${encodeURIComponent(docSrNo)}` +
+              `?applicationNo=${encodeURIComponent(applicationNo)}` +
+              `&orgId=${encodeURIComponent(orgId)}`
+            )
+          );
+
+
+        } catch (error) {
+          toast.error(
+            error?.message ||
+            t(
+              "label.docupload.msg.deleteFailed",
+              "Unable to delete document"
+            )
+          );
+
+          return;
+        }
+      }
+
+      /*
+       * Remove from UI
+       */
+      setFamilies(
+        (prev) =>
+          prev.map(
+            (family) => ({
+              ...family,
+
+              items: (
+                family.items || []
+              ).filter(
+                (row) =>
+                  row.itemId !==
+                  item.itemId
+              ),
+            })
+          )
+      );
+
+      toast.success(
+        t("label.docupload.msg.deleteSuccess", "Document deleted successfully")
+      );
+
+    };
+
+  /* ==========================================================
+ DELETE UPLOADED FILE (row stays, resets to default state)
+ ========================================================== */
+
+  const handleDeleteFile = async (item) => {
+    const docSrNo =
+      item.iDocumentsSrNo ??
+      item.idocumentsSrNo ??
+      item.idocumentsrno ??
+      null;
+
+    if (docSrNo == null) {
+      toast.error(
+        t(
+          "label.docupload.msg.noFileToDelete",
+          "This document has no uploaded file yet"
+        )
+      );
+      return;
     }
-    setFamilies((prev) =>
-      prev.map((family) => ({
-        ...family,
-        items: (family.items || []).filter((row) => row.itemId !== item.itemId),
-      }))
-    );
-    setPendingFiles((prev) => {
-      const next = { ...prev };
-      delete next[item.itemId];
-      return next;
-    });
-  };
 
-  const handleFilePicked = (item, file) => {
-    if (!file) return;
-    const fileUrl = URL.createObjectURL(file);
-    setPendingFiles((prev) => ({ ...prev, [item.itemId]: file }));
-    updateItem(item.itemId, {
-      fileName: file.name,
-      fileSize: file.size,
-      fileType: file.type,
-      fileUrl,
-      hasFile: true,
-      status: item.status === STATUS.PENDING ? STATUS.RECEIVED : item.status,
-    });
-  };
+    try {
+      await unwrapApiResponse(
+        await HAxiosService.DELETE(
+          LosDocumentAPI.LosDocumentAPI("ECF-DocumentUpload") +
+          `/documents/${encodeURIComponent(docSrNo)}/file` +
+          `?applicationNo=${encodeURIComponent(applicationNo)}` +
+          `&orgId=${encodeURIComponent(orgId)}`
+        )
+      );
+    } catch (error) {
+      toast.error(
+        error?.message ||
+        t("label.docupload.msg.fileDeleteFailed", "Unable to delete the uploaded file")
+      );
+      return;
+    }
 
-  const handleRemoveFile = (item) => {
-    setPendingFiles((prev) => {
-      const next = { ...prev };
-      delete next[item.itemId];
-      return next;
-    });
     updateItem(item.itemId, {
+      selectedFile: undefined,
       fileName: undefined,
       fileSize: undefined,
       fileType: undefined,
       fileUrl: undefined,
       hasFile: false,
-      status: item.status === STATUS.RECEIVED ? STATUS.PENDING : item.status,
+
+      status: STATUS.PENDING,
+      szreceivedyn: "N",
+      szwaivedyn: "N",
+      szdifferyn: "N",
+
+      documentid: null,
+      dtrecieptdate: null,
     });
+
+    toast.success(
+      t("label.docupload.msg.fileDeleteSuccess", "Document file deleted successfully")
+    );
   };
 
-  const handlePreview = async (item) => {
-    if (item.fileUrl) {
-      setPreview(item);
+  /* ==========================================================
+     FILE PICKED
+     ========================================================== */
+
+  const handleFilePicked = (item, file) => {
+    if (!file) return;
+
+    const allowedTypes = [
+      "application/pdf",
+      "image/jpeg",
+      "image/png",
+    ];
+
+    const maxFileSize = 10 * 1024 * 1024; // 10 MB
+
+    if (!allowedTypes.includes(file.type)) {
+      toast.error(
+        t(
+          "label.docupload.msg.fileValidation",
+          "Please upload a supported file within the permitted size limit: {size} MB",
+          { size: 10 }
+        )
+      );
       return;
     }
-    if (!applicationNo || !item.hasFile) return;
-    try {
-      const data = unwrapApiResponse(await HAxiosService.GET(LosDocumentAPI.file(applicationNo, item.itemId)));
-      const binary = atob(data.contentBase64 || "");
-      const bytes = new Uint8Array(binary.length);
-      for (let i = 0; i < binary.length; i += 1) bytes[i] = binary.charCodeAt(i);
-      const blob = new Blob([bytes], { type: data.fileType || item.fileType || "application/octet-stream" });
+
+    if (file.size > maxFileSize) {
+      toast.error(
+        t(
+          "label.docupload.msg.fileValidation",
+          "Please upload a supported file within the permitted size limit: {size} MB",
+          { size: 10 }
+        )
+      );
+      return;
+    }
+
+    updateItem(item.itemId, {
+      selectedFile: file,
+      fileName: file.name,
+      fileSize: file.size,
+      fileType: file.type,
+      hasFile: true,
+
+      status: STATUS.RECEIVED,
+
+      szreceivedyn: "Y",
+      szwaivedyn: "N",
+      szdifferyn: "N",
+
+      dtrecieptdate: new Date(),
+    });
+  };
+  /* ==========================================================
+     REMOVE FILE
+     ========================================================== */
+
+  const handleRemoveFile = (item) => {
+    updateItem(item.itemId, {
+      selectedFile: undefined,
+      fileName: undefined,
+      fileSize: undefined,
+      fileType: undefined,
+      fileUrl: undefined,
+      hasFile: false,
+
+      status:
+        item.status === STATUS.RECEIVED
+          ? STATUS.PENDING
+          : item.status,
+
+      szreceivedyn: "N",
+
+      dtrecieptdate: null,
+    });
+  };
+  /* ==========================================================
+     PREVIEW
+     ========================================================== */
+
+  // const handlePreview = (item) => {
+  //   if (item.selectedFile) {
+  //     const fileUrl = URL.createObjectURL(item.selectedFile);
+
+  //     setPreview({
+  //       ...item,
+  //       fileUrl,
+  //       fileName: item.selectedFile.name,
+  //       fileType: item.selectedFile.type,
+  //     });
+
+  //     return;
+  //   }
+
+  //   // existing backend logic...
+  // };
+
+  const handlePreview = async (item) => {
+    setPreview((current) => {
+      if (current?.fileUrl) {
+        URL.revokeObjectURL(current.fileUrl);
+      }
+      return current;
+    });
+    if (item.selectedFile) {
+      const fileUrl = URL.createObjectURL(item.selectedFile);
+
       setPreview({
         ...item,
-        fileName: data.fileName || item.fileName,
-        fileType: data.fileType || item.fileType,
-        fileUrl: URL.createObjectURL(blob),
+        fileUrl,
+        fileName: item.selectedFile.name,
+        fileType: item.selectedFile.type,
+      });
+
+      return;
+    }
+
+    const docSrNo =
+      item.iDocumentsSrNo ??
+      item.idocumentsSrNo ??
+      item.idocumentsrno ??
+      null;
+
+    if (!docSrNo) {
+      toast.error(
+        t(
+          "label.docupload.msg.noPreview",
+          "No uploaded file available to preview"
+        )
+      );
+      return;
+    }
+
+    try {
+      const response = await HAxiosService.GET(
+        LosDocumentAPI.LosDocumentAPI("ECF-DocumentUpload") +
+        `/documents/${docSrNo}/preview` +
+        `?applicationNo=${encodeURIComponent(applicationNo)}` +
+        `&orgId=${encodeURIComponent(orgId)}`,
+        { responseType: "blob" }
+      );
+
+      const blob = response.data ?? response;
+      const fileUrl = URL.createObjectURL(blob);
+
+      setPreview({
+        ...item,
+        fileUrl,
+        fileName: item.fileName || item.szDocCode || item.szdoccode,
+        fileType: blob.type,
       });
     } catch (error) {
-      toast.error(error?.message || t("label.docupload.preview.unavailable", "No preview available"));
-    }
-  };
-
-  const persistFiles = async (appNo) => {
-    const entries = Object.entries(pendingFiles);
-    for (const [itemId, file] of entries) {
-      const form = new FormData();
-      form.append("file", file);
-      unwrapApiResponse(
-        await HAxiosService.POST(LosDocumentAPI.upload(appNo, itemId), form, {}, false, { Accept: "application/json" })
+      toast.error(
+        error?.message ||
+        t(
+          "label.docupload.msg.previewFailed",
+          "Unable to load preview"
+        )
       );
     }
   };
 
-  const handleSave = useCallback(async () => {
-    try {
-      const appNo = applicationNo || incomingApplicationNo || `APP-${Date.now()}`;
-      if (!applicationNo) setApplicationNo(appNo);
-      const payload = {
-        stage,
-        customerType,
-        applicableFor,
-        items: flattenItems(families).map((item) => ({
-          itemId: item.itemId,
-          docFamilyCode: item.docFamilyCode,
-          docFamilyName: item.docFamilyName,
-          docCode: item.docCode,
-          docName: item.docName,
-          required: item.required,
-          custom: item.custom,
-          status: item.status,
-          fileName: item.fileName,
-          fileSize: item.fileSize,
-          fileType: item.fileType,
-          hasFile: Boolean(item.hasFile),
-          waiveReason: item.waiveReason,
-          waiveComments: item.waiveComments,
-          deferralStage: item.deferralStage,
-          deferralDate: item.deferralDate,
-          remarks: item.remarks,
-        })),
+  const validateHeaderFields = useCallback(() => {
+    const errors = {};
+
+    if (!applicableFor?.trim()) {
+      errors.applicableFor = t(
+        "label.docupload.validation.applicableFor",
+        "Please select the applicable party for this checklist"
+      );
+    }
+
+    if (!stage?.trim()) {
+      errors.stage = t(
+        "label.docupload.validation.stage",
+        "Please select a Stage"
+      );
+    }
+
+    if (!customerType?.trim()) {
+      errors.customerType = t(
+        "label.docupload.validation.customerType",
+        "Please select a Customer Type"
+      );
+    }
+
+    setValidationErrors(errors);
+
+    if (Object.keys(errors).length > 0) {
+      toast.error(Object.values(errors)[0]);
+      return false;
+    }
+
+    return true;
+  }, [applicableFor, stage, customerType,t, toast]);
+
+  const validateMandatoryDocuments = () => {
+    const allItems = flattenItems(families);
+
+    const mandatoryItems = allItems.filter(
+      (item) =>
+        (item.szmandatoryyn || item.szMandatoryYn) === "Y"
+    );
+
+    const invalidItems = mandatoryItems.filter((item) => {
+      const status = getDocumentStatus(item);
+
+      return ![
+        STATUS.RECEIVED,
+        STATUS.DEFERRED,
+        STATUS.WAIVED,
+      ].includes(status);
+    });
+
+    if (invalidItems.length > 0) {
+      toast.error(
+        t(
+          "label.docupload.validation.mandatoryDocuments",
+          "Please receive and upload all mandatory documents before submitting"
+        )
+      );
+
+      return false;
+    }
+
+    return true;
+  };
+  /* ==========================================================
+     SAVE
+     ========================================================== */
+
+  const handleSave = useCallback(
+    async () => {
+      try {
+        if (!validateHeaderFields()) {
+          return {
+            success: false,
+          };
+        }
+
+        if (!validateMandatoryDocuments()) {
+          return {
+            success: false,
+          };
+        }
+
+        const appNo = applicationNo || incomingApplicationNo || `APP-${Date.now()}`;
+
+        if (!applicationNo) {
+          setApplicationNo(appNo);
+        }
+
+        const allItems = flattenItems(families);
+
+        const originalById = new Map(
+          originalItemsRef.current.map((o) => [o.itemId, o])
+        );
+
+        const currentItems = allItems.filter((item) =>
+          isDocumentChanged(item, originalById.get(item.itemId))
+        );
+
+        if (currentItems.length === 0) {
+          return { success: true };
+        }
+
+        console.log("current items = ", currentItems);
+
+        const requestPayload = currentItems.map((item) => ({
+          /*
+           * Primary Key
+           */
+          iDocumentsSrNo: item.iDocumentsSrNo ??
+            item.idocumentsSrNo ??
+            item.idocumentsrno ??
+            null,
+
+          /*
+           * Application
+           */
+          szApplicationNo:
+            item.szapplicationno ||
+            item.szApplicationNo ||
+            appNo,
+
+          szOrgId:
+            item.szorgid ||
+            item.szOrgId ||
+            orgId ||
+            "001",
+
+          /*
+           * Document
+           */
+          szDocCode:
+            item.szdoccode ||
+            item.szDocCode ||
+            item.docCode ||
+            item.docName ||
+            null,
+
+          szApplicantId:
+            item.szapplicantid ||
+            item.szApplicantId ||
+            applicableFor ||
+            null,
+
+          szAssetSrNo:
+            item.szassetsrno ??
+            item.szAssetSrNo ??
+            null,
+
+          /*
+           * Stage
+           */
+          szStageDue:
+            item.szstagedue ||
+            item.szStageDue ||
+            stage ||
+            null,
+
+          /*
+           * Waive allowed
+           */
+          szDocWaiveAllowYn:
+            item.szdocwaiveallowyn ||
+            item.szDocWaiveAllowYn ||
+            "N",
+
+          /*
+           * Status
+           */
+          szReceivedYn:
+            item.status === STATUS.RECEIVED
+              ? "Y"
+              : "N",
+
+          szWaivedYn:
+            item.status === STATUS.WAIVED
+              ? "Y"
+              : "N",
+
+          szDifferYn:
+            item.status === STATUS.DEFERRED
+              ? "Y"
+              : "N",
+
+          /*
+           * Waiver
+           */
+          szWaiverDec:
+            item.waiveComments ||
+            item.szwaiverdec ||
+            item.szWaiverDec ||
+            null,
+
+          szWaiverReason:
+            item.waiveReason ||
+            item.szwaiverreason ||
+            item.szWaiverReason ||
+            null,
+
+          /*
+           * Mandatory / Original
+           */
+          szMandatoryYn:
+            item.szmandatoryyn ||
+            item.szMandatoryYn ||
+            "N",
+
+          szOriginalReqYn:
+            item.szoriginalreqyn ||
+            item.szOriginalReqYn ||
+            "N",
+
+          /*
+           * Verification
+           */
+          szVerfDecision:
+            item.szverfdecision ||
+            item.szVerfDecision ||
+            null,
+
+          szVerifiedBy:
+            item.szverifiedby ||
+            item.szVerifiedBy ||
+            null,
+
+          /*
+           * User specified
+           */
+          szUserSpecifiedYn:
+            item.custom || item._isNew
+              ? "Y"
+              : item.szuserspecifiedyn ||
+              item.szUserSpecifiedYn ||
+              "N",
+
+          /*
+           * Existing DMS document ID
+           */
+          documentId:
+            item.documentid ??
+            item.documentId ??
+            null,
+
+          /*
+           * Document family
+           */
+          szDocFamilyCode:
+            item.szdocfamilycode ||
+            item.szDocFamilyCode ||
+            item.docFamilyCode ||
+            null,
+
+          szDocFamilyDesc:
+            item.szdocfamilydesc ||
+            item.szDocFamilyDesc ||
+            item.docFamilyName ||
+            null,
+
+          /*
+           * Fraud
+           */
+          cFraudYn:
+            item.cfraudyn ||
+            item.cFraudYn ||
+            "N",
+
+          /*
+           * Remarks
+           */
+          szRemarks:
+            item.remarks ||
+            item.szremarks ||
+            item.szRemarks ||
+            null,
+
+          /*
+           * Due information
+           */
+          iDueDays:
+            item.iduedays ??
+            item.idueDays ??
+            null,
+
+          dtDueDate:
+            item.dtduedate ||
+            item.dtDueDate ||
+            null,
+
+          /*
+           * Docket
+           */
+          szDocketLocation:
+            item.szdocketlocation ||
+            item.szDocketLocation ||
+            null,
+
+          /*
+           * Pages
+           */
+          iNoOfPages:
+            item.inoofpages ??
+            item.inoOfPages ??
+            null,
+
+          /*
+           * Level
+           */
+          cLevel:
+            item.clevel ||
+            item.cLevel ||
+            "P",
+
+          /*
+           * Receipt
+           */
+          dtRecieptDate:
+            item.dtrecieptdate ||
+            item.dtRecieptDate ||
+            null,
+
+          dtDeferralDate:
+            item.deferralDate ||
+            item.dtdeferraldate ||
+            item.dtDeferralDate ||
+            null,
+
+          /*
+           * Audit
+           */
+          szCreatedBy:
+            item.szcreatedby ||
+            item.szCreatedBy ||
+            null,
+
+          szUpdatedBy:
+            item.szupdatedby ||
+            item.szUpdatedBy ||
+            null,
+
+          dtCreatedOn:
+            item.dtcreatedon ||
+            item.dtCreatedOn ||
+            null,
+
+          dtUpdatedOn:
+            item.dtupdatedon ||
+            item.dtUpdatedOn ||
+            null,
+
+          /*
+           * ==================================================
+           * IMPORTANT
+           *
+           * This tells backend which multipart file belongs
+           * to this particular DTO.
+           *
+           * Example:
+           * filePartName = file_1001
+           *             ↓
+           * multipart file_1001
+           * ==================================================
+           */
+          filePartName: item.selectedFile
+            ? `file_${item.itemId}`
+            : null,
+        }));
+
+        console.log(
+          "Document upload request:",
+          requestPayload
+        );
+
+        /*
+         * ==================================================
+         * CREATE MULTIPART REQUEST
+         * ==================================================
+         */
+        const formData = new FormData();
+
+        /*
+         * JSON part
+         *
+         * Backend:
+         * @RequestPart("request")
+         * ArrayList<DocumentUploadItemRequestDto>
+         *
+         * Blob content type = application/json
+         */
+        formData.append(
+          "request",
+          new Blob(
+            [JSON.stringify(requestPayload)],
+            {
+              type: "application/json",
+            }
+          )
+        );
+
+        /*
+         * ==================================================
+         * ADD FILES
+         *
+         * file_1001 → PDF 1
+         * file_1002 → PDF 2
+         * ==================================================
+         */
+        currentItems.forEach((item) => {
+          if (item.selectedFile) {
+            formData.append(
+              `file_${item.itemId}`,
+              item.selectedFile,
+              item.selectedFile.name
+            );
+          }
+        });
+
+        /*
+         * ==================================================
+         * BACKEND UPLOAD CALL
+         *
+         * POST /documents/upload
+         *
+         * NO Idempotency-Key HEADER
+         *
+         * Backend generates it internally.
+         * ==================================================
+         */
+        const saved = unwrapApiResponse(
+          await HAxiosService.POST(
+            LosDocumentAPI.LosDocumentAPI(
+              "ECF-DocumentUpload"
+            ) + "/documents/upload" +
+            `?applicationNo=${encodeURIComponent(appNo)}` +
+            `&orgId=${encodeURIComponent(orgId || "001")}`,
+            formData
+          )
+        );
+
+        console.log(
+          "Documents uploaded successfully:",
+          saved
+        );
+
+        /*
+         * ==================================================
+         * RELOAD FROM BACKEND
+         * ==================================================
+         */
+        const refreshed = unwrapApiResponse(
+          await HAxiosService.GET(
+            LosDocumentAPI.LosDocumentAPI(
+              "ECF-DocumentUpload"
+            ) +
+            "/documents" +
+            `?szApplicantId=${encodeURIComponent(applicableFor)}` +
+            `&szStageDue=${encodeURIComponent(stage)}`
+          )
+        );
+
+        applyFamilies(
+          refreshed || saved
+        );
+
+        /*
+         * ==================================================
+         * SUCCESS
+         * ==================================================
+         */
+        toast.success(
+          t(
+            "label.docupload.msg.saved",
+            "Documents saved successfully"
+          )
+        );
+
+        return {
+          success: true,
+        };
+
+      } catch (error) {
+        console.error(
+          "Failed to upload documents",
+          error
+        );
+
+        toast.error(
+          error?.message ||
+          t(
+            "label.docupload.msg.saveFailed",
+            "Save failed"
+          )
+        );
+
+        return {
+          success: false,
+        };
+      }
+    },
+    [
+      applicationNo,
+      incomingApplicationNo,
+      stage,
+      applicableFor,
+      families,
+      savedItemIds,
+      orgId,
+      applyFamilies,
+      t,
+      toast,
+    ]
+  );
+  /* ==========================================================
+     RESET
+     ========================================================== */
+
+  const handleReset = useCallback(
+    async () => {
+      setFamilies((prev) =>
+        prev.map((family) => ({
+          ...family,
+
+          items: (family.items || []).map((item) => ({
+            ...item,
+
+            // Remove uploaded file
+            selectedFile: undefined,
+            fileName: undefined,
+            fileSize: undefined,
+            fileType: undefined,
+            fileUrl: undefined,
+            hasFile: false,
+
+            // Reset upload status
+            status: STATUS.PENDING,
+            szreceivedyn: "N",
+            szwaivedyn: "N",
+            szdifferyn: "N",
+            dtrecieptdate: null,
+
+          })),
+        }))
+      );
+
+      // Clear any open preview
+      setPreview(null);
+
+      // Clear custom-document input
+      setAddingFor("");
+      setNewDocName("");
+
+      toast.success(t(
+        "label.docupload.msg.resetSuccess",
+        "Documents re-generated successfully"
+      ));
+
+      return {
+        success: true,
       };
-      const saved = unwrapApiResponse(await HAxiosService.PUT(LosDocumentAPI.save(appNo), payload));
-      await persistFiles(appNo);
-      applyFamilies(
-        unwrapApiResponse(
-          await HAxiosService.GET(LosDocumentAPI.getByAppNo(appNo, stage, customerType, applicableFor))
-        ) || saved
-      );
-      setPendingFiles({});
-      toast.success(t("label.docupload.msg.saved", "Documents saved"));
-      return { success: true };
-    } catch (error) {
-      toast.error(error?.message || t("label.docupload.msg.saveFailed", "Save failed"));
-      return { success: false };
-    }
-  }, [applicableFor, applicationNo, applyFamilies, customerType, families, incomingApplicationNo, pendingFiles, stage, t, toast]);
-
-  const handleReset = useCallback(async () => {
-    await loadChecklist();
-    toast.success(t("label.docupload.msg.reset", "Form reset"));
-    return { success: true };
-  }, [loadChecklist, t, toast]);
+    },
+    [toast, t]
+  );
+  /* ==========================================================
+     RENDER
+     ========================================================== */
 
   return (
-    <HBox>
-      <HBreadCrumb />
-      <TitleBar title={t("label.docupload.title", "Document upload")} />
+    <IntlProvider locale={intl.locale} messages={localeOverrides}>
       <HBox>
-        <HPaper>
-          <HBox data-menu-id={screenMenuId}>
-            <HLabel value="label.docupload.field.applicableFor" required align="left" colon={false} />
-            <HDropdown
-              name="applicableFor"
-              options={applicantOptions}
-              value={applicableFor}
-              onChange={(e) => setApplicableFor(e.target.value)}
-              width="100%"
-            />
-            <HLabel value="label.docupload.field.stage" required align="left" colon={false} />
-            <HDropdown
-              name="stage"
-              options={stageOptions}
-              value={stage}
-              onChange={(e) => setStage(e.target.value)}
-              width="100%"
-            />
-            <HLabel value="label.docupload.field.customerType" required align="left" colon={false} />
-            <HDropdown
-              name="customerType"
-              options={customerTypeOptions}
-              value={customerType}
-              onChange={(e) => setCustomerType(e.target.value)}
-              width="100%"
-            />
+       <HBox sx={{ width: "100%",padding:"0.5rem 1rem 0 1rem", flexDirection: "column", borderBottom: "1px solid var(--drs-border-divider, hsl(215 14% 90%))", }}>
+        <HBreadCrumb />
 
-            <HLabel value="label.docupload.checklist.title" align="left" colon={false} />
-            <HLabel value="label.docupload.checklist.hint" align="left" colon={false} />
-            <HLabel
-              value={t("label.docupload.checklist.receivedCount", "{received}/{total} received", {
-                received: receivedCount,
-                total: items.length,
-              })}
-              translate={false}
-              align="left"
-              colon={false}
-            />
+        <TitleBar
+          title={t(
+            "label.docupload.title",
+            "Document Upload"
+          )}
+        />
+        <HLabel
+            value="Upload supporting documents required for the application."
+            align="left"
+            colon={false}
+
+          />
+        </HBox>
+
+
+        {/* ======================================================
+          MAIN PAPER
+          ====================================================== */}
+
+        <HBox sx={{ width: "100%", padding:"0.5rem 1rem 0 1rem" }}>
+
+          <HPaper>
+
+            {/* ==================================================
+              TOP FILTER BAR
+
+              Lovable layout:
+
+              Applicable for | Stage | Customer Type
+              ================================================== */}
+
+            <HBox
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                width: "100%",
+                marginBottom: "8px"
+              }}
+            >
+              {/* APPLICABLE FOR */}
+              <HBox
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  width: "33.33%",
+                  paddingRight: "12px",
+                  boxSizing: "border-box",
+                }}
+              >
+                <HLabel
+                  value="label.docupload.field.applicableFor"
+                  required
+                  align="left"
+                  colon={false}
+                  style={{
+                    width: "95px",
+                    minWidth: "95px",
+                    whiteSpace: "nowrap",
+                    marginRight: "10px",
+                  }}
+                />
+
+                <HDropdown
+                  name="applicableFor"
+                  options={applicantOptions}
+                  value={applicableFor}
+                  onChange={(e) => {
+                    const selectedValue = e.target.value;
+                    setApplicableFor(e.target.value);
+                    const selectedApplicant = applicantOptions.find(
+                      (option) => option.value === selectedValue
+                    );
+                    setCustomerType(
+                      selectedApplicant?.customerType || ""
+                    );
+                  }}
+                  width="300px"
+                />
+              </HBox>
+
+
+              {/* STAGE */}
+              <HBox
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  width: "33.33%",
+                  paddingRight: "12px",
+                  boxSizing: "border-box",
+                }}
+              >
+                <HLabel
+                  value="label.docupload.field.stage"
+                  required
+                  align="left"
+                  colon={false}
+                  style={{
+                    width: "55px",
+                    minWidth: "55px",
+                    whiteSpace: "nowrap",
+                    marginRight: "10px",
+                  }}
+                />
+
+                <HDropdown
+                  name="stage"
+                  options={stageOptions}
+                  value={stage}
+                  onChange={(e) =>
+                    setStage(e.target.value)
+                  }
+                  width="220px"
+                />
+              </HBox>
+
+
+              {/* CUSTOMER TYPE */}
+              <HBox
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  width: "33.33%",
+                  boxSizing: "border-box",
+                }}
+              >
+                <HLabel
+                  value="label.docupload.field.customerType"
+                  required
+                  align="left"
+                  colon={false}
+                  style={{
+                    width: "95px",
+                    minWidth: "95px",
+                    whiteSpace: "nowrap",
+                    marginRight: "10px",
+                  }}
+                />
+
+                <HTextField
+                  name="customerType"
+                  value={customerType}
+                  sx={{ mb: 2, ml: 1 }}
+                />
+              </HBox>
+            </HBox>
+
+            {/* ==================================================
+              CHECKLIST HEADER
+              ================================================== */}
+
+            <HBox
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                width: "100%",
+                marginBottom: "16px"
+              }}
+            >
+
+              {/* Title on its own line */}
+
+              <HLabel
+                value="label.docupload.checklist.title"
+                align="left"
+                colon={false}
+                sx={{fontWeight: "bold", fontSize: "14px"}}
+              />
+
+              {/* Hint (left) + received count (right) on the same line */}
+
+              <HBox
+                style={{
+                  display: "flex",
+                  flexDirection: "row",
+                  alignItems: "center",
+                  justifyContent: "space-between",
+                  width: "100%",
+                }}
+              >
+
+                <HLabel
+                  value="label.docupload.checklist.hint"
+                  align="left"
+                  colon={false}
+                />
+
+                <HLabel
+                  value={t(
+                    "label.docupload.checklist.receivedCount",
+                    "{received}/{total} received",
+                    {
+                      received: receivedCount,
+                      total: items.length,
+                    }
+                  )}
+                  translate={false}
+                  align="left"
+                  colon={false}
+                />
+
+              </HBox>
+
+            </HBox>
+
+
+            {/* ==================================================
+              DOCUMENT FAMILIES
+              ================================================== */}
 
             {families.map((family) => (
-              <HAccordion
+              <HBox
                 key={family.docFamilyCode}
-                id={`doc-family-${family.docFamilyCode}`}
-                title={family.docFamilyName}
-                childKeyProp={family.docFamilyCode}
-                isExpandedChildrenProp={expanded}
-                onChangeEvent={() =>
-                  setExpanded((prev) => ({ ...prev, [family.docFamilyCode]: !prev[family.docFamilyCode] }))
-                }
+                style={{
+                  border: "1px solid #e0c5d3",
+                  borderRadius: "6px",
+                  marginBottom: "12px",
+                  overflow: "hidden",
+                  width: "100%",
+                }}
               >
-                <HButton
-                  label="label.docupload.button.addDocument"
-                  variant="outlined"
-                  inline
-                  onClick={() => setAddingFor(addingFor === family.docFamilyCode ? "" : family.docFamilyCode)}
-                />
+
+                {/* ==================================================
+        FAMILY HEADER
+        ================================================== */}
+
+                <HBox
+                  style={{
+                    display: "flex",
+                    flexDirection: "row",
+                    alignItems: "center",
+                    justifyContent: "space-between",
+                    width: "100%",
+                    padding: "8px 12px",
+                    boxSizing: "border-box",
+                    backgroundColor: "transparent",
+                    borderBottom: "1px solid #e0c5d3",
+                  }}
+                >
+
+                  {/* Section title */}
+
+                  <HLabel
+                    value={family.docFamilyName}
+                    translate={false}
+                    align="left"
+                    colon={false}
+                    style={{
+                      fontWeight: 600,
+                    }}
+                  />
+
+                  {/* Add Document */}
+
+                  <HButton
+                    label="label.docupload.button.addDocument"
+                    variant="outlined"
+                    inline
+                    onClick={() =>
+                      setAddingFor(
+                        addingFor === family.docFamilyCode
+                          ? ""
+                          : family.docFamilyCode
+                      )
+                    }
+                  />
+
+                </HBox>
+
+
+                {/* ==================================================
+        ADD DOCUMENT AREA
+        ================================================== */}
+
                 {addingFor === family.docFamilyCode ? (
-                  <HBox>
+                  <HBox
+                    style={{
+                      display: "flex",
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: "8px",
+                      padding: "10px 12px",
+                      width: "100%",
+                      boxSizing: "border-box",
+                    }}
+                  >
+
                     <HTextField
                       value={newDocName}
                       onChange={(e) => setNewDocName(e.target.value)}
@@ -420,239 +2134,620 @@ const ApplicationDocumentUpload = () => {
                       placeholder="label.docupload.placeholder.docName"
                       width="100%"
                     />
-                    <HButton label="label.docupload.button.add" variant="contained" inline onClick={() => handleAddCustom(family)} />
+
+                    <HButton
+                      label="label.docupload.button.add"
+                      variant="outlined"
+                      inline
+                      onClick={() => handleAddCustom(family)}
+                      sx={{ mt: 1 }}
+                    />
+
                     <HButton
                       label="label.docupload.button.cancel"
                       variant="outlined"
                       inline
-                      onClick={() => {
-                        setAddingFor("");
-                        setNewDocName("");
-                      }}
+                      onClick={() => { setAddingFor(""); setNewDocName(""); }}
+                      sx={{ mt: 1 }}
                     />
+
                   </HBox>
                 ) : null}
 
-                {(family.items || []).length === 0 ? (
-                  <HLabel value="label.docupload.empty.section" align="left" colon={false} />
-                ) : (
-                  (family.items || []).map((item) => (
-                    <HBox key={item.itemId}>
-                      <HLabel value={item.docName} translate={false} align="left" colon={false} />
-                      <HLabel
-                        value={item.custom ? "label.docupload.flag.custom" : "label.docupload.flag.system"}
-                        align="left"
-                        colon={false}
-                      />
-                      {item.fileName ? (
-                        <HLabel
-                          value={`${item.fileName}${item.fileSize ? ` (${item.fileSize})` : ""}`}
-                          translate={false}
-                          align="left"
-                          colon={false}
-                        />
-                      ) : null}
-                      <input
-                        ref={(el) => {
-                          fileInputs.current[item.itemId] = el;
+
+                {/* ==================================================
+        DOCUMENT LIST
+        ================================================== */}
+
+                <HBox style={{ display: "flex", flexDirection: "column", width: "100%", }}>
+
+                  {(family.items || []).length === 0 ? (
+                    <HLabel
+                      value="label.docupload.empty.section"
+                      align="left"
+                      colon={false}
+                    />
+                  ) : (
+                    (family.items || []).map((item) => (
+                      <HBox
+                        key={item.itemId}
+                        style={{
+                          display: "flex",
+                          flexDirection: "row",
+                          alignItems: "center",
+                          width: "100%",
+                          padding: "10px 12px",
+                          boxSizing: "border-box",
+                          borderBottom: "1px solid #eeeeee",
                         }}
-                        type="file"
-                        hidden
-                        onChange={(e) => {
-                          handleFilePicked(item, e.target.files?.[0]);
-                          e.target.value = "";
-                        }}
-                      />
-                      <HButton
-                        label={item.fileName ? "label.docupload.button.replace" : "label.docupload.button.upload"}
-                        variant="outlined"
-                        inline
-                        onClick={() => fileInputs.current[item.itemId]?.click()}
-                      />
-                      <HButton
-                        label="label.docupload.button.received"
-                        variant={item.status === STATUS.RECEIVED ? "contained" : "outlined"}
-                        inline
-                        onClick={() => handleStatusClick(item, STATUS.RECEIVED)}
-                      />
-                      <HButton
-                        label="label.docupload.button.deferred"
-                        variant={item.status === STATUS.DEFERRED ? "contained" : "outlined"}
-                        inline
-                        onClick={() => handleStatusClick(item, STATUS.DEFERRED)}
-                      />
-                      <HButton
-                        label="label.docupload.button.waived"
-                        variant={item.status === STATUS.WAIVED ? "contained" : "outlined"}
-                        inline
-                        onClick={() => handleStatusClick(item, STATUS.WAIVED)}
-                      />
-                      <HLabel
-                        value={
-                          item.status === STATUS.RECEIVED
-                            ? "label.docupload.status.received"
-                            : item.status === STATUS.DEFERRED
-                              ? "label.docupload.status.deferred"
-                              : item.status === STATUS.WAIVED
-                                ? "label.docupload.status.waived"
-                                : "label.docupload.status.pending"
-                        }
-                        align="left"
-                        colon={false}
-                      />
-                      {item.hasFile || item.fileUrl ? (
-                        <HButton
-                          label="label.docupload.button.preview"
-                          variant="outlined"
-                          inline
-                          onClick={() => handlePreview(item)}
+                      >
+
+                        {/* ========================================
+                DOCUMENT NAME
+                ======================================== */}
+
+                        <HBox style={{ display: "flex", flexDirection: "row", alignItems: "flex-start", width: "35%", minWidth: "35%", }}>
+
+                          {/* Document icon */}
+
+                          <DescriptionOutlinedIcon sx={{ fontSize: 20, marginTop: "2px", }} />
+
+                          {/* Document information */}
+
+                          <HBox style={{ display: "flex", flexDirection: "column", marginLeft: "8px", }}>
+
+                            <HLabel
+                              value={item.szDocCode || item.szdoccode}
+                              translate={false}
+                              align="left"
+                              colon={false}
+                            />
+
+                            <HLabel
+                              value={t(
+                                item.custom
+                                  ? "label.docupload.flag.custom"
+                                  : "label.docupload.flag.system",
+                                item.custom ? "Custom" : "System generated"
+                              )}
+                              translate={false}
+                              align="left"
+                              colon={false}
+                            />
+
+                          </HBox>
+
+                        </HBox>
+
+
+                        {/* ========================================FILE INPUT======================================== */}
+
+                        <input
+                          ref={(element) => { fileInputs.current[item.itemId] = element; }}
+                          type="file"
+                          hidden
+                          onChange={(e) => { handleFilePicked(item, e.target.files?.[0]); e.target.value = ""; }}
                         />
-                      ) : null}
-                      {item.fileName ? (
-                        <HButton
-                          label="label.docupload.button.removeFile"
-                          variant="outlined"
-                          inline
-                          onClick={() => handleRemoveFile(item)}
-                        />
-                      ) : null}
-                      {item.custom ? (
-                        <HButton
-                          label="label.docupload.button.delete"
-                          variant="outlined"
-                          inline
-                          onClick={() => handleDeleteCustom(item)}
-                        />
-                      ) : null}
-                    </HBox>
-                  ))
-                )}
-              </HAccordion>
+
+
+                        {/* ================  UPLOAD========================*/}
+
+                        <HBox style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "8px", width: "65%", }}>
+
+                          <HButton
+                            label={t(
+                              item.fileName || item.hasFile
+                                ? "label.docupload.button.replace"
+                                : "label.docupload.button.upload",
+                              item.fileName || item.hasFile ? "Replace" : "Upload"
+                            )}
+                            translate={false}
+                            variant="outlined"
+                            startIcon={<FileUploadOutlinedIcon sx={{ fontSize: 16 }} />}
+                            onClick={() => fileInputs.current[item.itemId]?.click()}
+                            sx={{ ...documentButtonStyle, width: "280px" }}
+                          />
+
+                          {/* ====================================RECEIVED==================================== */}
+
+                          <HButton
+                            label={t(
+                              "label.docupload.button.received",
+                              "Received"
+                            )}
+                            translate={false}
+                            variant={item.status === STATUS.RECEIVED ? "contained" : "outlined"}
+                            inline
+                            onClick={() => handleStatusClick(item, STATUS.RECEIVED)}
+                            sx={{ ...documentButtonStyle }}
+                          />
+
+                          {/* ====================================DEFERRED==================================== */}
+
+                          <HButton
+                            label={t(
+                              "label.docupload.button.deferred",
+                              "Deferred"
+                            )}
+                            translate={false}
+                            variant={item.status === STATUS.DEFERRED ? "contained" : "outlined"}
+                            inline
+                            onClick={() => handleStatusClick(item, STATUS.DEFERRED)}
+                            sx={{ ...documentButtonStyle }}
+                          />
+
+                          {/* ====================================WAIVED==================================== */}
+
+                          <HButton
+                            label={t(
+                              "label.docupload.button.waived",
+                              "Waived"
+                            )}
+                            translate={false}
+                            variant={item.status === STATUS.WAIVED ? "contained" : "outlined"}
+                            inline
+                            onClick={() => handleStatusClick(item, STATUS.WAIVED)}
+                            sx={{ ...documentButtonStyle }}
+                          />
+
+
+                          {/* ====================================STATUS==================================== */}
+
+                          <HLabel
+                            value={getDocumentStatusLabel(getDocumentStatus(item))}
+                            translate={false}
+                            align="left"
+                            colon={false}
+                          />
+
+
+                          {/* ====================================FILE NAME==================================== */}
+
+                          {item.fileName ? (
+                            <HLabel
+                              value={`${item.fileName} ${item.fileSize
+                                ? `(${formatFileSize(
+                                  item.fileSize
+                                )})`
+                                : ""
+                                }`}
+                              translate={false}
+                              align="left"
+                              colon={false}
+                            />
+                          ) : null}
+
+
+                          {/* ====================================PREVIEW==================================== */}
+
+                          {item.hasFile ||
+                            item.fileUrl ? (
+                            <IconButton
+                              onClick={() => handlePreview(item)}
+                              size="small"
+                              sx={{
+                                padding: "4px",
+                                color: "#1976d2",
+                              }}
+                            >
+                              <VisibilityOutlinedIcon sx={{ fontSize: 20 }} />
+                            </IconButton>
+                          ) : null}
+
+                          {/* ====================================
+                  REMOVE FILE OR DELETE FILE (keep row, remove file)
+                  ==================================== */}
+
+                          {item.fileName || item.hasFile ? (
+                            <IconButton
+                              onClick={() =>
+                                item.selectedFile
+                                  ? handleRemoveFile(item)
+                                  : handleDeleteFile(item)
+                              }
+                              size="small"
+                              aria-label={t(
+                                "label.docupload.accessibility.removeFile",
+                                "Remove file"
+                              )}
+                              sx={{
+                                padding: "2px",
+                                color: "#d32f2f",
+                                "&:hover": {
+                                  backgroundColor: "transparent",
+                                  color: "#b71c1c",
+                                },
+                              }}
+                            >
+                              <CloseIcon sx={{ fontSize: 18 }} />
+                            </IconButton>
+                          ) : null}
+
+
+                          {/* ====================================DELETE CUSTOM DOCUMENT==================================== */}
+
+                          {item.custom ? (
+                            <IconButton
+                              onClick={() => handleDeleteCustom(item)}
+                              size="small"
+                              aria-label={t(
+                                "label.docupload.accessibility.deleteCustomDocument",
+                                "Delete custom document"
+                              )}
+                              sx={{ padding: "2px", color: "error.main", }}
+                            >
+                              <DeleteOutline sx={{ fontSize: 18 }} />
+                            </IconButton>
+                          ) : null}
+
+                        </HBox>
+
+                      </HBox>
+                    ))
+                  )}
+
+                </HBox>
+
+              </HBox>
             ))}
-          </HBox>
-        </HPaper>
-      </HBox>
 
-      <HButtonBar
-        onSave={handleSave}
-        onReset={handleReset}
-        onClose={() => navigate("/homelayout/welcomepage")}
-        disableToast={{ save: true, reset: true, close: true }}
-      />
+          </HPaper>
 
-      <HDialog
-        open={Boolean(preview)}
-        onClose={() => setPreview(null)}
-        title={preview?.docName || t("label.docupload.dialog.previewTitle", "Document preview")}
-        maxWidth="md"
-        fullWidth
-        actions={
-          <HButton label="label.docupload.button.cancel" variant="outlined" inline onClick={() => setPreview(null)} />
-        }
-      >
-        {preview?.fileUrl && (preview.fileType || "").startsWith("image/") ? (
-          <img src={preview.fileUrl} alt={preview.docName} width="100%" />
-        ) : preview?.fileUrl && ((preview.fileType || "").includes("pdf") || /\.pdf$/i.test(preview.fileName || "")) ? (
-          <iframe title={preview.docName} src={preview.fileUrl} width="100%" height="480" />
-        ) : (
-          <HLabel value="label.docupload.preview.unavailable" align="left" colon={false} />
-        )}
-      </HDialog>
+        </HBox>
 
-      <HDialog
-        open={Boolean(waiveDialog)}
-        onClose={() => setWaiveDialog(null)}
-        title={t("label.docupload.dialog.waiveTitle", "Waive document")}
-        maxWidth="sm"
-        fullWidth
-        actions={
-          <HBox>
-            <HButton label="label.docupload.button.cancel" variant="outlined" inline onClick={() => setWaiveDialog(null)} />
-            <HButton
-              label="label.docupload.button.confirmWaive"
-              variant="contained"
-              inline
-              disabled={!waiveDialog?.reason}
-              onClick={() => {
-                updateItem(waiveDialog.itemId, {
-                  status: STATUS.WAIVED,
-                  waiveReason: waiveDialog.reason,
-                  waiveComments: waiveDialog.comments,
-                });
-                setWaiveDialog(null);
-              }}
-            />
-          </HBox>
-        }
-      >
-        <HLabel value="label.docupload.dialog.waiveHint" align="left" colon={false} />
-        <HLabel value="label.docupload.field.reason" required align="left" colon={false} />
-        <HDropdown
-          name="waiveReason"
-          options={waiveReasonOptions}
-          value={waiveDialog?.reason || ""}
-          onChange={(e) => setWaiveDialog((prev) => ({ ...prev, reason: e.target.value }))}
-          width="100%"
-        />
-        <HLabel value="label.docupload.field.comments" align="left" colon={false} />
-        <HTextarea
-          value={waiveDialog?.comments || ""}
-          onChange={(e) => setWaiveDialog((prev) => ({ ...prev, comments: e.target.value }))}
-          maxLength={500}
-          maxLines={3}
-          width="100%"
-          placeholder="label.docupload.field.comments"
-        />
-      </HDialog>
 
-      <HDialog
-        open={Boolean(deferDialog)}
-        onClose={() => setDeferDialog(null)}
-        title={t("label.docupload.dialog.deferTitle", "Defer document")}
-        maxWidth="sm"
-        fullWidth
-        actions={
-          <HBox>
-            <HButton label="label.docupload.button.cancel" variant="outlined" inline onClick={() => setDeferDialog(null)} />
-            <HButton
-              label="label.docupload.button.confirmDefer"
-              variant="contained"
-              inline
-              disabled={!deferDialog?.stage || !deferDialog?.date}
-              onClick={() => {
-                updateItem(deferDialog.itemId, {
-                  status: STATUS.DEFERRED,
-                  deferralStage: deferDialog.stage,
-                  deferralDate: deferDialog.date,
-                });
-                setDeferDialog(null);
-              }}
-            />
-          </HBox>
-        }
-      >
-        <HLabel value="label.docupload.dialog.deferHint" align="left" colon={false} />
-        <HLabel value="label.docupload.field.deferralStage" required align="left" colon={false} />
-        <HDropdown
-          name="deferralStage"
-          options={stageOptions}
-          value={deferDialog?.stage || ""}
-          onChange={(e) => setDeferDialog((prev) => ({ ...prev, stage: e.target.value }))}
-          width="100%"
-        />
-        <HLabel value="label.docupload.field.deferralDate" required align="left" colon={false} />
-        <HDatePicker
-          value={deferDialog?.date ? dayjs(deferDialog.date) : null}
-          onChange={(value) =>
-            setDeferDialog((prev) => ({
-              ...prev,
-              date: value ? value.format("YYYY-MM-DD") : "",
-            }))
+        {/* ======================================================BOTTOM BUTTON BAR====================================================== */}
+
+        <HButtonBar
+          onSave={
+            handleSave
           }
-          width="100%"
+          onReset={
+            handleReset
+          }
+          onClose={() =>
+            navigate(
+              "/homelayout/welcomepage"
+            )
+          }
+          disableToast={{
+            save: true,
+            reset: true,
+            close: true,
+          }}
         />
-      </HDialog>
-    </HBox>
+
+
+        {/* ======================================================PREVIEW DIALOG====================================================== */}
+
+        <HDialog
+          open={Boolean(
+            preview
+          )}
+          onClose={() => {
+            if (preview?.fileUrl) {
+              URL.revokeObjectURL(preview.fileUrl);
+            }
+            setPreview(null);
+          }}
+          title={
+            preview?.docName ||
+            t(
+              "label.docupload.dialog.previewTitle",
+              "Document preview"
+            )
+          }
+          maxWidth="md"
+          fullWidth
+          actions={
+            <HButton
+              label={t(
+                "label.docupload.button.cancel",
+                "Cancel"
+              )}
+              translate={false}
+              variant="outlined"
+              inline
+              onClick={() => setPreview(null)}
+            />
+          }
+        >
+
+          {preview?.fileUrl &&
+            (
+              preview.fileType || ""
+            ).startsWith(
+              "image/"
+            ) ? (
+            <img
+              src={preview.fileUrl}
+              alt={preview.docName}
+              width="100%"
+            />
+          ) : preview?.fileUrl &&
+            (
+              preview.fileType || ""
+            ).includes("pdf") ? (
+            <iframe
+              title={preview.docName}
+              src={preview.fileUrl}
+              width="100%"
+              height="480"
+            />
+          ) : (
+            <HLabel
+              value={t(
+                "label.docupload.msg.noPreview",
+                "No preview available"
+              )}
+              translate={false}
+              align="left"
+              colon={false}
+            />
+          )}
+
+        </HDialog>
+
+
+        {/* ======================================================WAIVE DOCUMENT DIALOG====================================================== */}
+
+        <HDialog
+          open={Boolean(waiveDialog)}
+          onClose={() => setWaiveDialog(null)}
+          title={t(
+            "label.docupload.dialog.waive",
+            "Waive document"
+          )}
+          maxWidth="sm"
+          fullWidth
+          actions={
+            <HBox>
+
+              <HButton
+                label={t(
+                  "label.docupload.button.cancel",
+                  "Cancel"
+                )}
+                translate={false}
+                variant="outlined"
+                inline
+                onClick={() => setWaiveDialog(null)}
+                sx={{ mr: 1 }}
+              />
+
+              <HButton
+                label={t(
+                  "label.docupload.button.confirmWaive",
+                  "Confirm Waive"
+                )}
+                translate={false}
+                variant="contained"
+                inline
+                onClick={() => {
+                  if (!waiveDialog?.reason || !waiveDialog?.comments) {
+                    toast.error(t(
+                      "label.docupload.msg.waiveValidation",
+                      "Please provide a reason and comments for waiving this document"
+                    ));
+                    return;
+                  }
+
+                  updateItem(
+                    waiveDialog.itemId,
+                    {
+                      status: STATUS.WAIVED,
+
+                      waiveReason: waiveDialog.reason,
+
+                      waiveComments: waiveDialog.comments,
+
+                      szreceivedyn: "N",
+
+                      szwaivedyn: "Y",
+
+                      szdifferyn: "N",
+
+                      szwaiverreason: waiveDialog.reason,
+                    }
+                  );
+
+                  setWaiveDialog(
+                    null
+                  );
+                }}
+              />
+
+            </HBox>
+          }
+        >
+
+          <HLabel
+            value={t(
+              "label.docupload.dialog.waiveHint",
+              "Select a reason for waiving this document."
+            )}
+            translate={false}
+            align="left"
+            colon={false}
+          />
+
+          <HLabel
+            value={t(
+              "label.docupload.field.reason",
+              "Reason"
+            )}
+            translate={false}
+            required
+            align="left"
+            colon={false}
+          />
+
+          <HDropdown
+            name="waiveReason"
+            options={waiveReasonOptions}
+            value={waiveDialog?.reason || ""}
+            onChange={(e) =>
+              setWaiveDialog(
+                (prev) => ({ ...prev, reason: e.target.value, })
+              )
+            }
+            width="100%"
+          />
+
+          <HLabel
+            value={t(
+              "label.docupload.field.comments",
+              "Comments"
+            )}
+            translate={false}
+            align="left"
+            colon={false}
+          />
+
+          <HTextarea
+            value={waiveDialog?.comments || ""}
+            onChange={(e) =>
+              setWaiveDialog(
+                (prev) => ({ ...prev, comments: e.target.value, })
+              )
+            }
+            maxLength={500}
+            maxLines={3}
+            width="100%"
+            placeholder={t(
+              "label.docupload.placeholder.comments",
+              "Enter comments"
+            )}
+            required={true}
+          />
+        </HDialog>
+
+
+        {/* ======================================================DEFER DOCUMENT DIALOG====================================================== */}
+
+        <HDialog
+          open={Boolean(deferDialog)}
+          onClose={() => setDeferDialog(null)}
+          title={t(
+            "label.docupload.dialog.deferTitle",
+            "Defer document"
+          )}
+          maxWidth="sm"
+          fullWidth
+          actions={
+            <HBox>
+
+              <HButton
+                label={t(
+                  "label.docupload.button.cancel",
+                  "Cancel"
+                )}
+                translate={false}
+                variant="outlined"
+                inline
+                onClick={() => setDeferDialog(null)}
+                sx={{ mr: 1 }}
+              />
+
+              <HButton
+                label={t(
+                  "label.docupload.button.confirmDefer",
+                  "Confirm Defer"
+                )}
+                translate={false}
+                variant="contained"
+                inline
+                onClick={() => {
+                  if (!deferDialog?.stage || !deferDialog?.date) {
+                    toast.error(t(
+                      "label.docupload.msg.deferValidation",
+                      "Please specify the deferred stage and date"
+                    ));
+                    return;
+                  }
+
+                  updateItem(
+                    deferDialog.itemId,
+                    {
+                      status: STATUS.DEFERRED,
+
+                      szstagedue: deferDialog.stage,
+
+                      deferralDate: deferDialog.date,
+
+                      szreceivedyn: "N",
+
+                      szwaivedyn: "N",
+
+                      szdifferyn: "Y",
+                    }
+                  );
+
+                  setDeferDialog(null);
+                }}
+              />
+
+            </HBox>
+          }
+        >
+
+          <HLabel
+            value={t(
+              "label.docupload.dialog.deferHint",
+              "Select the stage and date until which this document is deferred."
+            )}
+            translate={false}
+            align="left"
+            colon={false}
+          />
+
+          <HLabel
+            value={t(
+              "label.docupload.field.deferralStage",
+              "Deferral Stage"
+            )}
+            translate={false}
+            required
+            align="left"
+            colon={false}
+          />
+
+          <HDropdown
+            name="deferralStage"
+            options={stageOptions}
+            value={deferDialog?.stage || ""}
+            onChange={(e) =>
+              setDeferDialog((prev) => ({ ...prev, stage: e.target.value, })
+              )
+            }
+            width="100%"
+          />
+
+          <HLabel
+            value={t(
+              "label.docupload.field.deferralDate",
+              "Deferral Date"
+            )}
+            translate={false}
+            required
+            align="left"
+            colon={false}
+          />
+
+          <HDatePicker
+            value={deferDialog?.date ? dayjs(deferDialog.date) : null}
+            onChange={(value) =>
+              setDeferDialog(
+                (prev) => ({ ...prev, date: value ? value.format("YYYY-MM-DD") : "", })
+              )
+            }
+            width="100%"
+          />
+
+        </HDialog>
+
+      </HBox>
+    </IntlProvider>
   );
 };
 

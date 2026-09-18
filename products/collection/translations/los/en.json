@@ -1,6 +1,5 @@
 {
   "label.qde.title": "Quick data entry",
-
   "label.qde.section.businessUnit": "Business unit",
   "label.qde.section.ocr": "OCR upload",
   "label.qde.section.kyc": "KYC check",
@@ -12,7 +11,6 @@
   "label.qde.section.guarantor": "Guarantor details",
   "label.qde.section.loan": "Loan details",
   "label.qde.section.sourcing": "Sourcing details",
-
   "label.qde.field.applicationType": "Application type",
   "label.qde.field.portfolio": "Portfolio",
   "label.qde.field.applicationNo": "Application number",
@@ -77,7 +75,6 @@
   "label.qde.field.rmName": "Relationship manager name",
   "label.qde.field.rmCode": "Relationship manager code",
   "label.qde.field.otp": "OTP",
-
   "label.qde.button.submit": "Submit",
   "label.qde.button.verify": "Verify",
   "label.qde.button.sendOtp": "Send OTP",
@@ -88,28 +85,23 @@
   "label.qde.button.remove": "Remove",
   "label.qde.button.addCoApplicant": "Add co-applicant",
   "label.qde.button.addGuarantor": "Add guarantor",
-
   "label.qde.option.individual": "Individual",
   "label.qde.option.nonIndividual": "Non-individual",
   "label.qde.option.new": "New",
   "label.qde.option.existing": "Existing",
   "label.qde.option.yes": "Yes",
   "label.qde.option.no": "No",
-
   "label.qde.status.pending": "Pending",
   "label.qde.status.verified": "Verified",
   "label.qde.status.failed": "Failed",
   "label.qde.status.notStarted": "Not started",
-
   "label.qde.dialog.otpTitle": "OTP verification",
   "label.qde.dialog.otpSentTo": "OTP sent to {channel} {target}",
-
   "label.qde.ocr.noFile": "No file selected",
   "label.qde.coApplicant.item": "Co-applicant",
   "label.qde.coApplicant.empty": "No co-applicants added",
   "label.qde.guarantor.item": "Guarantor",
   "label.qde.guarantor.empty": "No guarantors added",
-
   "label.qde.msg.saved": "Application saved",
   "label.qde.msg.saveFailed": "Save failed",
   "label.qde.msg.submitted": "Application submitted",
@@ -126,9 +118,7 @@
   "label.qde.msg.enterCkyc": "Enter a CKYC number first",
   "label.qde.msg.enterMobile": "Enter a mobile number first",
   "label.qde.msg.enterDigiRef": "Enter DigiLocker reference or mobile first",
-
   "label.qde.field.searchRecords": "Search Records",
-
   "label.docupload.title": "Document upload",
   "label.docupload.field.applicableFor": "Applicable for",
   "label.docupload.field.stage": "Stage",
@@ -174,5 +164,31 @@
   "label.docupload.msg.uploadFailed": "Unable to upload file",
   "label.docupload.msg.deleteFailed": "Unable to delete document",
   "label.docupload.msg.masterDeleteDenied": "Master checklist documents cannot be deleted",
-  "label.docupload.option.allBorrowers": "All Borrowers"
+  "label.docupload.option.allBorrowers": "All Borrowers",
+  "label.docupload.button.reset": "Reset",
+  "label.docupload.button.close": "Close",
+  "label.docupload.placeholder.comments": "Enter comments",
+  "label.docupload.stage.preSubmission": "Pre-Submission",
+  "label.docupload.stage.underwriting": "Underwriting",
+  "label.docupload.stage.preApproval": "Pre-Approval",
+  "label.docupload.stage.postApproval": "Post-Approval",
+  "label.docupload.reason.notApplicable": "Not Applicable",
+  "label.docupload.reason.alreadyAvailable": "Already Available",
+  "label.docupload.reason.customerRequest": "Customer Request",
+  "label.docupload.reason.exceptionApproved": "Exception Approved",
+  "label.docupload.msg.loadApplicantFailed": "Unable to load applicant details",
+  "label.docupload.msg.resetSuccess": "Documents re-generated successfully",
+  "label.docupload.msg.deleteSuccess": "Document deleted successfully",
+  "label.docupload.msg.noFileToDelete": "No file available to delete",
+  "label.docupload.msg.fileDeleteFailed": "Unable to delete file",
+  "label.docupload.msg.fileDeleteSuccess": "File deleted successfully",
+  "label.docupload.msg.previewFailed": "Unable to preview document",
+  "label.docupload.msg.noPreview": "No preview available",
+  "label.docupload.msg.waiveValidation": "Please provide a reason and comments for waiving this document",
+  "label.docupload.msg.deferValidation": "Please specify the deferred stage and date",
+  "label.docupload.msg.fileValidation": "Please upload a supported file within the permitted size limit: {size}",
+  "label.docupload.validation.applicableFor": "Please select the applicable party for this checklist",
+  "label.docupload.validation.stage": "Please select a Stage",
+  "label.docupload.validation.customerType": "Please select a Customer Type",
+  "label.docupload.validation.mandatoryDocuments": "Please receive and upload all mandatory documents before submitting"
 }
