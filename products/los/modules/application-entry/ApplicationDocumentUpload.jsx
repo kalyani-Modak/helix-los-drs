@@ -1297,7 +1297,7 @@ const ApplicationDocumentUpload = () => {
     }
 
     return true;
-  }, [t, toast]);
+  }, [applicableFor, stage, customerType,t, toast]);
 
   const validateMandatoryDocuments = () => {
     const allItems = flattenItems(families);
@@ -1907,7 +1907,7 @@ const ApplicationDocumentUpload = () => {
                   value={applicableFor}
                   onChange={(e) => {
                     const selectedValue = e.target.value;
-                    setApplicableFor(selectedValue);
+                    setApplicableFor(e.target.value);
                     const selectedApplicant = applicantOptions.find(
                       (option) => option.value === selectedValue
                     );
