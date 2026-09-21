@@ -10,11 +10,13 @@
   "scripts": {
     "devlocal": "pnpm --filter debt-recovery-shell run devlocal",
     "dev-105-server": "pnpm --filter debt-recovery-shell run dev:105",
+    "dev-150-server": "pnpm --filter debt-recovery-shell run dev:150",
     "int-196-server": "pnpm --filter debt-recovery-shell run int:196",
     "staging": "pnpm --filter debt-recovery-shell run staging",
     "int": "pnpm --filter debt-recovery-shell run int",
     "build": "pnpm --filter debt-recovery-shell run build",
     "build:dev105": "pnpm --filter debt-recovery-shell run build:dev105",
+    "build:dev150": "pnpm --filter debt-recovery-shell run build:dev150",
     "build:int": "pnpm --filter debt-recovery-shell run build:int",
     "build:int196": "pnpm --filter debt-recovery-shell run build:int196",
     "build:staging": "pnpm --filter debt-recovery-shell run build:staging",
