@@ -74,12 +74,7 @@ export function getLosApplicationApiPath() {
 
 /** LOS quick data entry — application-entry service (draft / submit / KYC verification / pincode lookup). */
 export function getLosQdeApiPath() {
-  return (
-    AppConfig.get('BASE_LOS_QDE_API_PATH') ||
-    import.meta.env.VITE_BASE_LOS_QDE_API_PATH ||
-    getLosApplicationApiPath() ||
-    ''
-  );
+  return (AppConfig.get('BASE_LOS_QDE_API_PATH') ||import.meta.env.VITE_BASE_LOS_QDE_API_PATH );
 }
 
 export function getHelixBatchMastersApiPath() {
