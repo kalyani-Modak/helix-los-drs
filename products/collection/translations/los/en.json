@@ -186,7 +186,7 @@
   "label.docupload.msg.noPreview": "No preview available",
   "label.docupload.msg.waiveValidation": "Please provide a reason and comments for waiving this document",
   "label.docupload.msg.deferValidation": "Please specify the deferred stage and date",
-  "label.docupload.msg.fileValidation": "Please upload a supported file within the permitted size limit: {size}",
+  "label.docupload.msg.fileValidation": "Please upload a supported file within the permitted size limit:{size}MB",
   "label.docupload.validation.applicableFor": "Please select the applicable party for this checklist",
   "label.docupload.validation.stage": "Please select a Stage",
   "label.docupload.validation.customerType": "Please select a Customer Type",
