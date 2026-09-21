@@ -4,3 +4,4 @@ monoRepoDebtSuite@tmp/**
 monoRepoDebtSuite@tmp/
 monoRepoDebtSuite@tmp/
 node_modules/
+apps/debt-recovery-shell/drs-build/
