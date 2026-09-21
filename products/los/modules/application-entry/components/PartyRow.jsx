@@ -1,19 +1,13 @@
 import { cloneElement, useEffect } from "react";
-import {
-  HButton,
-  HCheckBox,
-  HDatePicker,
-  HDropdown,
-  HLabel,
-  HRadio,
-  HTextField,
-  HBox,
-} from "@helix/component-library";
+import { HButton, HCheckBox, HDatePicker, HDropdown, HLabel, HRadio, HTextField, HBox } from "@helix/component-library";
 import { BORROWER_CATEGORIES, ENTITY_TYPES, GENDERS } from "../constants/qdeOptions";
 import { fromPickerValue, toPickerValue } from "../dateHelpers";
 import AddressDetailsSection from "../sections/AddressDetailsSection";
 import KycCheckSection from "../sections/KycCheckSection";
 import SectionBlock from "./SectionBlock";
+import { useIntl } from "react-intl";
+import { IconButton } from "@mui/material";
+import { Search as SearchIcon } from "@mui/icons-material";
 
 const PartyField = ({ label, children, required = false, error, sx }) => (
   <HBox sx={{ width: "100%", display: "flex", flexDirection: "column", gap: 0.5, ...sx }}>
@@ -24,23 +18,14 @@ const PartyField = ({ label, children, required = false, error, sx }) => (
   </HBox>
 );
 
-const PartyRow = ({
-  party,
-  index,
-  titleKey,
-  onChange,
-  onRemove,
-  errors = {},
-  primaryBorrowerType,
-  primaryAddress = {},
-  kycHandlers = {},
-}) => {
+const PartyRow = ({ party, index, titleKey, onChange, onRemove, errors = {}, primaryBorrowerType, primaryAddress = {}, kycHandlers = {} }) => {
   const isNonIndividual = party.borrowerType === "Non-Individual";
   const individualOnly = primaryBorrowerType === "Individual";
   const field = (name, value) => onChange(party.id, name, value);
   const err = (name) => errors[name];
   const addressFields = ["addressType", "addr1", "addr2", "addr3", "landmark", "pincode", "city", "district", "state", "country"];
   const addressForm = party.sameAsPrimaryAddress ? primaryAddress : party;
+  const intl = useIntl();
 
   useEffect(() => {
     if (!party.sameAsPrimaryAddress) return;
@@ -87,8 +72,50 @@ const PartyRow = ({
 
         {party.customerType === "Existing" && (
           <>
-            <PartyField label="label.qde.field.customerId" required error={Boolean(err("customerId"))} sx={{ gridColumn: "2" }}><HTextField value={party.customerId || ""} onChange={(e) => field("customerId", e.target.value)} editable required width="100%" /></PartyField>
-            <PartyField label="label.qde.field.searchRecords" sx={{ gridColumn: "3" }}><HTextField value={party.customerSearch || ""} onChange={(e) => field("customerSearch", e.target.value)} editable width="100%" /></PartyField>
+            <HBox sx={{ gridColumn: "2 / -1", display: "flex", alignItems: "flex-end", gap: 2, width: "100%" }} >
+              <HBox sx={{ display: "flex", justifyContent: "space-between", width: "100%" }} >
+                <HLabel
+                  value="label.qde.field.customerId"
+                  required
+                  align="left"
+                  colon={false}
+                />
+
+                <HTextField
+                  value={party.customerId || ""}
+                  onChange={(e) => field("customerId", e.target.value)}
+                  editable
+                  required
+                  width="100%"
+                  error={Boolean(err("customerId"))}
+                />
+              </HBox>
+
+              <HBox sx={{ display: "flex", justifyContent: "space-between", width: "100%" }}>
+                <HLabel
+                  value="label.qde.field.searchRecords"
+                  align="left"
+                  colon={false}
+                />
+
+                <HTextField
+                  value={party.customerSearch || ""}
+                  onChange={(e) => field("customerSearch", e.target.value)}
+                  editable
+                  width="100%"
+                />
+              </HBox>
+
+              <HBox sx={{ display: "flex", justifyContent: "space-between", width: "100%", mt: 2 }}>
+                <HButton
+                  label="label.qde.button.clear"
+                  variant="text"
+                  size="small"
+                  inline
+                  onClick={() => onClearApplicationNo?.()}
+                />
+              </HBox>
+            </HBox>
           </>
         )}
 
@@ -131,39 +158,29 @@ const PartyRow = ({
       </HBox>
 
       <HBox sx={{ position: "relative", width: "100%" }}>
-        <HBox
-  sx={{
-    position: "absolute",
-    top: 10,
-    right: 16,
-    zIndex: 1,
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-  }}
->
-  <HCheckBox
-    checked={Boolean(party.sameAsPrimaryAddress)}
-    onChange={(event) => {
-      const checked = event.target.checked;
-      field("sameAsPrimaryAddress", checked);
+        <HBox sx={{ position: "absolute", top: 10, right: 16, zIndex: 1, display: "flex", alignItems: "center", gap: "8px" }}>
+          <HCheckBox
+            checked={Boolean(party.sameAsPrimaryAddress)}
+            onChange={(event) => {
+              const checked = event.target.checked;
+              field("sameAsPrimaryAddress", checked);
 
-      if (checked) {
-        addressFields.forEach((name) =>
-          field(name, primaryAddress[name] || "")
-        );
-      }
-    }}
-  />
+              if (checked) {
+                addressFields.forEach((name) =>
+                  field(name, primaryAddress[name] || "")
+                );
+              }
+            }}
+          />
 
-  <HBox sx={{ whiteSpace: "nowrap" }}>
-    <HLabel
-      value="Same as Primary Applicant"
-      align="left"
-      colon={false}
-    />
-  </HBox>
-</HBox>
+          <HBox sx={{ whiteSpace: "nowrap" }}>
+            <HLabel
+              value="Same as Primary Applicant"
+              align="left"
+              colon={false}
+            />
+          </HBox>
+        </HBox>
         <AddressDetailsSection
           form={addressForm}
           setField={setPartyField}

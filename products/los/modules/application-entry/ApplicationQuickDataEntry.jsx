@@ -22,7 +22,6 @@ import SourcingDetailsSection from "./sections/SourcingDetailsSection";
 
 const { VERIFIED, FAILED } = VERIFICATION_STATUS;
 const isPassed = (data) => data?.verified !== false && data?.matched !== false;
-const isVerified = (status) => status === VERIFICATION_STATUS.VERIFIED;
 const toNumberOrNull = (value) => value === "" || value == null ? null : Number(value);
 const yn = (value) =>
   value === true
@@ -279,6 +278,23 @@ const ApplicationQuickDataEntry = () => {
     },
     []
   );
+
+  const handleClearApplication = useCallback(() => {
+    setForm((prev) => {
+      const clearedForm = Object.keys(prev).reduce((acc, key) => {
+        acc[key] = "";
+        return acc;
+      }, {});
+
+      return {
+        ...clearedForm,
+        borrowerType: "Individual",
+        customerType: "Existing",
+      };
+    });
+
+    persistedDraftRef.current = false;
+  }, []);
 
   const mapParty = (p, relationship = null) => {
     const isNonInd = p.borrowerType === "Non-Individual";
@@ -828,6 +844,79 @@ const ApplicationQuickDataEntry = () => {
     [hydrateFromQdeResponse, setBusy, t, toast]
   );
 
+  /**
+   * "Search Existing Customer" for a co-applicant / guarantor row. Looks the customer up by customer ID
+   * (party szCustomerId) or by mobile number and copies their saved details into that row only.
+   * Resolves `true` when details were loaded.
+   */
+  const handleSearchCustomer = useCallback(
+    async (party, { customerId, mobile }) => {
+      const mobileNo = (mobile || "").trim();
+      const custId = (customerId || "").trim();
+      if (!custId && !mobileNo) {
+        toast.error(t("label.qde.msg.customerSearchCriteriaRequired", "Enter a customer ID or mobile number."));
+        return false;
+      }
+      const byCustomerId = Boolean(custId);
+      const notFoundMessage = byCustomerId
+        ? t("label.qde.msg.customerIdNotFound", "No customer found for this customer ID")
+        : t("label.qde.msg.customerNotFound", "No customer found for this mobile number");
+      try {
+        const url = byCustomerId
+          ? LosQdeAPI.fetchQdeByCustomerId(ORG_ID, custId)
+          : LosQdeAPI.fetchQdeByMobile(ORG_ID, mobileNo);
+        const data = unwrapApiResponse(await HAxiosService.GET(url));
+        const candidates = [
+          data?.applicantDetails,
+          ...(Array.isArray(data?.coApplicants) ? data.coApplicants : []),
+          ...(Array.isArray(data?.guarantors) ? data.guarantors : []),
+        ].filter(Boolean);
+        const match = candidates.find((p) =>
+          byCustomerId
+            ? String(p.szCustomerId || "").trim() === custId
+            : String(p.szMobile || "").trim() === mobileNo
+        );
+        if (!match) {
+          toast.error(notFoundMessage);
+          return false;
+        }
+        // Keep this row's own identity (row id, saved applicant id, relationship); take everything else from the match.
+        const { id: _rowId, applicantId: _applicantId, relationship: _relationship, ...details } = partyFromQde(match);
+        if (form.borrowerType === "Individual" && details.borrowerType === "Non-Individual") {
+          toast.error(
+            t(
+              "label.qde.msg.customerBorrowerTypeMismatch",
+              "This customer is Non-Individual. Co-applicants and guarantors must be Individual when the primary applicant is Individual."
+            )
+          );
+          return false;
+        }
+        const fill = (item) =>
+          item.id === party.id
+            ? {
+                ...item,
+                ...details,
+                customerType: "Existing",
+                customerId: details.customerId || custId || item.customerId || "",
+                customerSearch: custId || mobileNo,
+                sameAsPrimaryAddress: false,
+              }
+            : item;
+        setForm((prev) => ({
+          ...prev,
+          coApplicants: (prev.coApplicants || []).map(fill),
+          guarantors: (prev.guarantors || []).map(fill),
+        }));
+        toast.success(t("label.qde.msg.customerLoaded", "Customer details loaded"));
+        return true;
+      } catch (error) {
+        toast.error(error?.message || notFoundMessage);
+        return false;
+      }
+    },
+    [form.borrowerType, partyFromQde, t, toast]
+  );
+
   const runVerification = useCallback(
     async (key, url, payload, statusField, onSuccess) => {
       setBusy(key, true);
@@ -1302,6 +1391,7 @@ const ApplicationQuickDataEntry = () => {
                 setField={setField}
                 errors={formErrors.applicant}
                 onOpenApplicationSearch={() => setSearchDialogOpen(true)}
+                onClearApplicationNo={handleClearApplication}
               />
 
               <OcrUploadSection
@@ -1384,6 +1474,7 @@ const ApplicationQuickDataEntry = () => {
                 primaryBorrowerType={form.borrowerType}
                 kycHandlers={partyKycHandlers}
                 primaryAddress={form}
+                onSearchCustomer={handleSearchCustomer}
               />
 
               <GuarantorSection
@@ -1395,6 +1486,7 @@ const ApplicationQuickDataEntry = () => {
                 primaryBorrowerType={form.borrowerType}
                 kycHandlers={partyKycHandlers}
                 primaryAddress={form}
+                onSearchCustomer={handleSearchCustomer}
               />
 
               <LoanDetailsSection form={form} setField={setField} errors={formErrors.applicant} />

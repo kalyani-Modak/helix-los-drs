@@ -1,11 +1,11 @@
-import { HDropdown, HTextField, HBox, HLabel, HRadio } from "@helix/component-library";
+import { HDropdown, HTextField, HBox, HLabel, HRadio, HButton } from "@helix/component-library";
 import { IconButton } from "@mui/material";
 import { Search as SearchIcon } from "@mui/icons-material";
 import SectionBlock from "../components/SectionBlock";
 import { APPLICATION_TYPES, PORTFOLIOS } from "../constants/qdeOptions";
 import { useIntl } from "react-intl";
 
-const BusinessUnitSection = ({ form, setField, errors = {}, onOpenApplicationSearch }) => {
+const BusinessUnitSection = ({ form, setField, errors = {}, onOpenApplicationSearch, onClearApplicationNo }) => {
   const intl = useIntl();
   const err = (name) => errors[name];
 
@@ -124,8 +124,7 @@ const BusinessUnitSection = ({ form, setField, errors = {}, onOpenApplicationSea
         </HBox>
 
         {form.customerType === "Existing" && (
-          <HBox
-            sx={{ width: "100%", display: "flex", flexDirection: "row", alignItems: "flex-start", gap: 2 }}>
+          <HBox sx={{ width: "100%", display: "flex", flexDirection: "row", alignItems: "flex-start", gap: 2 }}>
             {/* Customer ID */}
             <HBox
               sx={{ width: "25%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0 }}>
@@ -152,8 +151,7 @@ const BusinessUnitSection = ({ form, setField, errors = {}, onOpenApplicationSea
             </HBox>
 
             {/* Search Records — pop search that opens the "Search Existing Applications" dialog */}
-            <HBox
-              sx={{ width: "25%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0 }}>
+            <HBox sx={{ width: "25%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0 }}>
               <HLabel
                 value={intl.formatMessage({
                   id: "label.qde.field.searchRecords",
@@ -163,15 +161,7 @@ const BusinessUnitSection = ({ form, setField, errors = {}, onOpenApplicationSea
                 colon={false}
               />
 
-              <HBox
-                sx={{
-                  position: "relative",
-                  display: "flex",
-                  alignItems: "center",
-                  width: "100%",
-                  minWidth: 0,
-                }}
-              >
+              <HBox sx={{ position: "relative", display: "flex", alignItems: "center", width: "100%", minWidth: 0 }}>
                 <HTextField
                   value={form.applicationNo || ""}
                   editable={false}
@@ -206,6 +196,9 @@ const BusinessUnitSection = ({ form, setField, errors = {}, onOpenApplicationSea
                   <SearchIcon fontSize="small" />
                 </IconButton>
               </HBox>
+            </HBox>
+            <HBox sx={{ display: "flex", justifyContent: "space-between", width: "100%", mt: 2.3 }}>
+              <HButton label="label.qde.button.clear" variant="text" size="small" inline align="right" onClick={() => onClearApplicationNo?.()} />
             </HBox>
           </HBox>
         )}

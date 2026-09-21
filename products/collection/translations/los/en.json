@@ -221,5 +221,11 @@
   "label.qde.msg.applicationLoaded": "Application loaded",
   "label.qde.msg.applicationNotFound": "Application not found",
   "label.qde.placeholder.aadhaarSearch": "12-digit Aadhaar number",
-  "label.qde.msg.searchCriteriaRequired": "Enter an application number, mobile number or Aadhaar number."
+  "label.qde.msg.searchCriteriaRequired": "Enter an application number, mobile number or Aadhaar number.",
+  "label.qde.dialog.searchCustomerTitle": "Search Existing Customer",
+  "label.qde.msg.customerLoaded": "Customer details loaded",
+  "label.qde.msg.customerNotFound": "No customer found for this mobile number",
+  "label.qde.msg.customerSearchCriteriaRequired": "Enter a customer ID or mobile number.",
+  "label.qde.msg.customerBorrowerTypeMismatch": "This customer is Non-Individual. Co-applicants and guarantors must be Individual when the primary applicant is Individual.",
+  "label.qde.msg.customerIdNotFound": "No customer found for this customer ID"
 }
