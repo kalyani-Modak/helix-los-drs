@@ -89,7 +89,7 @@ const ApplicantDetailsSection = ({
         ) : (
           <>
             {/* ---- Individual fields ---- */}
-            <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1 }}>
+            <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 2.5 }}>
               <HLabel
                 value={intl.formatMessage({
                   id: "label.qde.field.firstName",

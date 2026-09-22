@@ -73,6 +73,7 @@ const LoanDetailsSection = ({ form, setField, errors = {} }) => {
             value="label.qde.field.scheme"
             align="left"
             colon={false}
+            required
           />
 
           <HDropdown
@@ -81,6 +82,7 @@ const LoanDetailsSection = ({ form, setField, errors = {} }) => {
             value={form.scheme}
             onChange={(e) => setField("scheme", e.target.value)}
             width="100%"
+            required
           />
         </HBox>
 

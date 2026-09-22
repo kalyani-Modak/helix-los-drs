@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useIntl } from "react-intl";
 import { useLocation, useNavigate } from "react-router-dom";
-import { HAxiosService, HBox, HBreadCrumb, HButtonBar, HPaper, TitleBar, useToast } from "@helix/component-library";
+import { HAxiosService, HBox, HBreadCrumb, HButtonBar, HPaper, TitleBar, useToast, HLabel, HDropdown } from "@helix/component-library";
 import { LosQdeAPI } from "./apiEndpoints";
 import { unwrapApiResponse } from "./unwrapApiResponse";
 import { VERIFICATION_STATUS } from "./constants/qdeOptions";
@@ -164,6 +164,9 @@ const ApplicationQuickDataEntry = () => {
   const location = useLocation();
   const screenMenuId = location.state?.menuId;
   const incomingApplicationNo = location.state?.applicationNo;
+  const orgId = location.state?.orgId || "001";
+  const [applicationNo, setApplicationNo] = useState(incomingApplicationNo || "");
+  const [applicationOptions, setApplicationOptions] = useState([]);
 
   // Default: New + Individual, so only the Individual field set is visible on first render.
   const [form, setForm] = useState({
@@ -704,7 +707,7 @@ const ApplicationQuickDataEntry = () => {
       applicationNo: response.szApplicationNo || prev.applicationNo,
       applicationType: control.szApplicationType || "",
       portfolio: control.szPortfolioCode || null,
-      borrowerType: control.szBorrowerType === "NON_INDIVIDUAL" ? "Non-Individual" : "Individual",
+      borrowerType: control.szBorrowerType === "NON-INDIVIDUAL" ? "Non-Individual" : "Individual",
       customerType: control.szCustomerType === "EXISTING" ? "Existing" : "New",
       customerId: applicant.szCustomerId || "",
       applicantId: applicant.szApplicantId || "",
@@ -1378,6 +1381,66 @@ const ApplicationQuickDataEntry = () => {
     return { success: true };
   }, [resetForm, t, toast]);
 
+  // const loadApplicationOptions = useCallback(async () => {
+  //   try {
+  //     const response = await HAxiosService.GET(
+  //       LosQdeAPI.listApplications(orgId)
+  //     ).then(unwrapApiResponse);
+
+  //     const rows = Array.isArray(response)
+  //       ? response
+  //       : response?.content || response?.applications || response?.data || [];
+
+  //     const options = rows
+  //       .map((row) => {
+  //         const value =
+  //           row.applicationNo ||
+  //           row.applicationNumber ||
+  //           row.szApplicationNo ||
+  //           row.szapplicationno;
+
+  //         return value
+  //           ? {
+  //             label: String(value),
+  //             value: String(value),
+  //           }
+  //           : null;
+  //       })
+  //       .filter(Boolean);
+
+  //     if (
+  //       incomingApplicationNo &&
+  //       !options.some((option) => option.value === String(incomingApplicationNo))
+  //     ) {
+  //       options.unshift({
+  //         label: String(incomingApplicationNo),
+  //         value: String(incomingApplicationNo),
+  //       });
+  //     }
+
+  //     setApplicationOptions(options);
+
+  //     if (incomingApplicationNo) {
+  //       setApplicationNo(String(incomingApplicationNo));
+  //     } else if (options.length > 0) {
+  //       setApplicationNo(options[0].value);
+  //     }
+  //   } catch (error) {
+  //     toast.error(
+  //       error?.message ||
+  //       t(
+  //         "label.docupload.msg.loadApplicationsFailed",
+  //         "Unable to load applications"
+  //       )
+  //     );
+  //     setApplicationOptions([]);
+  //   }
+  // }, [incomingApplicationNo, orgId, t, toast]);
+
+  // useEffect(() => {
+  //   loadApplicationOptions();
+  // }, [loadApplicationOptions]);
+
   return (
     <HBox sx={{ mt: 2 }}>
       <HBreadCrumb />
@@ -1385,6 +1448,38 @@ const ApplicationQuickDataEntry = () => {
       <HBox>
         <HBox sx={{ display: "flex", flexDirection: "column", gap: 2, pb: 8 }}>
           <HPaper>
+            {/* Added temporary */}
+            {/* <HBox sx={{ display: "flex", flexDirection: "row", alignItems: "center", width: "100%", marginBottom: "12px", }} >
+              <HLabel
+                value={t(
+                  "label.docupload.field.applicationNo",
+                  "Application No."
+                )}
+                translate={false}
+                required
+                align="left"
+                colon={false}
+              />
+
+              <HDropdown
+                name="applicationNo"
+                options={applicationOptions}
+                value={applicationNo}
+                onChange={(e) => {
+                  const nextApplicationNo = e.target.value;
+                  setApplicationNo(nextApplicationNo);
+                  if (nextApplicationNo) {
+                    handleSearchApplications({
+                      applicationNo: nextApplicationNo,
+                      mobile: "",
+                      aadhaar: "",
+                    });
+                  }
+                }}
+                width="290px"
+              />
+            </HBox> */}
+
             <HBox sx={{ p: 2, width: "100%" }} data-menu-id={screenMenuId}>
               <BusinessUnitSection
                 form={form}
