@@ -11,7 +11,7 @@ import { HAxiosService, HBox, HBreadCrumb, HButton, useDrsTheme, HButtonBar, HDa
 
 import dayjs from "dayjs";
 
-import { LosDocumentAPI } from "./apiEndpoints";
+import { LosDocumentAPI, LosQdeAPI } from "./apiEndpoints";
 import { unwrapApiResponse } from "./unwrapApiResponse";
 
 /* ============================================================
@@ -261,7 +261,8 @@ const ApplicationDocumentUpload = () => {
      STATE
      ========================================================== */
 
-  const [applicationNo, setApplicationNo] = useState(incomingApplicationNo || "A1");
+  const [applicationNo, setApplicationNo] = useState(incomingApplicationNo || "");
+  const [applicationOptions, setApplicationOptions] = useState([]);
 
   const [applicantOptions, setApplicantOptions] = useState([]);
 
@@ -297,6 +298,62 @@ const ApplicationDocumentUpload = () => {
   const [deferDialog, setDeferDialog] = useState(null);
   const [validationErrors, setValidationErrors] = useState({});
   const fileInputs = useRef({});
+
+  const loadApplicationOptions = useCallback(async () => {
+    try {
+      const response = await HAxiosService.GET(
+        LosQdeAPI.listApplications(orgId)
+      ).then(unwrapApiResponse);
+
+      const rows = Array.isArray(response)
+        ? response
+        : response?.content || response?.applications || response?.data || [];
+
+      const options = rows
+        .map((row) => {
+          const value =
+            row.applicationNo ||
+            row.applicationNumber ||
+            row.szApplicationNo ||
+            row.szapplicationno;
+
+          return value
+            ? {
+              label: String(value),
+              value: String(value),
+            }
+            : null;
+        })
+        .filter(Boolean);
+
+      if (
+        incomingApplicationNo &&
+        !options.some((option) => option.value === String(incomingApplicationNo))
+      ) {
+        options.unshift({
+          label: String(incomingApplicationNo),
+          value: String(incomingApplicationNo),
+        });
+      }
+
+      setApplicationOptions(options);
+
+      if (incomingApplicationNo) {
+        setApplicationNo(String(incomingApplicationNo));
+      } else if (options.length > 0) {
+        setApplicationNo(options[0].value);
+      }
+    } catch (error) {
+      toast.error(
+        error?.message ||
+        t(
+          "label.docupload.msg.loadApplicationsFailed",
+          "Unable to load applications"
+        )
+      );
+      setApplicationOptions([]);
+    }
+  }, [incomingApplicationNo, orgId, t, toast]);
 
 
 
@@ -679,6 +736,11 @@ const ApplicationDocumentUpload = () => {
   /* ==========================================================
      INITIAL LOAD
      ========================================================== */
+
+  useEffect(() => {
+    loadApplicationOptions();
+  }, [loadApplicationOptions]);
+
   useEffect(() => {
     loadApplicantOptions();
   }, [loadApplicantOptions]);
@@ -1336,7 +1398,7 @@ const ApplicationDocumentUpload = () => {
 
   const handleSave = useCallback(
     async () => {
-      try {
+      try {        
         if (!validateHeaderFields()) {
           return {
             success: false,
@@ -1349,7 +1411,7 @@ const ApplicationDocumentUpload = () => {
           };
         }
 
-        const appNo = applicationNo || incomingApplicationNo || `APP-${Date.now()}`;
+        const appNo = applicationNo || incomingApplicationNo;
 
         if (!applicationNo) {
           setApplicationNo(appNo);
@@ -1366,10 +1428,10 @@ const ApplicationDocumentUpload = () => {
         );
 
         if (currentItems.length === 0) {
+
+           toast.error(t("label.docupload.msg.notchanged","No data changed to save"));
           return { success: true };
         }
-
-        console.log("current items = ", currentItems);
 
         const requestPayload = currentItems.map((item) => ({
           /*
@@ -1645,15 +1707,6 @@ const ApplicationDocumentUpload = () => {
          */
         const formData = new FormData();
 
-        /*
-         * JSON part
-         *
-         * Backend:
-         * @RequestPart("request")
-         * ArrayList<DocumentUploadItemRequestDto>
-         *
-         * Blob content type = application/json
-         */
         formData.append(
           "request",
           new Blob(
@@ -1664,14 +1717,6 @@ const ApplicationDocumentUpload = () => {
           )
         );
 
-        /*
-         * ==================================================
-         * ADD FILES
-         *
-         * file_1001 → PDF 1
-         * file_1002 → PDF 2
-         * ==================================================
-         */
         currentItems.forEach((item) => {
           if (item.selectedFile) {
             formData.append(
@@ -1682,17 +1727,7 @@ const ApplicationDocumentUpload = () => {
           }
         });
 
-        /*
-         * ==================================================
-         * BACKEND UPLOAD CALL
-         *
-         * POST /documents/upload
-         *
-         * NO Idempotency-Key HEADER
-         *
-         * Backend generates it internally.
-         * ==================================================
-         */
+      
         const saved = unwrapApiResponse(
           await HAxiosService.POST(
             LosDocumentAPI.LosDocumentAPI(
@@ -1859,6 +1894,42 @@ const ApplicationDocumentUpload = () => {
         <HBox sx={{ width: "100%", padding:"0.5rem 1rem 0 1rem" }}>
 
           <HPaper>
+            <HBox
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+              
+                width: "100%",
+                marginBottom: "12px",
+              }}
+            >
+              <HLabel
+                value={t(
+                  "label.docupload.field.applicationNo",
+                  "Application No."
+                )}
+                translate={false}
+                required
+                align="left"
+                colon={false}
+              />
+
+              <HDropdown
+                name="applicationNo"
+                options={applicationOptions}
+                value={applicationNo}
+                onChange={(e) => {
+                  const nextApplicationNo = e.target.value;
+                  setFamilies([]);
+                  setApplicantOptions([]);
+                  setApplicableFor("");
+                  setCustomerType("");
+                  setApplicationNo(nextApplicationNo);
+                }}
+                width="290px"
+              />
+            </HBox>
 
             {/* ==================================================
               TOP FILTER BAR
@@ -2672,6 +2743,7 @@ const ApplicationDocumentUpload = () => {
                       status: STATUS.DEFERRED,
 
                       szstagedue: deferDialog.stage,
+                      deferralStage: deferDialog.stage,
 
                       deferralDate: deferDialog.date,
 
