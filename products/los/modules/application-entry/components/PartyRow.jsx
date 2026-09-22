@@ -1,14 +1,5 @@
 import { cloneElement, useEffect, useState } from "react";
-import {
-  HButton,
-  HCheckBox,
-  HDatePicker,
-  HDropdown,
-  HLabel,
-  HRadio,
-  HTextField,
-  HBox,
-} from "@helix/component-library";
+import { HButton, HCheckBox, HDatePicker, HDropdown, HLabel, HRadio, HTextField, HBox } from "@helix/component-library";
 import { BORROWER_CATEGORIES, ENTITY_TYPES, GENDERS } from "../constants/qdeOptions";
 import { fromPickerValue, toPickerValue } from "../dateHelpers";
 import AddressDetailsSection from "../sections/AddressDetailsSection";
@@ -66,6 +57,20 @@ const PartyRow = ({
       })
   );
 
+  const clearParty = () => {
+    Object.entries(party).forEach(([name, value]) => {
+      if (name === "id" || name === "customerType") return;
+
+      const clearedValue = typeof value === "boolean"
+        ? false
+        : Array.isArray(value)
+          ? []
+          : "";
+
+      field(name, clearedValue);
+    });
+  };
+
   return (
     <SectionBlock sectionKey={`party-${party.id}`} titleKey="" noAccordion>
       <HBox sx={{ display: "flex", justifyContent: "space-between", width: "100%", mb: 1 }}>
@@ -103,20 +108,20 @@ const PartyRow = ({
                   width="100%"
                 />
                 <HButton label="label.qde.button.search" variant="outlined" size="small" inline sx={{mt:1}} onClick={() => setCustomerSearchOpen(true)} />
-                <HButton label="label.qde.button.clear" variant="outlined" size="small" inline sx={{mt:1}} onClick={() => field("customerId", "")} />
+                <HButton label="label.qde.button.clear" variant="outlined" size="small" inline sx={{mt:1}} onClick={clearParty} />
               </HBox>
             </PartyField>
 
             {/* Search Records — pop search that opens "Search Existing Customer" */}
             <PartyField label="label.qde.field.searchRecords" sx={{ gridColumn: "3" }}>
-              <HBox sx={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 1 }}>
+              <HBox sx={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 1, mt: 1 }}>
                 <HTextField
                   value={party.customerSearch || ""}
                   editable={false}
                   placeholder="Open search popup..."
                   width="100%"
                 />
-                <HButton label="label.qde.button.search" variant="outlined" size="small" sx={{mt:1}} inline onClick={() => setCustomerSearchOpen(true)} />
+                {/* <HButton label="label.qde.button.search" variant="outlined" size="small" sx={{mt:1}} inline onClick={() => setCustomerSearchOpen(true)} /> */}
               </HBox>
             </PartyField>
           </>
