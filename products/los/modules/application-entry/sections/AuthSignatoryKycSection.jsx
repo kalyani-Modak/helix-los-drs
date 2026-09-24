@@ -17,7 +17,7 @@ const AuthSignatoryKycSection = ({
   const err = (name) => errors[name];
 
   return (
-    <SectionBlock sectionKey="authSignatoryKyc" titleKey="label.qde.section.authSignatoryKyc" noAccordion={noAccordion}>
+    <SectionBlock sectionKey="authSignatoryKyc" titleKey="label.qde.section.authSignatoryKyc" subTitleKey="label.qde.section.authSignatoryKyc.subtitle" noAccordion={noAccordion}>
       <KycVerifyRow
         labelKey="label.qde.field.pan"
         value={form.asPan}

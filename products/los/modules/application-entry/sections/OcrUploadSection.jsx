@@ -1,9 +1,10 @@
 import { HBox, HDropdown, HLabel } from "@helix/component-library";
 import SectionBlock from "../components/SectionBlock";
 import { OCR_DOC_TYPES } from "../constants/qdeOptions";
+import CropFreeOutlinedIcon from "@mui/icons-material/CropFreeOutlined";
 
 const OcrUploadSection = ({ form, setField, onFileSelect, ocrFileName, ocrStatusKey }) => (
-  <SectionBlock sectionKey="ocrUpload" titleKey="label.qde.section.ocr">
+  <SectionBlock sectionKey="ocrUpload" titleKey="label.qde.section.ocr" subTitleKey="label.qde.section.ocr.subtitle" icon={<CropFreeOutlinedIcon fontSize="small" />}>
     <HBox sx={{ width: "100%", display: "flex", flexDirection: "row", flexWrap: "nowrap" }}>
       <HBox sx={{ width: "30%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0 }}>
         <HLabel value="label.qde.field.docType" align="left" colon={false} />

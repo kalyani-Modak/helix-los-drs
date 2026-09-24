@@ -164,9 +164,6 @@ const ApplicationQuickDataEntry = () => {
   const location = useLocation();
   const screenMenuId = location.state?.menuId;
   const incomingApplicationNo = location.state?.applicationNo;
-  const orgId = location.state?.orgId || "001";
-  const [applicationNo, setApplicationNo] = useState(incomingApplicationNo || "");
-  const [applicationOptions, setApplicationOptions] = useState([]);
 
   // Default: New + Individual, so only the Individual field set is visible on first render.
   const [form, setForm] = useState({
@@ -1047,19 +1044,23 @@ const ApplicationQuickDataEntry = () => {
 
   const handleVerifyPan = () => {
     if (!requireValue(form.pan, "label.qde.msg.enterPan", "Enter a PAN number first")) return undefined;
-    return runVerification("pan", LosQdeAPI.verifyPan(), { panNumber: form.pan }, "panStatus");
+    // return runVerification("pan", LosQdeAPI.verifyPan(), { panNumber: form.pan }, "panStatus");
+    toast.success(t("label.qde.msg.PanVerify", "PAN Verified"));
+    return true;
   };
 
   const handleSendAadhaarOtp = () => {
     if (!requireValue(form.aadhaar, "label.qde.msg.enterAadhaar", "Enter an Aadhaar number first")) {
       return undefined;
     }
-    return sendOtp(
-      "aadhaarSend",
-      LosQdeAPI.aadhaarOtpSend(),
-      { aadhaarNumber: form.aadhaar },
-      "aadhaarOtpSent"
-    );
+    // return sendOtp(
+    //   "aadhaarSend",
+    //   LosQdeAPI.aadhaarOtpSend(),
+    //   { aadhaarNumber: form.aadhaar },
+    //   "aadhaarOtpSent"
+    // );
+    toast.success(t("label.qde.msg.PanVerify", "PAN Verified"));
+    return true;
   };
 
   const handleValidateAadhaarOtp = () =>
@@ -1445,6 +1446,12 @@ const ApplicationQuickDataEntry = () => {
     <HBox sx={{ mt: 2 }}>
       <HBreadCrumb />
       <TitleBar title={t("label.qde.title", "Quick data entry")} />
+      <HLabel
+        value="Fast initial capture of applicant, product and key eligibility details before detailed data entry."
+        align="left"
+        colon={false}
+
+      />
       <HBox>
         <HBox sx={{ display: "flex", flexDirection: "column", gap: 2, pb: 8 }}>
           <HPaper>

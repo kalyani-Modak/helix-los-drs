@@ -1,6 +1,7 @@
 import { HBox, HDropdown, HLabel, HTextField } from "@helix/component-library";
 import SectionBlock from "../components/SectionBlock";
 import { BRANCHES, CHANNELS } from "../constants/qdeOptions";
+import AccountTreeOutlinedIcon from "@mui/icons-material/AccountTreeOutlined";
 
 const SourcingDetailsSection = ({ form, setField, errors = {} }) => {
   const isDsa = form.channel === "DSA";
@@ -9,7 +10,7 @@ const SourcingDetailsSection = ({ form, setField, errors = {} }) => {
   const err = (name) => errors[name];
 
   return (
-    <SectionBlock sectionKey="sourcing" titleKey="label.qde.section.sourcing">
+    <SectionBlock sectionKey="sourcing" titleKey="label.qde.section.sourcing" subTitleKey="label.qde.section.sourcing.subtitle" icon={<AccountTreeOutlinedIcon fontSize="small" />}>
       <HBox sx={{ width: "100%", display: "flex", flexDirection: "row", flexWrap: "wrap" }}>
         <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
           <HLabel value="label.qde.field.channel" required align="left" colon={false} />
@@ -21,6 +22,7 @@ const SourcingDetailsSection = ({ form, setField, errors = {} }) => {
             required
             error={Boolean(err("channel"))}
             width="100%"
+            placeholder="Select channel"
           />
         </HBox>
 
@@ -34,6 +36,7 @@ const SourcingDetailsSection = ({ form, setField, errors = {} }) => {
             required
             error={Boolean(err("sourcingBranch"))}
             width="100%"
+            placeholder="Select branch"
           />
         </HBox>
 
@@ -47,6 +50,7 @@ const SourcingDetailsSection = ({ form, setField, errors = {} }) => {
             required
             error={Boolean(err("servicingBranch"))}
             width="100%"
+            placeholder="Select branch"
           />
         </HBox>
 
@@ -57,10 +61,10 @@ const SourcingDetailsSection = ({ form, setField, errors = {} }) => {
               <HTextField
                 value={form.dsaName}
                 onChange={(e) => setField("dsaName", e.target.value)}
-                editable
                 required
                 error={Boolean(err("dsaName"))}
                 width="100%"
+                placeholder="salesofficer"
               />
             </HBox>
 
@@ -69,10 +73,10 @@ const SourcingDetailsSection = ({ form, setField, errors = {} }) => {
               <HTextField
                 value={form.dsaCode}
                 onChange={(e) => setField("dsaCode", e.target.value)}
-                editable
                 required
                 error={Boolean(err("dsaCode"))}
                 width="100%"
+                placeholder="EMP-9AE607"
               />
             </HBox>
 
@@ -81,10 +85,10 @@ const SourcingDetailsSection = ({ form, setField, errors = {} }) => {
               <HTextField
                 value={form.dsaMobile}
                 onChange={(e) => setField("dsaMobile", e.target.value)}
-                editable
                 type="phone"
                 length={10}
                 width="100%"
+                placeholder="9876543210"
               />
             </HBox>
 
@@ -93,8 +97,8 @@ const SourcingDetailsSection = ({ form, setField, errors = {} }) => {
               <HTextField
                 value={form.dsaEmail}
                 onChange={(e) => setField("dsaEmail", e.target.value)}
-                editable
                 width="100%"
+                placeholder="salesofficer@gmail.com"
               />
             </HBox>
           </>
@@ -107,11 +111,11 @@ const SourcingDetailsSection = ({ form, setField, errors = {} }) => {
               <HTextField
                 value={form.rmName}
                 onChange={(e) => setField("rmName", e.target.value)}
-                editable
                 required
                 type="name"
                 error={Boolean(err("rmName"))}
                 width="100%"
+                placeholder="salesofficer"
               />
             </HBox>
 
@@ -120,10 +124,10 @@ const SourcingDetailsSection = ({ form, setField, errors = {} }) => {
               <HTextField
                 value={form.rmCode}
                 onChange={(e) => setField("rmCode", e.target.value)}
-                editable
                 required
                 error={Boolean(err("rmCode"))}
                 width="100%"
+                placeholder="EMP-9AE607"
               />
             </HBox>
           </>
@@ -140,6 +144,7 @@ const SourcingDetailsSection = ({ form, setField, errors = {} }) => {
                 type="name"
                 error={Boolean(err("dealerName"))}
                 width="100%"
+                placeholder="Search dealer"
               />
             </HBox>
 

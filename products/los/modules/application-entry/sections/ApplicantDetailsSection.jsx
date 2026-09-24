@@ -3,6 +3,7 @@ import SectionBlock from "../components/SectionBlock";
 import { BORROWER_CATEGORIES, ENTITY_TYPES, GENDERS } from "../constants/qdeOptions";
 import { fromPickerValue, toPickerValue } from "../dateHelpers";
 import { useIntl } from "react-intl";
+import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
 
 const VerifiedFlag = ({ verified }) => (
   <HLabel
@@ -25,7 +26,11 @@ const ApplicantDetailsSection = ({
   const err = (name) => errors[name];
 
   return (
-    <SectionBlock sectionKey="applicant" titleKey="label.qde.section.applicant">
+    <SectionBlock sectionKey="applicant" 
+    titleKey={isNonIndividual ? "label.qde.section.applicant.nonIndividual" : "label.qde.section.applicant.individual"} 
+    subTitleKey= "label.qde.section.applicant.subtitle" 
+    icon={<PersonOutlineOutlinedIcon fontSize="small" />}
+    >
       <HBox sx={{ width: "100%", display: "flex", flexDirection: "row", flexWrap: "wrap" }}>
         {isNonIndividual ? (
           <>

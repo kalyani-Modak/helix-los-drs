@@ -4,13 +4,18 @@ import { Search as SearchIcon } from "@mui/icons-material";
 import SectionBlock from "../components/SectionBlock";
 import { APPLICATION_TYPES, PORTFOLIOS } from "../constants/qdeOptions";
 import { useIntl } from "react-intl";
+import BusinessCenterOutlinedIcon from "@mui/icons-material/BusinessCenterOutlined";
 
 const BusinessUnitSection = ({ form, setField, errors = {}, onOpenApplicationSearch, onClearApplicationNo }) => {
   const intl = useIntl();
   const err = (name) => errors[name];
 
   return (
-    <SectionBlock sectionKey="businessUnit" titleKey="label.qde.section.businessUnit" >
+    <SectionBlock sectionKey="businessUnit"
+      titleKey="label.qde.section.businessUnit"
+      subTitleKey="label.qde.section.businessUnit.subtitle"
+      icon={<BusinessCenterOutlinedIcon fontSize="small" />}>
+        
       <HBox sx={{ width: "100%", display: "flex", flexDirection: "row", gap: 0.5 }}>
         {/* Application Type */}
         <HBox
@@ -62,6 +67,7 @@ const BusinessUnitSection = ({ form, setField, errors = {}, onOpenApplicationSea
             error={Boolean(err("portfolio"))}
             width="100%"
           />
+          <HLabel value="label.qde.field.portfolioSubtitle" align="left" colon={false} />
         </HBox>
 
         {/* Borrower Type */}

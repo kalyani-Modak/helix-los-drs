@@ -1,7 +1,38 @@
 import { HButton, HLabel, HTextField, HBox } from "@helix/component-library";
 import KycVerifyRow from "../components/KycVerifyRow";
 import SectionBlock from "../components/SectionBlock";
-import { statusLabelKey } from "../constants/qdeOptions";
+import VerifiedUserOutlinedIcon from "@mui/icons-material/VerifiedUserOutlined";
+
+const KycStatusLabel = ({ status }) => {
+  const statusConfig = {
+    PENDING: {
+      label: "Pending",
+      color: "text.secondary",
+    },
+    VERIFIED: {
+      label: "Verified",
+      color: "success.main",
+    },
+    FAILED: {
+      label: "Failed",
+      color: "error.main",
+    },
+  };
+
+  const currentStatus = statusConfig[status] || statusConfig.PENDING;
+
+  return (
+    <HLabel
+      value={currentStatus.label}
+      align="left"
+      colon={false}
+      sx={{
+        color: currentStatus.color,
+        fontWeight: 600,
+      }}
+    />
+  );
+};
 
 const KycOtpRow = ({
   labelKey,
@@ -78,11 +109,7 @@ const KycOtpRow = ({
     />
 
     {/* Status */}
-    <HLabel
-      value={statusLabelKey(status)}
-      align="left"
-      colon={false}
-    />
+    <KycStatusLabel status={status} />
   </HBox>
 );
 
@@ -108,6 +135,7 @@ const IndividualKyc = ({
       error={Boolean(errors.pan)}
       maxLength={10}
       placeholder="ABCDE1234F"
+      KycStatusLabel={KycStatusLabel}
     />
 
     {/* Aadhaar + OTP - SAME ROW */}
@@ -150,11 +178,7 @@ const IndividualKyc = ({
           onClick={handlers.onCheckPanAadhaarLink}
         />
 
-        <HLabel
-          value={statusLabelKey(form.panAadhaarLinked)}
-          align="left"
-          colon={false}
-        />
+        <KycStatusLabel status={status} />
       </HBox>
     </HBox>
 
@@ -206,11 +230,7 @@ const IndividualKyc = ({
           onClick={handlers.onDigilocker}
         />
 
-        <HLabel
-          value={statusLabelKey(form.digiStatus)}
-          align="left"
-          colon={false}
-        />
+        <KycStatusLabel status={status} />
       </HBox>
     </HBox>
   </>
@@ -323,7 +343,9 @@ const KycCheckSection = ({
 }) => (
   <SectionBlock
     sectionKey={sectionKey}
-    titleKey="label.qde.section.kyc"
+    titleKey={isNonIndividual ? "label.qde.section.kyc.nonIndividual" : "label.qde.section.kyc.individual"}
+    subTitleKey={isNonIndividual ? "label.qde.section.kyc.nonIndividual.subtitle" : "label.qde.section.kyc.individual.subtitle"}
+    icon={<VerifiedUserOutlinedIcon fontSize="small" />}
     noAccordion={compact}
   >
     {isNonIndividual ? (

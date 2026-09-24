@@ -1,7 +1,4 @@
 import { HButton, HLabel, HTextField, HBox } from "@helix/component-library";
-import { statusLabelKey } from "../constants/qdeOptions";
-
-const DEFAULT_SIZE = { xs: 12, sm: 6, md: 4 };
 
 const KycVerifyRow = ({
   labelKey,
@@ -16,7 +13,7 @@ const KycVerifyRow = ({
   disabled = false,
   error = false,
   buttonLabelKey = "label.qde.button.verify",
-  size = DEFAULT_SIZE,
+  KycStatusLabel = () => null,
 }) => (
   <HBox
     sx={{
@@ -71,11 +68,7 @@ const KycVerifyRow = ({
     />
 
     {/* Status */}
-    <HLabel
-      value={statusLabelKey(status)}
-      align="left"
-      colon={false}
-    />
+    <KycStatusLabel status={status} />
   </HBox>
 );
 

@@ -1,6 +1,7 @@
 import { HDropdown, HTextField, HBox, HLabel } from "@helix/component-library";
 import SectionBlock from "../components/SectionBlock";
 import { ADDRESS_TYPES_INDIVIDUAL, ADDRESS_TYPES_NON_INDIVIDUAL } from "../constants/qdeOptions";
+import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
 
 const AddressDetailsSection = ({ form, setField, isNonIndividual, noAccordion, errors = {}, readOnly = false }) => {
   const addressTypes = isNonIndividual ? ADDRESS_TYPES_NON_INDIVIDUAL : ADDRESS_TYPES_INDIVIDUAL;
@@ -11,7 +12,7 @@ const AddressDetailsSection = ({ form, setField, isNonIndividual, noAccordion, e
   };
 
   return (
-    <SectionBlock sectionKey="address" titleKey="label.qde.section.address" noAccordion={noAccordion} >
+    <SectionBlock sectionKey="address" titleKey="label.qde.section.address" subTitleKey="label.qde.section.address.subtitle" icon={<LocationOnOutlinedIcon fontSize="small" />} noAccordion={noAccordion} >
       <HBox sx={{ width: "100%", display: "flex", flexDirection: "row", flexWrap: "wrap" }}>
         <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
           <HLabel value="label.qde.field.addressType" required align="left" colon={false} />
@@ -89,7 +90,9 @@ const AddressDetailsSection = ({ form, setField, isNonIndividual, noAccordion, e
             length={6}
             error={Boolean(err("pincode"))}
             width="100%"
+            placeholder="e.g. 560001"
           />
+          <HLabel value="label.qde.field.pincodeSubtitle" required align="left" colon={false} sx={{ mt: 1.5 }} />
         </HBox>
 
         <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
@@ -100,6 +103,7 @@ const AddressDetailsSection = ({ form, setField, isNonIndividual, noAccordion, e
             editable={!readOnly}
             disabled={readOnly}
             width="100%"
+            placeholder="Select city"
           />
         </HBox>
 
@@ -111,6 +115,7 @@ const AddressDetailsSection = ({ form, setField, isNonIndividual, noAccordion, e
             editable={!readOnly}
             disabled={readOnly}
             width="100%"
+            placeholder="Select district"
           />
         </HBox>
 
@@ -122,6 +127,7 @@ const AddressDetailsSection = ({ form, setField, isNonIndividual, noAccordion, e
             editable={!readOnly}
             disabled={readOnly}
             width="100%"
+            placeholder="Select state"
           />
         </HBox>
 
@@ -133,6 +139,7 @@ const AddressDetailsSection = ({ form, setField, isNonIndividual, noAccordion, e
             editable={!readOnly}
             disabled={readOnly}
             width="100%"
+            placeholder="Select country"
           />
         </HBox>
       </HBox>

@@ -1,7 +1,6 @@
-import React, { useEffect, useState } from "react";
-import { Box } from "@mui/material";
+import { useEffect, useState } from "react";
 import { useIntl } from "react-intl";
-import { HButton, HDialog, HLabel, HTextField } from "@helix/component-library";
+import { HBox, HButton, HDialog, HLabel, HTextField } from "@helix/component-library";
 
 /**
  * Shared OTP challenge dialog. The caller owns the send step and supplies
@@ -37,7 +36,7 @@ const OtpVerifyDialog = ({ open, onClose, onValidate, channel, target, loading =
       fullWidth
       aria-labelledby="qde-otp-dialog-title"
       actions={
-        <Box sx={{ display: "flex", gap: 1 }}>
+        <HBox sx={{ display: "flex", gap: 1 }}>
           <HButton label="label.qde.button.cancel" variant="outlined" inline onClick={onClose} />
           <HButton
             label="label.qde.button.validateOtp"
@@ -47,12 +46,12 @@ const OtpVerifyDialog = ({ open, onClose, onValidate, channel, target, loading =
             disabled={!otp}
             onClick={() => onValidate?.(otp)}
           />
-        </Box>
+        </HBox>
       }
     >
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 1.5, px: 1 }}>
+      <HBox sx={{ display: "flex", flexDirection: "column", gap: 1.5, px: 1 }}>
         <HLabel value={sentToText} translate={false} align="left" colon={false} />
-        <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+        <HBox sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
           <HLabel value="label.qde.field.otp" required align="left" colon={false} />
           <HTextField
             value={otp}
@@ -63,8 +62,8 @@ const OtpVerifyDialog = ({ open, onClose, onValidate, channel, target, loading =
             length={6}
             width="160px"
           />
-        </Box>
-      </Box>
+        </HBox>
+      </HBox>
     </HDialog>
   );
 };

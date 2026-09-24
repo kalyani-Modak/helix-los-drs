@@ -3,6 +3,7 @@ import { useIntl } from "react-intl";
 import { HButton, HLabel } from "@helix/component-library";
 import PartyRow from "../components/PartyRow";
 import SectionBlock from "../components/SectionBlock";
+import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
 
 const GuarantorSection = ({ items = [], onAdd, onRemove, onChange, errors = {}, primaryBorrowerType, kycHandlers, primaryAddress, onSearchCustomer }) => {
   const intl = useIntl();
@@ -12,7 +13,7 @@ const GuarantorSection = ({ items = [], onAdd, onRemove, onChange, errors = {}, 
   });
 
   return (
-    <SectionBlock sectionKey="guarantors" titleKey="label.qde.section.guarantor">
+    <SectionBlock sectionKey="guarantors" titleKey="label.qde.section.guarantor" subTitleKey="label.qde.section.guarantor.subtitle" icon={<PersonOutlineOutlinedIcon fontSize="small" />}>
       <Grid size={12}>
         <HButton label="label.qde.button.addGuarantor" variant="outlined" size="small" inline onClick={onAdd} />
       </Grid>
