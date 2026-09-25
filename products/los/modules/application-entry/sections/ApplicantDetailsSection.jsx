@@ -289,9 +289,9 @@ const ApplicantDetailsSection = ({
                 type="phone"
                 length={10}
                 error={Boolean(err("mobile"))}
-                width="160px"
+                width="85%"
               />
-              <HButton
+              {/* <HButton
                 label="label.qde.button.verify"
                 variant="outlined"
                 size="small"
@@ -299,7 +299,7 @@ const ApplicantDetailsSection = ({
                 loading={verifyingMobile}
                 disabled={!form.mobile}
                 onClick={onVerifyMobile}
-              />
+              /> */}
             </HBox>
             <VerifiedFlag verified={form.mobileVerified} />
           </HBox>
@@ -311,7 +311,6 @@ const ApplicantDetailsSection = ({
               id: "label.qde.field.email",
               defaultMessage: "Email"
             })}
-            required
             align="left"
             colon={false}
           />

@@ -1,4 +1,4 @@
-import { HDropdown, HTextField, HBox, HLabel } from "@helix/component-library";
+import { HDropdown, HTextField, HBox, HLabel, useToast } from "@helix/component-library";
 import SectionBlock from "../components/SectionBlock";
 import { ADDRESS_TYPES_INDIVIDUAL, ADDRESS_TYPES_NON_INDIVIDUAL } from "../constants/qdeOptions";
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
@@ -6,10 +6,59 @@ import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
 const AddressDetailsSection = ({ form, setField, isNonIndividual, noAccordion, errors = {}, readOnly = false }) => {
   const addressTypes = isNonIndividual ? ADDRESS_TYPES_NON_INDIVIDUAL : ADDRESS_TYPES_INDIVIDUAL;
   const err = (name) => errors[name];
+  const toast = useToast();
 
   const handlePincodeChange = (e) => {
-    setField("pincode", e.target.value);
+  const value = e.target.value.replace(/\D/g, "").slice(0, 6);
+
+    setField("pincode", value);
+
+    if (value === "560001") {
+      setField("city", "Pune");
+      setField("district", "Pune");
+      setField("state", "Maharashtra");
+      setField("country", "India");
+
+      toast.success("PIN 560001 found. Location details populated.");
+    } else if (value.length === 6) {
+      setField("city", "");
+      setField("district", "");
+      setField("state", "");
+      setField("country", "");
+
+      toast.warning(
+        `PIN ${value} not found in master. Please enter City / District / State manually.`
+      );
+    }
   };
+
+  const cityOptions = [
+    { label: "Mumbai", value: "Mumbai" },
+    { label: "Pune", value: "Pune" },
+    { label: "Nashik", value: "Nashik" },
+    { label: "Nagpur", value: "Nagpur" },
+  ];
+
+  const districtOptions = [
+    { label: "Mumbai Suburban", value: "Mumbai Suburban" },
+    { label: "Pune", value: "Pune" },
+    { label: "Thane", value: "Thane" },
+    { label: "Nashik", value: "Nashik" },
+  ];
+
+  const stateOptions = [
+    { label: "Maharashtra", value: "Maharashtra" },
+    { label: "Gujarat", value: "Gujarat" },
+    { label: "Karnataka", value: "Karnataka" },
+    { label: "Delhi", value: "Delhi" },
+  ];
+
+  const countryOptions = [
+    { label: "India", value: "India" },
+    { label: "United States", value: "United States" },
+    { label: "United Kingdom", value: "United Kingdom" },
+    { label: "Australia", value: "Australia" },
+  ];
 
   return (
     <SectionBlock sectionKey="address" titleKey="label.qde.section.address" subTitleKey="label.qde.section.address.subtitle" icon={<LocationOnOutlinedIcon fontSize="small" />} noAccordion={noAccordion} >
@@ -78,29 +127,47 @@ const AddressDetailsSection = ({ form, setField, isNonIndividual, noAccordion, e
         </HBox>
 
         <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
-          <HLabel value="label.qde.field.pincode" required align="left" colon={false} />
+          <HLabel
+            value="label.qde.field.pincode"
+            required
+            align="left"
+            colon={false}
+          />
+
           <HTextField
-            value={form.pincode}
+            value={form.pincode || ""}
             onChange={handlePincodeChange}
-            //onBlur={() => form.pincode && onPincodeLookup?.(form.pincode)}
             editable={!readOnly}
             disabled={readOnly}
             required
-            type="number"
-            length={6}
-            error={Boolean(err("pincode"))}
             width="100%"
-            placeholder="e.g. 560001"
+            placeholder="560001"
           />
-          <HLabel value="label.qde.field.pincodeSubtitle" required align="left" colon={false} sx={{ mt: 1.5 }} />
+
+          {form.pincode && form.pincode.length < 6 ? (
+            <HLabel
+              value="Postal code must be 6 digits"
+              align="left"
+              colon={false}
+              sx={{ color: "error.main", mt: 1 }}
+            />
+          ) : (
+            <HLabel
+              value="Indian 6-digit PIN — auto-populates City, District, State, Country."
+              align="left"
+              colon={false}
+              sx={{ mt: 1}}
+            />
+          )}
         </HBox>
 
         <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
           <HLabel value="label.qde.field.city" align="left" colon={false} sx={{ mt: 1 }} />
-          <HTextField
+          <HDropdown
+            name="city"
+            options={cityOptions}
             value={form.city}
             onChange={(e) => setField("city", e.target.value)}
-            editable={!readOnly}
             disabled={readOnly}
             width="100%"
             placeholder="Select city"
@@ -109,10 +176,11 @@ const AddressDetailsSection = ({ form, setField, isNonIndividual, noAccordion, e
 
         <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
           <HLabel value="label.qde.field.district" align="left" colon={false} sx={{ mt: 1 }} />
-          <HTextField
+          <HDropdown
+            name="district"
+            options={districtOptions}
             value={form.district}
             onChange={(e) => setField("district", e.target.value)}
-            editable={!readOnly}
             disabled={readOnly}
             width="100%"
             placeholder="Select district"
@@ -121,10 +189,11 @@ const AddressDetailsSection = ({ form, setField, isNonIndividual, noAccordion, e
 
         <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
           <HLabel value="label.qde.field.state" align="left" colon={false} sx={{ mt: 1 }} />
-          <HTextField
+          <HDropdown
+            name="state"
+            options={stateOptions}
             value={form.state}
             onChange={(e) => setField("state", e.target.value)}
-            editable={!readOnly}
             disabled={readOnly}
             width="100%"
             placeholder="Select state"
@@ -133,10 +202,11 @@ const AddressDetailsSection = ({ form, setField, isNonIndividual, noAccordion, e
 
         <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
           <HLabel value="label.qde.field.country" align="left" colon={false} sx={{ mt: 1 }} />
-          <HTextField
+          <HDropdown
+            name="country"
+            options={countryOptions}
             value={form.country}
             onChange={(e) => setField("country", e.target.value)}
-            editable={!readOnly}
             disabled={readOnly}
             width="100%"
             placeholder="Select country"

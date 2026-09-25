@@ -1,4 +1,5 @@
 import { HButton, HLabel, HTextField, HBox } from "@helix/component-library";
+import VerifiedUserOutlinedIcon from "@mui/icons-material/VerifiedUserOutlined";
 
 const KycVerifyRow = ({
   labelKey,
@@ -13,25 +14,12 @@ const KycVerifyRow = ({
   disabled = false,
   error = false,
   buttonLabelKey = "label.qde.button.verify",
+  isTriggerButton = false,
   KycStatusLabel = () => null,
 }) => (
-  <HBox
-    sx={{
-      display: "grid",
-      gridTemplateColumns: "280px 330px 1fr 130px 80px",
-      alignItems: "center",
-      columnGap: 1,
-      width: "100%",
-      mb: 0.2,
-    }}
-  >
+  <HBox sx={{ display: "grid", gridTemplateColumns: "280px 330px 1fr 130px 80px", alignItems: "center", columnGap: 1, width: "100%", mb: 0.2 }}>
     {/* Label */}
-    <HBox
-      sx={{
-        width: "280px",
-        minWidth: "280px",
-      }}
-    >
+    <HBox sx={{ width: "280px", minWidth: "280px",}}>
       <HLabel
         value={labelKey}
         required={required}
@@ -39,6 +27,19 @@ const KycVerifyRow = ({
         colon={false}
       />
     </HBox>
+
+    {/* Trigger button */}
+    {isTriggerButton && (
+    <HButton
+      label="label.qde.button.trigger"
+      variant="outlined"
+      size="small"
+      inline
+      loading={verifying}
+      disabled={disabled || !value}
+      onClick={onVerify}
+    />
+    )}
 
     {/* Input */}
     <HTextField
@@ -64,6 +65,7 @@ const KycVerifyRow = ({
       inline
       loading={verifying}
       disabled={disabled || !value}
+      startIcon={<VerifiedUserOutlinedIcon fontSize="small" />}
       onClick={onVerify}
     />
 

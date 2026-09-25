@@ -36,7 +36,7 @@ const OcrUploadSection = ({ form, setField, onFileSelect, ocrFileName, ocrStatus
       <HBox sx={{ width: "30%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0 }}>
         <HLabel value="label.qde.field.ocrStatus" align="left" colon={false} />
         <HLabel
-          value={ocrStatusKey || "label.qde.status.notStarted"}
+          value={ocrStatusKey || "label.qde.status.pending"}
           align="left"
           colon={false}
         />

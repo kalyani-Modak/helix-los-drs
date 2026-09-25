@@ -165,6 +165,9 @@ const ApplicationQuickDataEntry = () => {
   const screenMenuId = location.state?.menuId;
   const incomingApplicationNo = location.state?.applicationNo;
 
+  const [aadhaarOtpTimer, setAadhaarOtpTimer] = useState(0);
+  const [aadhaarOtpExpired, setAadhaarOtpExpired] = useState(false);
+
   // Default: New + Individual, so only the Individual field set is visible on first render.
   const [form, setForm] = useState({
     borrowerType: "Individual",
@@ -178,7 +181,7 @@ const ApplicationQuickDataEntry = () => {
     target: "",
   });
   const [ocrFileName, setOcrFileName] = useState("");
-  const [ocrStatusKey, setOcrStatusKey] = useState("label.qde.status.notStarted");
+  const [ocrStatusKey, setOcrStatusKey] = useState("label.qde.status.pending");
 
   // Field-level validation errors, wired down into each section that needs them.
   const [searchDialogOpen, setSearchDialogOpen] = useState(false);
@@ -1043,33 +1046,84 @@ const ApplicationQuickDataEntry = () => {
   // ---- KYC handlers (individual) -------------------------------------------
 
   const handleVerifyPan = () => {
-    if (!requireValue(form.pan, "label.qde.msg.enterPan", "Enter a PAN number first")) return undefined;
-    // return runVerification("pan", LosQdeAPI.verifyPan(), { panNumber: form.pan }, "panStatus");
+    if (!requireValue(form.pan, "label.qde.msg.enterPan", "Enter a PAN number first")) {
+      setField("panStatus", "FAILED");
+      return false;
+    }
+    const pan = form.pan.trim().toUpperCase();
+    const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
+
+    if (!panRegex.test(pan)) {
+      setField("panStatus", "FAILED");
+      toast.error(t("label.qde.msg.invalidPan", "Please enter a valid PAN number"));
+      return false;
+    }
+    setField("pan", pan);
+    setField("panStatus", "VERIFIED");
     toast.success(t("label.qde.msg.PanVerify", "PAN Verified"));
+
     return true;
   };
 
   const handleSendAadhaarOtp = () => {
-    if (!requireValue(form.aadhaar, "label.qde.msg.enterAadhaar", "Enter an Aadhaar number first")) {
-      return undefined;
+    if (!requireValue( form.aadhaar, "label.qde.msg.enterAadhaar", "Enter Aadhaar number first" )) {
+      return false;
     }
-    // return sendOtp(
-    //   "aadhaarSend",
-    //   LosQdeAPI.aadhaarOtpSend(),
-    //   { aadhaarNumber: form.aadhaar },
-    //   "aadhaarOtpSent"
-    // );
-    toast.success(t("label.qde.msg.PanVerify", "PAN Verified"));
+    const aadhaar = form.aadhaar.trim();
+    if (!/^\d{12}$/.test(aadhaar)) {
+      toast.error( t( "label.qde.msg.invalidAadhaar", "Please enter a valid 12-digit Aadhaar number" ) );
+      return false;
+    }
+    setField("aadhaarOtp", "");
+    setField("aadhaarOtpSent", true);
+    setField("aadhaarStatus", "PENDING");
+
+    setAadhaarOtpExpired(false);
+    setAadhaarOtpTimer(30);
+
+    toast.success(t("label.qde.msg.aadhaarOtpSent", "UIDAI: OTP sent to Aadhaar-registered mobile. (Demo OTP: 123456) · 30 resend(s) left"));
     return true;
   };
 
-  const handleValidateAadhaarOtp = () =>
-    runVerification(
-      "aadhaarValidate",
-      LosQdeAPI.aadhaarOtpValidate(),
-      { aadhaarNumber: form.aadhaar, otp: form.aadhaarOtp },
-      "aadhaarStatus"
+  const handleValidateAadhaarOtp = async () => {
+    if (aadhaarOtpExpired) {
+      toast.error( t("label.qde.msg.aadhaarOtpExpired", "Aadhaar OTP expired. Please resend."));
+      return false;
+    }
+
+    if (!form.aadhaarOtp) {
+      toast.error( t( "label.qde.msg.enterAadhaarOtp", "Please enter OTP"));
+      return false;
+    }
+
+    if (form.aadhaarOtp.length !== 6) {
+      toast.error( t( "label.qde.msg.invalidAadhaarOtp", "Please enter a valid 6-digit OTP"));
+      return false;
+    }
+
+    if (form.aadhaarOtp === "123456") {
+      setField("aadhaarStatus", "VERIFIED");
+
+      toast.success(
+        t(
+          "label.qde.msg.aadhaarVerified",
+          "Aadhaar verified successfully"
+        )
+      );
+      return true;
+    }
+
+    setField("aadhaarStatus", "FAILED");
+
+    toast.error(
+      t(
+        "label.qde.msg.aadhaarVerificationFailed",
+        "Invalid Aadhaar OTP"
+      )
     );
+
+    return false;
+  };
 
   const handleCheckPanAadhaarLink = () =>
     runVerification(
@@ -1441,7 +1495,7 @@ const ApplicationQuickDataEntry = () => {
   // useEffect(() => {
   //   loadApplicationOptions();
   // }, [loadApplicationOptions]);
-
+  
   return (
     <HBox sx={{ mt: 2 }}>
       <HBreadCrumb />
