@@ -19,6 +19,7 @@ import CoApplicantSection from "./sections/CoApplicantSection";
 import GuarantorSection from "./sections/GuarantorSection";
 import LoanDetailsSection from "./sections/LoanDetailsSection";
 import SourcingDetailsSection from "./sections/SourcingDetailsSection";
+import QdeProgressBar from "./components/QdeProgressBar";
 
 const { VERIFIED, FAILED } = VERIFICATION_STATUS;
 const isPassed = (data) => data?.verified !== false && data?.matched !== false;
@@ -164,6 +165,7 @@ const ApplicationQuickDataEntry = () => {
   const location = useLocation();
   const screenMenuId = location.state?.menuId;
   const incomingApplicationNo = location.state?.applicationNo;
+  const [currentProgressStep, setCurrentProgressStep] = useState(0);
 
   const [aadhaarOtpTimer, setAadhaarOtpTimer] = useState(0);
   const [aadhaarOtpExpired, setAadhaarOtpExpired] = useState(false);
@@ -197,6 +199,10 @@ const ApplicationQuickDataEntry = () => {
   const persistedDraftRef = useRef(false);
 
   const isNonIndividual = form.borrowerType === "Non-Individual";
+
+  useEffect(() => {
+  setCurrentProgressStep(0);
+}, [isNonIndividual]);
 
   // Dynamic field setter
   const setField = useCallback((name, value) => {
@@ -1538,8 +1544,8 @@ const ApplicationQuickDataEntry = () => {
         value="Fast initial capture of applicant, product and key eligibility details before detailed data entry."
         align="left"
         colon={false}
-
       />
+     
       <HBox>
         <HBox sx={{ display: "flex", flexDirection: "column", gap: 2, pb: 8 }}>
           <HPaper>
@@ -1576,13 +1582,18 @@ const ApplicationQuickDataEntry = () => {
             </HBox> */}
 
             <HBox sx={{ p: 2, width: "100%" }} data-menu-id={screenMenuId}>
-              <BusinessUnitSection
-                form={form}
-                setField={setField}
-                errors={formErrors.applicant}
-                onOpenApplicationSearch={() => setSearchDialogOpen(true)}
-                onClearApplicationNo={handleClearApplication}
+              <QdeProgressBar
+                isNonIndividual={isNonIndividual}
               />
+              <HBox id="qde-application">
+                <BusinessUnitSection
+                  form={form}
+                  setField={setField}
+                  errors={formErrors.applicant}
+                  onOpenApplicationSearch={() => setSearchDialogOpen(true)}
+                  onClearApplicationNo={handleClearApplication}
+                />
+              </HBox>
 
               <OcrUploadSection
                 form={form}
@@ -1592,6 +1603,7 @@ const ApplicationQuickDataEntry = () => {
                 ocrStatusKey={ocrStatusKey}
               />
 
+             <HBox id="qde-kyc">
               <KycCheckSection
                 form={form}
                 setField={setField}
@@ -1611,7 +1623,8 @@ const ApplicationQuickDataEntry = () => {
                 onVerifyShopAct={handleVerifyShopAct}
                 errors={formErrors.applicant}
               />
-
+              </HBox>
+              <HBox id="qde-applicant">
               <ApplicantDetailsSection
                 form={form}
                 setField={setField}
@@ -1621,7 +1634,7 @@ const ApplicationQuickDataEntry = () => {
                 onVerifyEmail={() => openOtp("email", form.email)}
                 errors={formErrors.applicant}
               />
-
+              </HBox>
               {isNonIndividual ? (
                 <>
                   <AuthSignatorySection
@@ -1632,7 +1645,8 @@ const ApplicationQuickDataEntry = () => {
                     onVerifyAsEmail={() => setField("asEmailVerified", true)}
                     errors={formErrors.applicant}
                   />
-
+                  
+                  <HBox id="qde-auth-signatory-kyc">
                   <AuthSignatoryKycSection
                     form={form}
                     setField={setField}
@@ -1643,17 +1657,19 @@ const ApplicationQuickDataEntry = () => {
                     onCheckAsPanAadhaarLink={handleCheckAsPanAadhaarLink}
                     errors={formErrors.applicant}
                   />
+                  </HBox>
                 </>
               ) : null}
-
-              <AddressDetailsSection
-                form={form}
-                setField={setField}
-                isNonIndividual={isNonIndividual}
-                // onPincodeLookup={handlePincodeLookup}
-                noAccordion={false}
-                errors={formErrors.applicant}
-              />
+              <HBox id="qde-address">
+                <AddressDetailsSection
+                  form={form}
+                  setField={setField}
+                  isNonIndividual={isNonIndividual}
+                  // onPincodeLookup={handlePincodeLookup}
+                  noAccordion={false}
+                  errors={formErrors.applicant}
+                />
+              </HBox>
 
               <CoApplicantSection
                 items={form.coApplicants || []}
@@ -1678,11 +1694,14 @@ const ApplicationQuickDataEntry = () => {
                 primaryAddress={form}
                 onSearchCustomer={handleSearchCustomer}
               />
+           
+              <HBox id="qde-loan">
+                <LoanDetailsSection form={form} setField={setField} errors={formErrors.applicant} />
+              </HBox>
 
-              <LoanDetailsSection form={form} setField={setField} errors={formErrors.applicant} />
-
-              <SourcingDetailsSection form={form} setField={setField} errors={formErrors.applicant} />
-
+              <HBox id="qde-sourcing">
+                <SourcingDetailsSection form={form} setField={setField} errors={formErrors.applicant} />
+              </HBox>
             </HBox>
           </HPaper>
         </HBox>
