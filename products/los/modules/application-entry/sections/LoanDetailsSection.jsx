@@ -1,17 +1,32 @@
-import { useState } from "react";
-import { ALIGNMENT, HDropdown, HTextField, HBox, HLabel } from "@helix/component-library";
+import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
+import { ALIGNMENT, HDropdown, HTextField, HBox, HLabel, useDrsTheme, useToast } from "@helix/component-library";
 import SectionBlock from "../components/SectionBlock";
 import { LOAN_TYPES, PRODUCTS, SCHEMES } from "../constants/qdeOptions";
 import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
 
 const LoanDetailsSection = ({ form, setField, errors = {} }) => {
   const err = (name) => errors[name];
+  const toast = useToast();
+  const { colors, text, border, action } = useDrsTheme();
   const [showSimulator, setShowSimulator] = useState(false);
+  const [rateFetched, setRateFetched] = useState(false);
 
   const [simulator, setSimulator] = useState({
     amount: form.loanAmount || "",
     rate: form.rate || "",
     months: form.tenure || "",
+  });
+
+  const [showEstimatedEmi, setShowEstimatedEmi] = useState(
+    Boolean(form.estimatedEmi)
+  );
+
+  const simulatorAnchorRef = useRef(null);
+  const closeTimerRef = useRef(null);
+  const [simulatorPosition, setSimulatorPosition] = useState({
+    top: 0,
+    left: 0,
   });
 
   const handleSimulatorChange = (field, value) => {
@@ -20,6 +35,68 @@ const LoanDetailsSection = ({ form, setField, errors = {} }) => {
       [field]: value,
     }));
   };
+
+  const updateSimulatorPosition = () => {
+  if (!simulatorAnchorRef.current) return;
+
+  const rect = simulatorAnchorRef.current.getBoundingClientRect();
+  const width = 320;
+  const gap = 6;
+
+  setSimulatorPosition({
+    top: rect.bottom + gap,
+    left: Math.max(
+      8,
+      Math.min(
+        rect.right - width,
+        window.innerWidth - width - 8
+      )
+    ),
+  });
+};
+
+const openSimulator = () => {
+  if (closeTimerRef.current) {
+    clearTimeout(closeTimerRef.current);
+  }
+
+    setSimulator({
+      amount: form.loanAmount || "",
+      rate: form.rate || "",
+      months: form.tenure || "",
+    });
+
+    updateSimulatorPosition();
+    setShowSimulator(true);
+  };
+
+  const scheduleCloseSimulator = () => {
+    closeTimerRef.current = setTimeout(() => {
+      setShowSimulator(false);
+    }, 150);
+  };
+
+  useEffect(() => {
+    if (!showSimulator) return undefined;
+
+    updateSimulatorPosition();
+
+    const handleViewportChange = () => updateSimulatorPosition();
+
+    window.addEventListener("resize", handleViewportChange);
+    window.addEventListener("scroll", handleViewportChange, true);
+
+    return () => {
+      window.removeEventListener("resize", handleViewportChange);
+      window.removeEventListener("scroll", handleViewportChange, true);
+    };
+  }, [showSimulator]);
+
+  useEffect(() => () => {
+    if (closeTimerRef.current) {
+      clearTimeout(closeTimerRef.current);
+    }
+  }, []);
 
   const calculateEmi = () => {
     const amount = Number(simulator.amount);
@@ -56,29 +133,19 @@ const LoanDetailsSection = ({ form, setField, errors = {} }) => {
     setField("loanAmount", simulator.amount);
     setField("rate", simulator.rate);
     setField("tenure", simulator.months);
+    setField("estimatedEmi", emi);
+
+    setShowEstimatedEmi(true);
     setShowSimulator(false);
   };
 
   const handleDownload = () => {
-    const data = [
-      ["Loan Amount", simulator.amount || ""],
-      ["Interest Rate", simulator.rate || ""],
-      ["Tenure", simulator.months || ""],
-      ["EMI", emi ? emi.toFixed(2) : ""],
-      ["Total Interest", totalInterest ? totalInterest.toFixed(2) : ""],
-      ["Total Payable", totalPayable ? totalPayable.toFixed(2) : ""],
-    ];
+    const fetchedRate = "12.5";
 
-    const csv = data.map((row) => row.join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-
-    const link = document.createElement("a");
-    link.href = url;
-    link.download = "loan-details.csv";
-    link.click();
-
-    URL.revokeObjectURL(url);
+    setField("rate", fetchedRate);
+    handleSimulatorChange("rate", fetchedRate);
+    setRateFetched(true);
+    toast.success("Fetched 12.5% from Pricing Master (Standard · PF 1%).");
   };
 
   return (
@@ -98,15 +165,13 @@ const LoanDetailsSection = ({ form, setField, errors = {} }) => {
             align="left"
             colon={false}
           />
-
-          <HDropdown
-            name="loanType"
-            options={LOAN_TYPES}
-            value={form.loanType}
-            onChange={(e) => setField("loanType", e.target.value)}
+          <HTextField
+            value="Term Loan"
             required
+            // align={ALIGNMENT.TEXT}
             error={Boolean(err("loanType"))}
             width="100%"
+            disabled
           />
         </HBox>
 
@@ -133,6 +198,7 @@ const LoanDetailsSection = ({ form, setField, errors = {} }) => {
             required
             error={Boolean(err("product"))}
             width="100%"
+            placeholder=""
           />
         </HBox>
 
@@ -196,8 +262,7 @@ const LoanDetailsSection = ({ form, setField, errors = {} }) => {
         </HBox>
 
         {/* Tenure */}
-        <HBox
-          sx={{
+        <HBox sx={{
             width: {
               xs: "100%",
               sm: "calc(50% - 8px)",
@@ -229,38 +294,43 @@ const LoanDetailsSection = ({ form, setField, errors = {} }) => {
         </HBox>
 
         {/* Interest Rate */}
-        <HBox
-          sx={{ width: {
-              xs: "100%",
-              sm: "calc(50% - 8px)",
-              md: "calc(33.333% - 10.67px)",
-            }, flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, position: "relative",
-          }}>
+        <HBox sx={{
+          width: {
+            xs: "100%",
+            sm: "calc(50% - 8px)",
+            md: "calc(33.333% - 10.67px)",
+          },
+          flexShrink: 0,
+          display: "flex",
+          flexDirection: "column",
+          gap: 0.5,
+          minWidth: 0,
+        }}>
           <HLabel
             value="label.qde.field.rate"
             align="left"
             colon={false}
           />
 
-          <HBox sx={{ width: "100%", display: "flex", alignItems: "center", gap: 1 }} >
+          <HBox sx={{ width: "100%", display: "flex", alignItems: "flex-start", gap: 1 }} >
             <HTextField
               value={form.rate}
               onChange={(e) => {
                 setField("rate", e.target.value);
                 handleSimulatorChange("rate", e.target.value);
               }}
-              editable
+              editable={!rateFetched}
               type="number"
               length={5}
               align={ALIGNMENT.NUMBER}
-              width="80%"
+              width="100%"
             />
 
             {/* Download */}
             <HBox
               sx={{
                 width: 36,
-                height: 36,
+                height: 28,
                 flexShrink: 0,
                 border: "1px solid #ead5df",
                 borderRadius: "6px",
@@ -270,7 +340,7 @@ const LoanDetailsSection = ({ form, setField, errors = {} }) => {
                 cursor: "pointer",
               }}
               onClick={handleDownload}
-              title="Download Loan Details"
+              title="Fetch rate from Pricing Master"
             >
               <svg
                 width="18"
@@ -290,29 +360,28 @@ const LoanDetailsSection = ({ form, setField, errors = {} }) => {
 
             {/* Simulator */}
             <HBox
-              sx={{ width: 36, height: 36, flexShrink: 0, position: "relative" }}
-              onMouseEnter={() => {
-                setSimulator({
-                  amount: form.loanAmount || "",
-                  rate: form.rate || "",
-                  months: form.tenure || "",
-                });
-                setShowSimulator(true);
+              ref={simulatorAnchorRef}
+              sx={{
+                width: 36,
+                height: 28,
+                flexShrink: 0,
+                position: "relative",
+                zIndex: 2,
               }}
-              onMouseLeave={() => setShowSimulator(false)}
+              onClick={(event) => {
+                event.stopPropagation();
+
+                if (showSimulator) {
+                  setShowSimulator(false);
+                  return;
+                }
+
+                openSimulator();
+              }}
+              onMouseEnter={openSimulator}
+              onMouseLeave={scheduleCloseSimulator}
             >
-              <HBox
-                sx={{
-                  width: 36,
-                  height: 36,
-                  border: "1px solid #ead5df",
-                  borderRadius: "6px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  cursor: "pointer",
-                  // backgroundColor: "#fff",
-                }}
+              <HBox sx={{ width: 36, height: 28, border: "1px solid #ead5df", borderRadius: "6px", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", backgroundColor: action.hover, color: colors.primary, }}
                 title="Loan Simulator"
               >
                 <svg
@@ -339,36 +408,14 @@ const LoanDetailsSection = ({ form, setField, errors = {} }) => {
                 </svg>
               </HBox>
 
-              {showSimulator && (
-                <HBox
-                  sx={{
-                    position: "absolute",
-                    top: 42,
-                    right: 0,
-                    width: 320,
-                    // backgroundColor: "#fff",
-                    border: "1px solid #ead5df",
-                    borderRadius: "8px",
-                    boxShadow: "0 4px 14px rgba(0,0,0,0.15)",
-                    padding: 1.5,
-                    display: "flex",
-                    flexDirection: "column",
-                    zIndex: 1000,
-                  }}
+              {showSimulator &&createPortal( (
+                <HBox sx={{ position: "fixed", top: simulatorPosition.top, left: simulatorPosition.left, width: 320, backgroundColor: action.hover, border: `1px solid ${border.control}`, borderRadius: "8px", boxShadow: "0 4px 14px rgba(0,0,0,0.15)", padding: 1.5, display: "flex", flexDirection: "column", zIndex: 1000, color: text.primary }}
+                  onClick={(event) => event.stopPropagation()}
                   onMouseEnter={() => setShowSimulator(true)}
                   onMouseLeave={() => setShowSimulator(false)}
                 >
                   {/* Header */}
-                  <HBox
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1,
-                      fontWeight: 600,
-                      fontSize: "14px",
-                      mb: 1,
-                    }}
-                  >
+                  <HBox sx={{ display: "flex", alignItems: "center", gap: 1, fontWeight: 600, fontSize: "14px", mb: 1, }}>
                     <span>▣</span>
                     <span>Loan Simulator</span>
                   </HBox>
@@ -381,14 +428,7 @@ const LoanDetailsSection = ({ form, setField, errors = {} }) => {
                       width: "100%",
                     }}
                   >
-                    <HBox
-                      sx={{
-                        flex: 1,
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 0.5,
-                      }}
-                    >
+                    <HBox sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 0.5 }}>
                       <HLabel
                         value="Amount (₹)"
                         align="left"
@@ -410,14 +450,7 @@ const LoanDetailsSection = ({ form, setField, errors = {} }) => {
                       />
                     </HBox>
 
-                    <HBox
-                      sx={{
-                        flex: 1,
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 0.5,
-                      }}
-                    >
+                    <HBox sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 0.5 }}>
                       <HLabel
                         value="Rate %"
                         align="left"
@@ -439,14 +472,7 @@ const LoanDetailsSection = ({ form, setField, errors = {} }) => {
                       />
                     </HBox>
 
-                    <HBox
-                      sx={{
-                        flex: 1,
-                        display: "flex",
-                        flexDirection: "column",
-                        gap: 0.5,
-                      }}
-                    >
+                    <HBox sx={{ flex: 1, display: "flex", flexDirection: "column", gap: 0.5 }}>
                       <HLabel
                         value="Months"
                         align="left"
@@ -472,7 +498,7 @@ const LoanDetailsSection = ({ form, setField, errors = {} }) => {
                   {/* Result */}
                   <HBox
                     sx={{
-                      backgroundColor: "#faf5f8",
+                      backgroundColor: action.hover,
                       borderRadius: "6px",
                       padding: 1,
                       mt: 1,
@@ -526,8 +552,8 @@ const LoanDetailsSection = ({ form, setField, errors = {} }) => {
                       height: 36,
                       mt: 1,
                       borderRadius: "6px",
-                      // backgroundColor: "#397add",
-                      // color: "#fff",
+                      backgroundColor: colors.primary,
+                      color: "#fff",
                       display: "flex",
                       alignItems: "center",
                       justifyContent: "center",
@@ -539,189 +565,38 @@ const LoanDetailsSection = ({ form, setField, errors = {} }) => {
                     Apply to Loan Details
                   </HBox>
                 </HBox>
-              )}
+              ), document.body)}
             </HBox>
           </HBox>
           <HLabel value="label.qde.field.intSubtitle" align="left" colon={false} />
         </HBox>
+        {showEstimatedEmi && (
+        <HBox sx={{ width: {
+              xs: "100%",
+              sm: "calc(50% - 8px)",
+              md: "calc(33.333% - 10.67px)",
+            },flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, position: "relative"
+          }}>
+          <HLabel
+            value="label.qde.field.EstimatedEmi"
+            required
+            align="left"
+            colon={false}
+          />
+
+          <HTextField
+            value={`₹${formatAmount(emi)}/mo`}
+            type="number"
+            length={3}
+            align={ALIGNMENT.NUMBER}
+            error={Boolean(err("tenure"))}
+            width="100%"
+          />
+        </HBox>
+      )}
       </HBox>
     </SectionBlock>
   );
 };
 
 export default LoanDetailsSection;
-
-
-// import { ALIGNMENT, HDropdown, HTextField, HBox, HLabel } from "@helix/component-library";
-// import SectionBlock from "../components/SectionBlock";
-// import { LOAN_TYPES, PRODUCTS, SCHEMES } from "../constants/qdeOptions";
-
-// const LoanDetailsSection = ({ form, setField, errors = {} }) => {
-//   const err = (name) => errors[name];
-
-//   return (
-//     <SectionBlock sectionKey="loan" titleKey="label.qde.section.loan" >
-//       <HBox
-//         sx={{ width: "100%", display: "flex", flexDirection: "row", flexWrap: "wrap", gap: 2, mb:2 }} >
-//         {/* Loan Type */}
-//         <HBox
-//           sx={{
-//             width: {
-//               xs: "100%",
-//               sm: "calc(50% - 8px)",
-//               md: "calc(33.333% - 10.67px)",
-//             }, flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0 }} >
-//           <HLabel
-//             value="label.qde.field.loanType"
-//             required
-//             align="left"
-//             colon={false}
-//           />
-
-//           <HDropdown
-//             name="loanType"
-//             options={LOAN_TYPES}
-//             value={form.loanType}
-//             onChange={(e) => setField("loanType", e.target.value)}
-//             required
-//             error={Boolean(err("loanType"))}
-//             width="100%"
-//           />
-//         </HBox>
-
-//         {/* Product */}
-//         <HBox
-//           sx={{
-//             width: {
-//               xs: "100%",
-//               sm: "calc(50% - 8px)",
-//               md: "calc(33.333% - 10.67px)",
-//             }, flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0 }} >
-//           <HLabel
-//             value="label.qde.field.product"
-//             required
-//             align="left"
-//             colon={false}
-//           />
-
-//           <HDropdown
-//             name="product"
-//             options={PRODUCTS}
-//             value={form.product}
-//             onChange={(e) => setField("product", e.target.value)}
-//             required
-//             error={Boolean(err("product"))}
-//             width="100%"
-//           />
-//         </HBox>
-
-//         {/* Scheme */}
-//         <HBox
-//           sx={{
-//             width: {
-//               xs: "100%",
-//               sm: "calc(50% - 8px)",
-//               md: "calc(33.333% - 10.67px)",
-//             }, flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0 }} >
-//           <HLabel
-//             value="label.qde.field.scheme"
-//             align="left"
-//             colon={false}
-//             required
-//           />
-
-//           <HDropdown
-//             name="scheme"
-//             options={SCHEMES}
-//             value={form.scheme}
-//             onChange={(e) => setField("scheme", e.target.value)}
-//             width="100%"
-//             required
-//           />
-//         </HBox>
-
-//         {/* Loan Amount */}
-//         <HBox
-//           sx={{
-//             width: {
-//               xs: "100%",
-//               sm: "calc(50% - 8px)",
-//               md: "calc(33.333% - 10.67px)",
-//             }, flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0 }} >
-//           <HLabel
-//             value="label.qde.field.loanAmount"
-//             required
-//             align="left"
-//             colon={false}
-//           />
-
-//           <HTextField
-//             value={form.loanAmount}
-//             onChange={(e) => setField("loanAmount", e.target.value)}
-//             editable
-//             required
-//             type="currency"
-//             align={ALIGNMENT.NUMBER}
-//             error={Boolean(err("loanAmount"))}
-//             width="100%"
-//           />
-//         </HBox>
-
-//         {/* Tenure */}
-//         <HBox
-//           sx={{
-//             width: {
-//               xs: "100%",
-//               sm: "calc(50% - 8px)",
-//               md: "calc(33.333% - 10.67px)",
-//             }, flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0 }}>
-//           <HLabel
-//             value="label.qde.field.tenure"
-//             required
-//             align="left"
-//             colon={false}
-//           />
-
-//           <HTextField
-//             value={form.tenure}
-//             onChange={(e) => setField("tenure", e.target.value)}
-//             editable
-//             required
-//             type="number"
-//             length={3}
-//             align={ALIGNMENT.NUMBER}
-//             error={Boolean(err("tenure"))}
-//             width="100%"
-//           />
-//         </HBox>
-
-//         {/* Rate */}
-//         <HBox
-//           sx={{
-//             width: {
-//               xs: "100%",
-//               sm: "calc(50% - 8px)",
-//               md: "calc(33.333% - 10.67px)",
-//             }, flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0 }} >
-//           <HLabel
-//             value="label.qde.field.rate"
-//             align="left"
-//             colon={false}
-//           />
-
-//           <HTextField
-//             value={form.rate}
-//             onChange={(e) => setField("rate", e.target.value)}
-//             editable
-//             type="number"
-//             length={5}
-//             align={ALIGNMENT.NUMBER}
-//             width="80%"
-//           />
-//         </HBox>
-//       </HBox>
-//     </SectionBlock>
-//   );
-// };
-
-// export default LoanDetailsSection;

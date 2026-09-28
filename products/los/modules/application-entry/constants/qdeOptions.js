@@ -28,22 +28,16 @@ export const GENDERS = toOptions(["Male", "Female", "Transgender", "Other"]);
 export const Profiles = toOptions(["Salaried", "SENP", "SEP"]);
 
 export const BORROWER_CATEGORIES = toOptions([
-  "General",
-  "Priority Sector",
+  "SEP",
+  "SENP",
   "Salaried",
-  "Self Employed Professional",
-  "Self Employed Non Professional",
-  "Agriculturist",
-  "Senior Citizen",
-  "Staff",
 ]);
 
 export const ADDRESS_TYPES_INDIVIDUAL = toOptions([
   "Permanent",
-  "Current Residence",
+  "Current",
   "Office",
-  "Communication",
-  "Native",
+  "Other",
 ]);
 
 export const ADDRESS_TYPES_NON_INDIVIDUAL = toOptions([
@@ -105,13 +99,7 @@ export const LOAN_TYPES = toOptions([
 ]);
 
 export const OCR_DOC_TYPES = toOptions([
-  "Application Form",
-  "PAN Card",
-  "Aadhaar Card",
-  "Passport",
-  "Voter ID",
-  "Driving Licence",
-  "Bank Statement",
+  "Application Form"
 ]);
 
 /** Radio option sets — `label` is resolved through react-intl by HRadio. */

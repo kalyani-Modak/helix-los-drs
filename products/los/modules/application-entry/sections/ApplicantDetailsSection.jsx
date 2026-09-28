@@ -1,17 +1,10 @@
-import { HBox, HButton, HCheckBox, HDatePicker, HDropdown, HLabel, HTextField } from "@helix/component-library";
+import { HBox, HRadio, HCheckBox, HDatePicker, HDropdown, HLabel, HTextField } from "@helix/component-library";
 import SectionBlock from "../components/SectionBlock";
 import { BORROWER_CATEGORIES, ENTITY_TYPES, GENDERS } from "../constants/qdeOptions";
 import { fromPickerValue, toPickerValue } from "../dateHelpers";
 import { useIntl } from "react-intl";
 import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
-
-const VerifiedFlag = ({ verified }) => (
-  <HLabel
-    value={verified ? "label.qde.status.verified" : "label.qde.status.pending"}
-    align="left"
-    colon={false}
-  />
-);
+import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
 
 const ApplicantDetailsSection = ({
   form,
@@ -19,17 +12,30 @@ const ApplicantDetailsSection = ({
   isNonIndividual,
   onVerifyMobile,
   onVerifyEmail,
-  verifyingMobile = false,
   errors = {},
 }) => {
   const intl = useIntl();
   const err = (name) => errors[name];
 
+  const isValidMobile = (value) => /^[6-9]\d{9}$/.test(value || "");
+  const isValidEmail = (value) =>
+    /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value || "");
+
+  const mobileError =
+    form.mobile && !isValidMobile(form.mobile)
+      ? "Enter 10-digit mobile starting 6-9."
+      : err("mobile");
+
+  const emailError =
+    form.email && !isValidEmail(form.email)
+      ? "Invalid email format (RFC 5322)."
+      : err("email");
+
   return (
-    <SectionBlock sectionKey="applicant" 
-    titleKey={isNonIndividual ? "label.qde.section.applicant.nonIndividual" : "label.qde.section.applicant.individual"} 
-    subTitleKey= "label.qde.section.applicant.subtitle" 
-    icon={<PersonOutlineOutlinedIcon fontSize="small" />}
+    <SectionBlock sectionKey="applicant"
+      titleKey={isNonIndividual ? "label.qde.section.applicant.nonIndividual" : "label.qde.section.applicant.individual"}
+      subTitleKey="label.qde.section.applicant.subtitle"
+      icon={<PersonOutlineOutlinedIcon fontSize="small" />}
     >
       <HBox sx={{ width: "100%", display: "flex", flexDirection: "row", flexWrap: "wrap" }}>
         {isNonIndividual ? (
@@ -52,6 +58,7 @@ const ApplicantDetailsSection = ({
                 required
                 error={Boolean(err("entityName"))}
                 width="100%"
+                placeholder="Enter entity name"
               />
             </HBox>
 
@@ -72,6 +79,7 @@ const ApplicantDetailsSection = ({
                 onChange={(e) => setField("entityType", e.target.value)}
                 required
                 width="100%"
+                placeholder="Search entity type"
               />
             </HBox>
 
@@ -175,43 +183,31 @@ const ApplicantDetailsSection = ({
               />
             </HBox>
 
-            <HBox
-  sx={{
-    width: "33%",
-    flexShrink: 0,
-    display: "flex",
-    flexDirection: "column",
-    gap: 0.5,
-    minWidth: 0,
-    boxSizing: "border-box",
-    pr: 1,
-    mb: 1
-  }}
->
-  <HLabel
-    value={intl.formatMessage({
-      id: "label.qde.field.dob",
-      defaultMessage: "Date of Birth"
-    })}
-    required
-    align="left"
-    colon={false}
-  />
+              <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1 }}>
+                <HLabel
+                  value={intl.formatMessage({
+                    id: "label.qde.field.dob",
+                    defaultMessage: "Date of Birth"
+                  })}
+                  required
+                  align="left"
+                  colon={false}
+                />
 
-  <HDatePicker
-    value={toPickerValue(form.dob)}
-    onChange={(value) => setField("dob", fromPickerValue(value))}
-    required
-    error={Boolean(err("dob"))}
-    width="100%"
-  />
-</HBox>
+                <HDatePicker
+                  value={toPickerValue(form.dob)}
+                  onChange={(value) => setField("dob", fromPickerValue(value))}
+                  required
+                  error={Boolean(err("dob"))}
+                  width="100%"
+                />
+              </HBox>
 
-            <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1 }}>
-              <HLabel
-                value={intl.formatMessage({
-                  id: "label.qde.field.borrowerCategory",
-                  defaultMessage: "Borrower Category"
+              <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1 }}>
+                <HLabel
+                  value={intl.formatMessage({
+                    id: "label.qde.field.borrowerCategory",
+                    defaultMessage: "Borrower Category"
                 })}
                 align="left"
                 colon={false}
@@ -219,7 +215,7 @@ const ApplicantDetailsSection = ({
               <HDropdown
                 name="profile"
                 options={BORROWER_CATEGORIES}
-                value={form.profile}
+                value={form.profile || "Salaried" }
                 onChange={(e) => setField("profile", e.target.value)}
                 width="100%"
               />
@@ -269,75 +265,178 @@ const ApplicantDetailsSection = ({
 
         {/* ---- Common fields (both Individual & Non-Individual) ---- */}
 
-        <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1 }}>
+        <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1, }}>
           <HLabel
             value={intl.formatMessage({
               id: "label.qde.field.mobile",
-              defaultMessage: "Mobile Number"
+              defaultMessage: "Mobile Number",
             })}
             required
             align="left"
             colon={false}
           />
+
           <HBox sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-            <HBox sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "nowrap" }}>
+            <HBox sx={{ display: "flex", alignItems: "flex-start", gap: 1, flexWrap: "nowrap" }}>
               <HTextField
-                value={form.mobile}
-                onChange={(e) => setField("mobile", e.target.value)}
+                value={form.mobile || ""}
+                onChange={(e) => {
+                  const value = e.target.value;
+
+                  setField("mobile", value);
+
+                  if (value !== form.mobile && form.mobileVerified) {
+                    setField("mobileVerified", false);
+                  }
+                }}
                 editable
                 required
                 type="phone"
                 length={10}
-                error={Boolean(err("mobile"))}
-                width="85%"
+                error={Boolean(mobileError)}
+                width="90%"
               />
-              {/* <HButton
-                label="label.qde.button.verify"
-                variant="outlined"
-                size="small"
-                inline
-                loading={verifyingMobile}
-                disabled={!form.mobile}
-                onClick={onVerifyMobile}
-              /> */}
+
+              {form.mobileVerified ? (
+                <HBox sx={{ display: "flex", alignItems: "center", gap: 0.5, whiteSpace: "nowrap", }}>
+                  <CheckCircleOutlineIcon
+                    fontSize="small"
+                    sx={{ color: "success.main" }}
+                  />
+
+                  <HLabel
+                    value="Verified"
+                    colon={false}
+                  />
+                </HBox>
+              ) : (
+                <a
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+
+                    if (isValidMobile(form.mobile)) {
+                      onVerifyMobile();
+                    }
+                  }}
+                  style={{
+                    pointerEvents: isValidMobile(form.mobile) ? "auto" : "none",
+                    opacity: isValidMobile(form.mobile) ? 1 : 0.5,
+                    whiteSpace: "nowrap",
+                    cursor: "pointer",
+                  }}
+                >
+                  Verify
+                </a>
+              )}
             </HBox>
-            <VerifiedFlag verified={form.mobileVerified} />
+
+            {mobileError && (
+              <HBox sx={{ fontSize: "12px", color: "red", }} >
+                {mobileError}
+              </HBox>
+            )}
+
+            {form.mobileVerified && (
+              <HBox
+                sx={{
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 0.5,
+                }}
+              >
+                <CheckCircleOutlineIcon
+                  fontSize="small"
+                  sx={{ color: "success.main" }}
+                />
+
+                <HLabel
+                  value="Mobile verified"
+                  colon={false}
+                />
+              </HBox>
+            )}
           </HBox>
         </HBox>
 
-        <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1, mt: 1 }}>
+        <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1, }}>
           <HLabel
             value={intl.formatMessage({
               id: "label.qde.field.email",
-              defaultMessage: "Email"
+              defaultMessage: "Email",
             })}
             align="left"
             colon={false}
           />
+
           <HBox sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-            <HBox sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "nowrap" }}>
+            <HBox
+              sx={{
+                display: "flex",
+                alignItems: "center",
+                gap: 1,
+                flexWrap: "nowrap",
+              }}
+            >
               <HTextField
-                value={form.email}
-                onChange={(e) => setField("email", e.target.value)}
+                value={form.email || ""}
+                onChange={(e) => {
+                  const value = e.target.value;
+
+                  setField("email", value);
+
+                  if (value !== form.email && form.emailVerified) {
+                    setField("emailVerified", false);
+                  }
+                }}
                 editable
-                required
-                error={Boolean(err("email"))}
-                width="200px"
+                error={Boolean(emailError)}
+                width="90%"
               />
-              <HButton
-                label="label.qde.button.verify"
-                variant="outlined"
-                size="small"
-                inline
-                disabled={!form.email}
-                onClick={onVerifyEmail}
-              />
+
+              {form.emailVerified ? (
+                <HBox sx={{ display: "flex", alignItems: "center", gap: 0.5, whiteSpace: "nowrap" }}>
+                  <CheckCircleOutlineIcon
+                    fontSize="small"
+                    sx={{ color: "success.main" }}
+                  />
+
+                  <HLabel
+                    value="Verified"
+                    colon={false}
+                  />
+                </HBox>
+              ) : (
+                <a
+                  href="#"
+                  onClick={(e) => {
+                    e.preventDefault();
+
+                    if (isValidEmail(form.email)) {
+                      onVerifyEmail();
+                    }
+                  }}
+                  style={{
+                    pointerEvents: isValidEmail(form.email) ? "auto" : "none",
+                    opacity: isValidEmail(form.email) ? 1 : 0.5,
+                    whiteSpace: "nowrap",
+                    cursor: "pointer",
+                  }}
+                >
+                  Verify
+                </a>
+              )}
             </HBox>
-            <VerifiedFlag verified={form.emailVerified} />
+
+            {emailError && (
+              <HBox sx={{ fontSize: "12px", color: "red" }} >
+                {emailError}
+              </HBox>
+            )}
           </HBox>
         </HBox>
 
-        <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "row", alignItems: "center", gap: 2, boxSizing: "border-box", pr: 1, mt: 1 }}>
+        {!isNonIndividual ? (<HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "row", alignItems: "center", gap: 2, boxSizing: "border-box", pr: 1, mt: 1 }}>
           <HCheckBox
             sx={{ width: "3%" }}
             checked={form.staff}
@@ -348,6 +447,7 @@ const ApplicantDetailsSection = ({
               id: "label.qde.field.staff",
               defaultMessage: "Staff"
             })}
+            colon={false}
           />
 
           <HCheckBox
@@ -360,8 +460,65 @@ const ApplicantDetailsSection = ({
               id: "label.qde.field.preApproved",
               defaultMessage: "Pre Approved"
             })}
+            colon={false}
           />
-        </HBox>
+        </HBox>) :
+          <>
+            <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", minWidth: 0, boxSizing: "border-box", pr: 1, mt: 1 }}>
+              <HLabel
+                value={intl.formatMessage({
+                  id: "label.qde.field.GSTRegistered",
+                  defaultMessage: "GST Registered"
+                })}
+                required
+                align="left"
+                colon={false}
+              />
+
+              <HBox sx={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 2 }}>
+                <HRadio
+                  label="label.qde.option.yes"
+                  checked={form.GSTRegistered === "Y"}
+                  onChange={() => setField("GSTRegistered", "Y")}
+                />
+
+                <HRadio
+                  label="label.qde.option.no"
+                  checked={form.GSTRegistered === "N"}
+                  onChange={() => setField("GSTRegistered", "N")}
+                />
+              </HBox>
+            </HBox>
+            
+            <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", minWidth: 0, boxSizing: "border-box" }}>
+              <HLabel sx={{ ml: 2 }}
+                value={intl.formatMessage({
+                  id: "label.qde.field.MSMERegistered",
+                  defaultMessage: "MSME Registered"
+                })}
+                required
+                align="left"
+                colon={false}
+              />
+
+              <HBox sx={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 2 }}>
+                <HRadio
+                  label="label.qde.option.yes"
+                  checked={form.MSMERegistered === "Y"}
+                  onChange={() => setField("MSMERegistered", "Y")}
+                />
+
+                <HRadio
+                  label="label.qde.option.no"
+                  checked={form.MSMERegistered === "N"}
+                  onChange={() => setField("MSMERegistered", "N")}
+                />
+              </HBox>
+            </HBox>
+          </>
+   
+        }
+
       </HBox>
     </SectionBlock>
   );

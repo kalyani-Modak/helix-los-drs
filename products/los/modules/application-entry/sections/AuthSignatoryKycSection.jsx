@@ -2,6 +2,7 @@ import { HButton, HLabel, HTextField, HBox } from "@helix/component-library";
 import KycVerifyRow from "../components/KycVerifyRow";
 import SectionBlock from "../components/SectionBlock";
 import { statusLabelKey } from "../constants/qdeOptions";
+import VerifiedUserOutlinedIcon from '@mui/icons-material/VerifiedUserOutlined';
 
 const AuthSignatoryKycSection = ({
   form,
@@ -17,7 +18,7 @@ const AuthSignatoryKycSection = ({
   const err = (name) => errors[name];
 
   return (
-    <SectionBlock sectionKey="authSignatoryKyc" titleKey="label.qde.section.authSignatoryKyc" subTitleKey="label.qde.section.authSignatoryKyc.subtitle" noAccordion={noAccordion}>
+    <SectionBlock sectionKey="authSignatoryKyc" titleKey="label.qde.section.authSignatoryKyc" subTitleKey="label.qde.section.authSignatoryKyc.subtitle"  noAccordion={noAccordion} icon={<VerifiedUserOutlinedIcon fontSize="small" />}>
       <KycVerifyRow
         labelKey="label.qde.field.pan"
         value={form.asPan}

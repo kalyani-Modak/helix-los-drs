@@ -11,7 +11,7 @@ const OcrUploadSection = ({ form, setField, onFileSelect, ocrFileName, ocrStatus
         <HDropdown
           name="ocrDocType"
           options={OCR_DOC_TYPES}
-          value={form.ocrDocType}
+          value={form.ocrDocType || "Application Form" }
           onChange={(e) => setField("ocrDocType", e.target.value)}
           width="80%"
         />

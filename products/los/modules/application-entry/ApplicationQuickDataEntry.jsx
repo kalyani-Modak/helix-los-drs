@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useIntl } from "react-intl";
 import { useLocation, useNavigate } from "react-router-dom";
-import { HAxiosService, HBox, HBreadCrumb, HButtonBar, HPaper, TitleBar, useToast, HLabel, HDropdown } from "@helix/component-library";
+import { HAxiosService, HBox, HBreadCrumb, HButtonBar, HPaper, TitleBar, useToast, HLabel, HButton, HTextField, useDrsTheme } from "@helix/component-library";
 import { LosQdeAPI } from "./apiEndpoints";
 import { unwrapApiResponse } from "./unwrapApiResponse";
 import { VERIFICATION_STATUS } from "./constants/qdeOptions";
@@ -167,6 +167,9 @@ const ApplicationQuickDataEntry = () => {
 
   const [aadhaarOtpTimer, setAadhaarOtpTimer] = useState(0);
   const [aadhaarOtpExpired, setAadhaarOtpExpired] = useState(false);
+  const [otpTimer, setOtpTimer] = useState(30);
+  const [enteredOtp, setEnteredOtp] = useState("");
+  const otpRefs = useRef([]);
 
   // Default: New + Individual, so only the Individual field set is visible on first render.
   const [form, setForm] = useState({
@@ -179,6 +182,7 @@ const ApplicationQuickDataEntry = () => {
     open: false,
     field: "",
     target: "",
+    partyId: null,
   });
   const [ocrFileName, setOcrFileName] = useState("");
   const [ocrStatusKey, setOcrStatusKey] = useState("label.qde.status.pending");
@@ -800,6 +804,24 @@ const ApplicationQuickDataEntry = () => {
       .catch(() => toast.error(t("label.qde.msg.loadFailed", "Unable to load application")));
   }, [incomingApplicationNo, hydrateFromResponse, t, toast]);
 
+  useEffect(() => {
+    if (!otpDialog.open) {
+      return;
+    }
+    setOtpTimer(30);
+    const timer = setInterval(() => {
+      setOtpTimer((prev) => {
+        if (prev <= 1) {
+          clearInterval(timer);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(timer);
+  }, [otpDialog.open]);
+
   /**
    * "Search Existing Applications" pop search. Loads the matching application into the form,
    * searching by application number, mobile number or Aadhaar number.
@@ -1010,6 +1032,12 @@ const ApplicationQuickDataEntry = () => {
 
   const isPartyBusy = useCallback((party, key) => Boolean(verifying[`${party.id}:${key}`]), [verifying]);
 
+  const openPartyOtp = useCallback((field, target, partyId) => {
+    if (!target || (field === "mobile" && !/^[6-9]\d{9}$/.test(target))) return;
+    setOtpDialog({ open: true, field, target, partyId });
+    toast(`OTP sent to ${target}. (Demo OTP: 123456)`, "success");
+  }, [toast]);
+
   const partyKycHandlers = {
     onVerifyPan: (party) => runPartyVerification(party, "pan", LosQdeAPI.verifyPan(), { panNumber: party.pan }, "panStatus"),
     onSendAadhaarOtp: (party) => sendPartyOtp(party, "aadhaarSend", LosQdeAPI.aadhaarOtpSend(), { aadhaarNumber: party.aadhaar }, "aadhaarOtpSent"),
@@ -1021,6 +1049,8 @@ const ApplicationQuickDataEntry = () => {
     onVerifyGstin: (party) => runPartyVerification(party, "gstin", LosQdeAPI.verifyPan(), { gstin: party.gstin, panNumber: party.pan }, "gstinStatus"),
     onVerifyShopAct: (party) => runPartyVerification(party, "shopAct", LosQdeAPI.verifyPan(), { shopAct: party.shopAct, panNumber: party.pan }, "shopActStatus"),
     onTriggerCkyc: (party) => runPartyVerification(party, "ckycTrigger", LosQdeAPI.verifyPan(), { ckycNumber: party.ckycNumber, panNumber: party.pan }, "ckycStatus"),
+    onVerifyMobile: (party) => openPartyOtp("mobile", party.mobile, party.id),
+    onVerifyEmail: (party) => openPartyOtp("email", party.email, party.id),
     verifyingPan: (party) => isPartyBusy(party, "pan"),
     verifyingBizPan: (party) => isPartyBusy(party, "bizPan"),
     verifyingGstin: (party) => isPartyBusy(party, "gstin"),
@@ -1221,62 +1251,64 @@ const ApplicationQuickDataEntry = () => {
       "asPanAadhaarLinked"
     );
 
-  // ---- Mobile OTP ----------------------------------------------------------
-
-  const openMobileOtp = useCallback(
-    async (field, mobileNumber) => {
-      if (!requireValue(mobileNumber, "label.qde.msg.enterMobile", "Enter a mobile number first")) return;
-      const sent = await sendOtp("mobileSend", LosQdeAPI.mobileOtpSend(), { mobileNumber });
-      if (sent) setOtpDialog({ open: true, field, target: mobileNumber });
-    },
-    [requireValue, sendOtp]
-  );
-
-  const handleValidateMobileOtp = useCallback(
-    async (otp) => {
-      const { field, target } = otpDialog;
-      setBusy("mobileValidate", true);
-      try {
-        const data = unwrapApiResponse(
-          await HAxiosService.POST(LosQdeAPI.mobileOtpValidate(), { mobileNumber: target, otp })
-        );
-        const passed = isPassed(data);
-        setField(field === "asMobile" ? "asMobileVerified" : "mobileVerified", passed);
-        if (passed) {
-          toast.success(t("label.qde.msg.verifySuccess", "Verification successful"));
-          setOtpDialog({ open: false, field: "", target: "" });
-        } else {
-          toast.error(t("label.qde.msg.verifyFailed", "Verification failed"));
-        }
-      } catch (error) {
-        toast.error(error?.message || t("label.qde.msg.verifyFailed", "Verification failed"));
-      } finally {
-        setBusy("mobileValidate", false);
+  const openOtp = useCallback(
+    (field, target) => {
+      if (!target) {
+        return;
       }
+
+      const isMobile = field === "mobile";
+
+      if (isMobile && !/^[6-9]\d{9}$/.test(target)) {
+        return;
+      }
+
+      setOtpDialog({
+        open: true,
+        field,
+        target,
+        partyId: null,
+      });
+
+      toast(
+        `OTP sent to ${target}. (Demo OTP: 123456)`,
+        "success"
+      );
     },
-    [otpDialog, setBusy, setField, t, toast]
+    [toast]
   );
 
-  // ---- Pincode -------------------------------------------------------------
+  const handleValidateOtp = useCallback(
+    (enteredOtp) => {
+      if (enteredOtp !== "123456") {
+        toast("Invalid OTP. Try again.", "error");
+        return;
+      }
 
-  // const handlePincodeLookup = useCallback(
-  //   async (pincode) => {
-  //     if (!pincode || String(pincode).length !== 6) return;
-  //     try {
-  //       const data = unwrapApiResponse(await HAxiosService.GET(LosQdeAPI.pincode(pincode)));
-  //       if (!data) return;
-  //       setFields({
-  //         city: data.city || "",
-  //         district: data.district || "",
-  //         state: data.state || "",
-  //         country: data.country || "India",
-  //       });
-  //     } catch {
-  //       toast.error(t("label.qde.msg.pincodeFailed", "Unable to fetch pincode details"));
-  //     }
-  //   },
-  //   [setFields, t, toast]
-  // );
+      if (otpDialog.partyId) {
+        updatePartyField(
+          { id: otpDialog.partyId },
+          otpDialog.field === "mobile" ? "mobileVerified" : "emailVerified",
+          true
+        );
+      } else if (otpDialog.field === "mobile") {
+        setField("mobileVerified", true);
+        toast("Mobile verified", "success");
+      }
+
+      if (otpDialog.field === "email") {
+        setField("emailVerified", true);
+        toast("Email verified", "success");
+      }
+
+      setOtpDialog({
+        open: false,
+        field: "",
+        target: "",
+      });
+    },
+    [otpDialog.field, otpDialog.partyId, setField, toast, updatePartyField]
+  );
 
   // ---- OCR -----------------------------------------------------------------
 
@@ -1436,6 +1468,8 @@ const ApplicationQuickDataEntry = () => {
     return { success: true };
   }, [resetForm, t, toast]);
 
+  const { primary, text, background } = useDrsTheme();
+
   // const loadApplicationOptions = useCallback(async () => {
   //   try {
   //     const response = await HAxiosService.GET(
@@ -1583,8 +1617,8 @@ const ApplicationQuickDataEntry = () => {
                 setField={setField}
                 isNonIndividual={isNonIndividual}
                 verifyingMobile={Boolean(verifying.mobileSend)}
-                onVerifyMobile={() => openMobileOtp("mobile", form.mobile)}
-                onVerifyEmail={() => setField("emailVerified", true)}
+                onVerifyMobile={() => openOtp("mobile", form.mobile)}
+                onVerifyEmail={() => openOtp("email", form.email)}
                 errors={formErrors.applicant}
               />
 
@@ -1648,6 +1682,7 @@ const ApplicationQuickDataEntry = () => {
               <LoanDetailsSection form={form} setField={setField} errors={formErrors.applicant} />
 
               <SourcingDetailsSection form={form} setField={setField} errors={formErrors.applicant} />
+
             </HBox>
           </HPaper>
         </HBox>
@@ -1669,11 +1704,25 @@ const ApplicationQuickDataEntry = () => {
 
       <OtpVerifyDialog
         open={otpDialog.open}
-        onClose={() => setOtpDialog({ open: false, field: "", target: "" })}
-        onValidate={handleValidateMobileOtp}
-        channel={t("label.qde.field.mobile", "Mobile number")}
+        onClose={() =>
+          setOtpDialog({
+            open: false,
+            field: "",
+            target: "",
+          })
+        }
+        onValidate={handleValidateOtp}
+        channel={
+          otpDialog.field === "mobile"
+            ? t("label.qde.field.mobile", "Mobile number")
+            : t("label.qde.field.email", "Email")
+        }
         target={otpDialog.target}
-        loading={Boolean(verifying.mobileValidate)}
+        loading={Boolean(
+          otpDialog.field === "mobile"
+            ? verifying.mobileValidate
+            : verifying.emailValidate
+        )}
       />
     </HBox>
   );

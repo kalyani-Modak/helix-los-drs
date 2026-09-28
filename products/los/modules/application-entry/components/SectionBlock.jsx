@@ -3,21 +3,38 @@ import { Grid } from "@mui/material";
 import { HAccordion, HBox, useDrsTheme, HLabel } from "@helix/component-library";
 import { useIntl } from "react-intl";
 
-const SectionBlock = ({ sectionKey, titleKey, subTitleKey, defaultExpanded = true, icon, noAccordion = false, children }) => {
+const SectionBlock = ({ sectionKey, titleKey, subTitleKey, count, defaultExpanded = true, icon, noAccordion = false, showHeaderMeta = false, sx, children }) => {
   const [expanded, setExpanded] = useState({ [sectionKey]: defaultExpanded });
   const { colors, text, border, action } = useDrsTheme();
   const intl = useIntl();
 
  if (noAccordion) {
     return (
-      <HBox sx={{ mb: 2, border: "1px solid #ddd", borderRadius: "4px", overflow: "hidden" }}>
+      <HBox sx={{ mb: 2, border: "1px solid #ddd", borderRadius: "4px", overflow: "hidden", ...sx }}>
         {titleKey && (
-          <HLabel
-            sx={{ color: text.primary, fontWeight: 600 }}
-            value={titleKey}
-            align="left"
-            colon={false}
-          />
+          <HBox sx={{ display: "flex", alignItems: "center", gap: 0.75, px: 2, pt: 1.5 }}>
+            {showHeaderMeta && icon && (
+              <HBox sx={{ color: colors.primary, display: "flex", alignItems: "center" }}>
+                {icon}
+              </HBox>
+            )}
+            <HBox sx={{ display: "flex", flexDirection: "column", gap: 0.25 }}>
+              <HLabel
+                sx={{ color: text.primary, fontWeight: 600 }}
+                value={titleKey}
+                align="left"
+                colon={false}
+              />
+              {showHeaderMeta && subTitleKey && (
+                <HLabel
+                  sx={{ color: text.secondary, fontSize: "11px" }}
+                  value={subTitleKey}
+                  align="left"
+                  colon={false}
+                />
+              )}
+            </HBox>
+          </HBox>
         )}
         <Grid container spacing={1.4} alignItems="flex-start" sx={{ p: 2 }} >
           {children}
@@ -80,6 +97,23 @@ const SectionBlock = ({ sectionKey, titleKey, subTitleKey, defaultExpanded = tru
               defaultMessage: subTitleKey,
             })}"`,
             marginLeft: "8px",
+            fontSize: "12px",
+            fontWeight: 400,
+            color: text.secondary,
+            WebkitTextFillColor: text.secondary,
+          },
+        }),
+
+        ...(count !== undefined && count !== 0 && {
+          "& .MuiAccordionSummary-content": {
+            position: "relative",
+            width: "100%",
+          },
+
+          "& .MuiAccordionSummary-content .MuiTypography-root::before": {
+            content: `"${count} added"`,
+            position: "absolute",
+            right: "0",
             fontSize: "12px",
             fontWeight: 400,
             color: text.secondary,

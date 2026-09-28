@@ -68,7 +68,7 @@ const AddressDetailsSection = ({ form, setField, isNonIndividual, noAccordion, e
           <HDropdown
             name="addressType"
             options={addressTypes}
-            value={form.addressType}
+            value={form.addressType || !isNonIndividual ? "Current" : "" }
             onChange={(e) => setField("addressType", e.target.value)}
             disabled={readOnly}
             required

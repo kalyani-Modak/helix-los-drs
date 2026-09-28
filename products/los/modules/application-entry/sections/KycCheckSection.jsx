@@ -2,9 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { HButton, HLabel, HTextField, HBox } from "@helix/component-library";
 import KycVerifyRow from "../components/KycVerifyRow";
 import SectionBlock from "../components/SectionBlock";
-import VerifiedUserOutlinedIcon from "@mui/icons-material/VerifiedUserOutlined";
-import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined";
 import UploadFileOutlinedIcon from "@mui/icons-material/UploadFileOutlined";
+import VerifiedUserOutlinedIcon from '@mui/icons-material/VerifiedUserOutlined';
 
 const KycStatusLabel = ({ status }) => {
   const statusConfig = {
@@ -121,7 +120,7 @@ const KycOtpRow = ({
       inline
       loading={sending}
       disabled={disabled || !value || otpTimer > 0}
-      startIcon={<SecurityOutlinedIcon fontSize="small" />}
+      startIcon={<VerifiedUserOutlinedIcon fontSize="small" />}
       onClick={onSendOtp}
     />
 
@@ -508,6 +507,7 @@ const KycCheckSection = ({
   compact = false,
   sectionKey = "kycCheck",
   errors = {},
+  footerNote,
   ...handlers
 }) => (
   <SectionBlock
@@ -516,6 +516,7 @@ const KycCheckSection = ({
     subTitleKey={isNonIndividual ? "label.qde.section.kyc.nonIndividual.subtitle" : "label.qde.section.kyc.individual.subtitle"}
     icon={<VerifiedUserOutlinedIcon fontSize="small" />}
     noAccordion={compact}
+    showHeaderMeta={compact}
   >
     {isNonIndividual ? (
       <NonIndividualKyc
@@ -534,6 +535,7 @@ const KycCheckSection = ({
         errors={errors}
       />
     )}
+    {footerNote}
   </SectionBlock>
 );
 

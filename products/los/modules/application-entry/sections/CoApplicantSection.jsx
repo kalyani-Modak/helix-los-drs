@@ -4,6 +4,7 @@ import { HButton, HLabel } from "@helix/component-library";
 import PartyRow from "../components/PartyRow";
 import SectionBlock from "../components/SectionBlock";
 import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
+import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
 
 const CoApplicantSection = ({ items = [], onAdd, onRemove, onChange, errors = {}, primaryBorrowerType, kycHandlers, primaryAddress, onSearchCustomer }) => {
   const intl = useIntl();
@@ -16,14 +17,23 @@ const CoApplicantSection = ({ items = [], onAdd, onRemove, onChange, errors = {}
     <SectionBlock sectionKey="coApplicants"
       titleKey="label.qde.section.coApplicant"
       subTitleKey="label.qde.section.coApplicant.subtitle"
+      count={items.length}
       icon={<PersonOutlineOutlinedIcon fontSize="small" />}>
-      <Grid size={12}>
-        <HButton label="label.qde.button.addCoApplicant" variant="outlined" size="small" inline onClick={onAdd} />
+      <Grid size={12} sx={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+        <HLabel value={
+          items.length === 0
+            ? intl.formatMessage({ id: "label.qde.coApplicant.empty", defaultMessage: "No co-applicants added.  Click to add one or more co-applicants for this loan." })
+            : `${items.length} co-applicant${items.length > 1 ? "s" : ""} added.`
+        }
+          align="left"
+          colon={false}
+        />
+        <HButton label="label.qde.button.addCoApplicant" variant="outlined" size="small" inline onClick={onAdd} startIcon={<PersonAddAltIcon fontSize="small" />} />
       </Grid>
 
       {items.length === 0 ? (
         <Grid size={12}>
-          <HLabel value="label.qde.coApplicant.empty" align="left" colon={false} />
+          {/* <HLabel value="label.qde.coApplicant.empty" align="left" colon={false} /> */}
         </Grid>
       ) : (
         items.map((party, index) => (

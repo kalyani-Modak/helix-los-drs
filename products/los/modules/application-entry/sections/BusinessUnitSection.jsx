@@ -18,8 +18,7 @@ const BusinessUnitSection = ({ form, setField, errors = {}, onOpenApplicationSea
         
       <HBox sx={{ width: "100%", display: "flex", flexDirection: "row", gap: 0.5 }}>
         {/* Application Type */}
-        <HBox
-          sx={{ width: "30%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0 }}>
+        <HBox sx={{ width: "30%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0 }}>
           <HLabel
             value={intl.formatMessage({
               id: "label.qde.field.applicationType",
@@ -33,7 +32,7 @@ const BusinessUnitSection = ({ form, setField, errors = {}, onOpenApplicationSea
           <HDropdown
             name="applicationType"
             options={APPLICATION_TYPES}
-            value={form.applicationType || ""}
+            value={form.applicationType || "New"}
             onChange={(e) =>
               setField("applicationType", e.target.value)
             }
@@ -44,8 +43,7 @@ const BusinessUnitSection = ({ form, setField, errors = {}, onOpenApplicationSea
         </HBox>
 
         {/* Portfolio */}
-        <HBox
-          sx={{ width: "30%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0 }}>
+        <HBox sx={{ width: "30%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0 }}>
           <HLabel
             value={intl.formatMessage({
               id: "label.qde.field.portfolio",
@@ -59,13 +57,14 @@ const BusinessUnitSection = ({ form, setField, errors = {}, onOpenApplicationSea
           <HDropdown
             name="portfolio"
             options={PORTFOLIOS}
-            value={form.portfolio || ""}
+            value="Home Loan"
             onChange={(e) =>
               setField("portfolio", e.target.value)
             }
             required
             error={Boolean(err("portfolio"))}
             width="100%"
+            disabled
           />
           <HLabel value="label.qde.field.portfolioSubtitle" align="left" colon={false} />
         </HBox>

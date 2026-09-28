@@ -1,6 +1,7 @@
 import { HButton, HDatePicker, HLabel, HTextField, HBox } from "@helix/component-library";
 import SectionBlock from "../components/SectionBlock";
 import { fromPickerValue, toPickerValue } from "../dateHelpers";
+import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
 
 const AuthSignatorySection = ({
   form,
@@ -14,7 +15,7 @@ const AuthSignatorySection = ({
   const err = (name) => errors[name];
 
   return (
-    <SectionBlock sectionKey="authSignatory" titleKey="label.qde.section.authSignatory" noAccordion={noAccordion} >
+    <SectionBlock sectionKey="authSignatory" titleKey="label.qde.section.authSignatory" noAccordion={noAccordion} icon={<PersonOutlineOutlinedIcon fontSize="small" />} >
       <HBox sx={{ width: "100%", display: "flex", flexDirection: "row", flexWrap: "wrap" }}>
         <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
           <HLabel value="label.qde.field.firstName" required align="left" colon={false} />

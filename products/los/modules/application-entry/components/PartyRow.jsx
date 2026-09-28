@@ -1,11 +1,14 @@
 import { cloneElement, useEffect, useState } from "react";
-import { HButton, HCheckBox, HDatePicker, HDropdown, HLabel, HRadio, HTextField, HBox } from "@helix/component-library";
+import { HButton, HCheckBox, HDatePicker, HDropdown, HLabel, HTextField, HBox, useDrsTheme, HRadio } from "@helix/component-library";
 import { BORROWER_CATEGORIES, ENTITY_TYPES, GENDERS } from "../constants/qdeOptions";
 import { fromPickerValue, toPickerValue } from "../dateHelpers";
 import AddressDetailsSection from "../sections/AddressDetailsSection";
 import KycCheckSection from "../sections/KycCheckSection";
 import SectionBlock from "./SectionBlock";
 import SearchCustomerDialog from "./SearchCustomerDialog";
+import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
+import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
+import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 
 const PartyField = ({ label, children, required = false, error, sx }) => (
   <HBox sx={{ width: "100%", display: "flex", flexDirection: "column", gap: 0.5, ...sx }}>
@@ -28,9 +31,15 @@ const PartyRow = ({
   kycHandlers = {},
   onSearchCustomer,
 }) => {
+  const { colors, text, surfaces, border, action } = useDrsTheme();
   const [customerSearchOpen, setCustomerSearchOpen] = useState(false);
+  const [expanded, setExpanded] = useState(true);
   const isNonIndividual = party.borrowerType === "Non-Individual";
   const individualOnly = primaryBorrowerType === "Individual";
+  const partyName = isNonIndividual ? party.entityName : party.firstName;
+  const displayName = partyName || "(unnamed)";
+  const isValidMobile = (value) => /^[6-9]\d{9}$/.test(value || "");
+  const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value || "");
   const field = (name, value) => onChange(party.id, name, value);
   const err = (name) => errors[name];
   const addressFields = ["addressType", "addr1", "addr2", "addr3", "landmark", "pincode", "city", "district", "state", "country"];
@@ -56,6 +65,13 @@ const PartyRow = ({
         return [key.charAt(0).toLowerCase() + key.slice(1), getter(party)];
       })
   );
+  const verifyContact = (name, value, valid) => {
+    if (!valid(value)) return;
+    field(name, true);
+    if (kycHandlers[`onVerify${name === "mobileVerified" ? "Mobile" : "Email"}`]) {
+      kycHandlers[`onVerify${name === "mobileVerified" ? "Mobile" : "Email"}`](party);
+    }
+  };
 
   const clearParty = () => {
     Object.entries(party).forEach(([name, value]) => {
@@ -72,19 +88,115 @@ const PartyRow = ({
   };
 
   return (
-    <SectionBlock sectionKey={`party-${party.id}`} titleKey="" noAccordion>
-      <HBox sx={{ display: "flex", justifyContent: "space-between", width: "100%", mb: 1 }}>
-        <HLabel value={`${titleKey} ${index + 1}`} translate={false} align="left" colon={false} />
-        <HButton label="label.qde.button.remove" variant="text" size="small" inline onClick={() => onRemove(party.id)} />
+    <SectionBlock sectionKey={`party-${party.id}`} titleKey="" noAccordion sx={{ width: "100%" }} >
+      <HBox sx={{ display: "flex", alignItems: "center", width: "100%", mb: expanded ? 1 : 0 }}>
+        <HBox sx={{ display: "flex", alignItems: "center", gap: 1, width: "100%" }}>
+          <HButton
+            label=""
+            variant="text"
+            size="small"
+            inline
+            startIcon={
+              expanded ? (
+                <ExpandMoreIcon fontSize="small" />
+              ) : (
+                <ChevronRightIcon fontSize="small" />
+              )
+            }
+            onClick={() => setExpanded((value) => !value)}
+            sx={{
+              minWidth: "auto",
+              px: 0,
+            }}
+          />
+
+          <HLabel
+            value={`${titleKey} ${index + 1}`}
+            translate={false}
+            align="left"
+            colon={false}
+          />
+
+          <HLabel
+            value={displayName}
+            translate={false}
+            align="left"
+            colon={false}
+            sx={{ fontWeight: 600 }}
+          />
+
+          <HLabel
+            value="·"
+            translate={false}
+            align="left"
+            colon={false}
+          />
+
+          <HLabel
+            value={party.borrowerType}
+            translate={false}
+            align="left"
+            colon={false}
+          />
+        </HBox>
+
+        <HBox sx={{ marginLeft: "auto" }}>
+          <HButton
+            label="label.qde.button.remove"
+            variant="text"
+            size="small"
+            inline
+            onClick={() => onRemove(party.id)}
+            startIcon={
+              <DeleteOutlineOutlinedIcon fontSize="small" color="error" />
+            }
+          />
+        </HBox>
       </HBox>
 
+      {expanded && <>
       <HBox sx={{ width: "100%", display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 2, alignItems: "start", "@media (max-width: 700px)": { gridTemplateColumns: "1fr" } }}>
         <PartyField label="label.qde.field.relationship"><HTextField value={party.relationship || ""} onChange={(e) => field("relationship", e.target.value)} editable width="100%" /></PartyField>
         <PartyField label="label.qde.field.borrowerType" required>
-          <HBox sx={{ display: "flex", gap: 2, minHeight: 40 }}>
-            <HRadio label="Individual" checked={!isNonIndividual} onChange={() => field("borrowerType", "Individual")} />
-            <HRadio label="Non-Individual" checked={isNonIndividual} disabled={individualOnly} onChange={() => field("borrowerType", "Non-Individual")} />
-          </HBox>
+          {individualOnly ? (
+            <HBox sx={{ display: "flex", alignItems: "center", gap: 1, minHeight: 32, whiteSpace: "nowrap" }}>
+              <HBox sx={{ px: 1, py: 0.25, borderRadius: "6px", backgroundColor: surfaces?.accent || action?.hover, color: colors.primary, fontWeight: 400, fontSize: "13px", whiteSpace: "nowrap", }}>
+                Individual
+              </HBox>
+              <HLabel
+                value="Must be Individual when the primary applicant is Individual."
+                translate={false}
+                align="left"
+                colon={false}
+                sx={{ color: text.secondary, fontSize: "10px" }}
+              />
+            </HBox>
+          ) : (
+            <HBox sx={{ display: "flex", gap: 0, minHeight: 32, width: "fit-content", backgroundColor: surfaces?.accent || action?.hover, borderRadius: "6px", overflow: "hidden", border: `1px solid ${border.control}`, }}>
+              <HBox sx={{ px: 1, py: 0.25, alignItems: "center", display: "flex", backgroundColor: !isNonIndividual ? surfaces?.panel : "transparent", color: !isNonIndividual ? colors.primary : text.secondary, fontWeight: 400, fontSize: "13px", whiteSpace: "nowrap", cursor: "pointer", }}
+                onClick={() => field("borrowerType", "Individual")}
+              >
+                Individual
+              </HBox>
+              <HBox
+                sx={{
+                  px: 1,
+                  py: 0.25,
+                  alignItems: "center",
+                  display: "flex",
+                  backgroundColor: isNonIndividual ? surfaces?.panel : "transparent",
+                  color: isNonIndividual ? colors.primary : text.secondary,
+                  fontWeight: 400,
+                  fontSize: "13px",
+                  whiteSpace: "nowrap",
+                  cursor: "pointer",
+                }}
+                onClick={() => field("borrowerType", "Non-Individual")}
+              >
+                Non-Individual
+              </HBox>
+            </HBox>
+          )}
         </PartyField>
         <PartyField label="label.qde.field.customerType" required sx={{ gridColumn: "1" }}>
           <HBox sx={{ display: "flex", gap: 2, minHeight: 40 }}>
@@ -136,6 +248,7 @@ const PartyRow = ({
             <PartyField label="label.qde.field.entityName" required error={Boolean(err("entityName"))}><HTextField value={party.entityName || ""} onChange={(e) => field("entityName", e.target.value)} editable required width="100%" /></PartyField>
             <PartyField label="label.qde.field.entityType" required><HDropdown name="entityType" options={ENTITY_TYPES} value={party.entityType || ""} onChange={(e) => field("entityType", e.target.value)} required width="100%" /></PartyField>
             <PartyField label="label.qde.field.doi"><HDatePicker value={toPickerValue(party.doi)} onChange={(value) => field("doi", fromPickerValue(value))} width="100%" /></PartyField>
+            <PartyField label="GSTIN"><HTextField value={party.gstin || ""} onChange={(e) => field("gstin", e.target.value)} editable width="100%" /></PartyField>
           </>
         ) : (
           <>
@@ -148,8 +261,61 @@ const PartyRow = ({
           </>
         )}
 
-        <PartyField label="label.qde.field.mobile" required error={Boolean(err("mobile"))}><HTextField value={party.mobile || ""} onChange={(e) => field("mobile", e.target.value)} editable required type="phone" length={10} width="100%" /></PartyField>
-        <PartyField label="label.qde.field.email" required error={Boolean(err("email"))}><HTextField value={party.email || ""} onChange={(e) => field("email", e.target.value)} editable required type="email" width="100%" /></PartyField>
+        <PartyField label="label.qde.field.mobile" required error={Boolean(err("mobile"))}>
+          <HBox sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+            <HTextField
+              value={party.mobile || ""}
+              onChange={(e) => {
+                field("mobile", e.target.value);
+                field("mobileVerified", false);
+              }}
+              editable
+              required
+              type="phone"
+              length={10}
+              width="100%"
+            />
+            {party.mobileVerified ? (
+              <HLabel value="Verified" translate={false} colon={false} sx={{ color: "success.main", whiteSpace: "nowrap" }} />
+            ) : (
+              <HButton
+                label="label.qde.button.verify"
+                variant="text"
+                size="small"
+                inline
+                disabled={!isValidMobile(party.mobile)}
+                onClick={() => verifyContact("mobileVerified", party.mobile, isValidMobile)}
+              />
+            )}
+          </HBox>
+        </PartyField>
+        <PartyField label="label.qde.field.email" required error={Boolean(err("email"))}>
+          <HBox sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+            <HTextField
+              value={party.email || ""}
+              onChange={(e) => {
+                field("email", e.target.value);
+                field("emailVerified", false);
+              }}
+              editable
+              required
+              type="email"
+              width="100%"
+            />
+            {party.emailVerified ? (
+              <HLabel value="Verified" translate={false} colon={false} sx={{ color: "success.main", whiteSpace: "nowrap" }} />
+            ) : (
+              <HButton
+                label="label.qde.button.verify"
+                variant="text"
+                size="small"
+                inline
+                disabled={!isValidEmail(party.email)}
+                onClick={() => verifyContact("emailVerified", party.email, isValidEmail)}
+              />
+            )}
+          </HBox>
+        </PartyField>
       </HBox>
 
       <HBox sx={{ width: "100%", mt: 3 }}>
@@ -161,6 +327,15 @@ const PartyRow = ({
           compact
           sectionKey={`party-${party.id}-kyc`}
           errors={errors}
+          footerNote={isNonIndividual && (
+            <HLabel
+              value="Authorised Signatory is captured once per application (at the primary borrower level)."
+              translate={false}
+              align="left"
+              colon={false}
+              sx={{ color: text.secondary, fontStyle: "italic", fontSize: "11px", mt: 1 }}
+            />
+          )}
           {...partyHandlers}
         />
       </HBox>
@@ -177,32 +352,32 @@ const PartyRow = ({
     gap: "8px",
   }}
 >
-  <HCheckBox
-    checked={Boolean(party.sameAsPrimaryAddress)}
-    onChange={(event) => {
-      const checked = event.target.checked;
-      field("sameAsPrimaryAddress", checked);
+            <HCheckBox
+              checked={Boolean(party.sameAsPrimaryAddress)}
+              onChange={(event) => {
+                const checked = event.target.checked;
+                field("sameAsPrimaryAddress", checked);
 
-      if (checked) {
-        addressFields.forEach((name) =>
-          field(name, primaryAddress[name] || "")
-        );
-      }
-    }}
-  />
+                if (checked) {
+                  addressFields.forEach((name) =>
+                    field(name, primaryAddress[name] || "")
+                  );
+                }
+              }}
+            />
 
-  <HBox sx={{ whiteSpace: "nowrap" }}>
-    <HLabel
-      value="Same as Primary Applicant"
-      align="left"
-      colon={false}
-    />
-  </HBox>
-</HBox>
-        <AddressDetailsSection
-          form={addressForm}
-          setField={setPartyField}
-          isNonIndividual={isNonIndividual}
+            <HBox sx={{ whiteSpace: "nowrap" }}>
+              <HLabel
+                value="Same as Primary Applicant"
+                align="left"
+                colon={false}
+              />
+            </HBox>
+          </HBox>
+          <AddressDetailsSection
+            form={addressForm}
+            setField={setPartyField}
+            isNonIndividual={isNonIndividual}
           readOnly={Boolean(party.sameAsPrimaryAddress)}
           noAccordion
           errors={errors}
@@ -214,6 +389,7 @@ const PartyRow = ({
         onClose={() => setCustomerSearchOpen(false)}
         onSearch={(criteria) => (onSearchCustomer ? onSearchCustomer(party, criteria) : Promise.resolve(false))}
       />
+      </>}
     </SectionBlock>
   );
 };
