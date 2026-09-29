@@ -75,11 +75,11 @@ const KycVerifyRow = ({
         <VerifiedUserOutlinedIcon fontSize="small" />
       }
       onClick={onVerify}
-      sx={{ height: "32px", minHeight: "32px", whiteSpace: "nowrap" }}
+      sx={{ height: "32px", minHeight: "32px", whiteSpace: "nowrap", width: "120px", minWidth: "120px", maxWidth: "120px" }}
     />
 
     {/* Status */}
-    <HBox sx={{ justifySelf: "end" }}>
+    <HBox sx={{ justifySelf: "end", mr: 1 }}>
       <KycStatusLabel status={status} />
     </HBox>
   </HBox>

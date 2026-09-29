@@ -1864,7 +1864,7 @@ const ApplicationQuickDataEntry = () => {
   
   return (
     <HBox sx={{ mt: 2, width: "100%", minWidth: 0, maxWidth: "100%" }}>
-      <HBox>
+      <HBox sx={{ width: "100%", padding: "0.5rem 1rem 0 1rem", flexDirection: "column", borderBottom: "1px solid var(--drs-border-divider, hsl(215 14% 90%))" }}>
         <HBreadCrumb />
         <TitleBar title={t("label.qde.title", "Quick data entry")} />
         <HLabel

@@ -89,7 +89,17 @@ const PartyRow = ({
 
   return (
     <SectionBlock sectionKey={`party-${party.id}`} titleKey="" noAccordion sx={{ width: "100%" }} >
-      <HBox sx={{ display: "flex", alignItems: "center", width: "100%", mb: expanded ? 1 : 0 }}>
+      <HBox sx={{
+        display: "flex",
+        alignItems: "center",
+        width: "calc(100% + 32px)",
+        mx: -2,
+        px: 2,
+        mb: expanded ? 1 : 0,
+        pb: 1,
+        boxSizing: "border-box",
+        borderBottom: `1px solid ${border.control}`,
+      }}>
         <HBox sx={{ display: "flex", alignItems: "center", gap: 1, width: "100%" }}>
           <HButton
             label=""
@@ -324,6 +334,7 @@ const PartyRow = ({
           compact
           sectionKey={`party-${party.id}-kyc`}
           errors={errors}
+          showAadhaarImageUpload={false}
           footerNote={isNonIndividual && (
             <HLabel
               value="Authorised Signatory is captured once per application (at the primary borrower level)."

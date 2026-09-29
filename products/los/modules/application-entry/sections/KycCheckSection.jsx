@@ -177,10 +177,10 @@ const KycOtpRow = ({
         }
         startIcon={<VerifiedUserOutlinedIcon fontSize="small" />}
         onClick={onValidateOtp}
-        sx={{ height: "32px", minHeight: "32px", mt: 1, whiteSpace: "nowrap", width: "100%" }}
+        sx={{ height: "32px", minHeight: "32px", mt: 1, whiteSpace: "nowrap", width: "120px", minWidth: "120px", maxWidth: "120px", justifySelf: "center" }}
       />
     {/* Status */}
-    <HBox sx={{ justifySelf: "end" }}>
+    <HBox sx={{ justifySelf: "end", mr: 1 }}>
       <KycStatusLabel status={status} />
     </HBox>
   </HBox>
@@ -193,6 +193,7 @@ const IndividualKyc = ({
   handlers,
   errors = {},
   aadhaarOtpTimer = 0,
+  showAadhaarImageUpload = true,
 }) => {
   const [aadhaarOtpExpired, setAadhaarOtpExpired] = useState(false);
   const aadhaarImageInputRef = useRef(null);
@@ -303,6 +304,8 @@ const IndividualKyc = ({
         otpExpired={aadhaarOtpExpired}
       />
 
+      {showAadhaarImageUpload && (
+      <>
       {/* Upload Aadhaar Image */}
       <HBox
         sx={{
@@ -427,6 +430,8 @@ const IndividualKyc = ({
           )}
         </HBox>
       </HBox>
+      </>
+      )}
 
       {/* PAN - Aadhaar Link */}
       <HBox sx={{ display: "grid", gridTemplateColumns: "minmax(0, 24%) minmax(0, 29%) minmax(0, 13%) minmax(0, 12%) auto auto", alignItems: "center", width: "100%", minWidth: 0, gap: 1, mb: 0.2 }}>
@@ -445,9 +450,9 @@ const IndividualKyc = ({
             disabled={!form.pan || !form.aadhaar}
             onClick={handlers.onCheckPanAadhaarLink}
             startIcon={<VerifiedUserOutlinedIcon fontSize="small" />}
-            sx={{ height: "32px", minHeight: "32px", whiteSpace: "nowrap", gridColumn: 5 }}
+            sx={{ height: "32px", minHeight: "32px", whiteSpace: "nowrap", width: "120px", minWidth: "120px", maxWidth: "120px" }}
           />
-        <HBox sx={{ justifySelf: "end", gridColumn: 6 }}>
+        <HBox sx={{ justifySelf: "end", gridColumn: 6, mr: 1 }}>
           <KycStatusLabel status={form.panAadhaarLinked} />
         </HBox>
       </HBox>
@@ -504,10 +509,10 @@ const IndividualKyc = ({
           loading={verifying.digilocker}
           onClick={handlers.onDigilocker}
           startIcon={<VerifiedUserOutlinedIcon fontSize="small" />}
-          sx={{ height: "32px", minHeight: "32px", whiteSpace: "nowrap" }}
+          sx={{ height: "32px", minHeight: "32px", whiteSpace: "nowrap", width: "120px", minWidth: "120px", maxWidth: "120px" }}
         />
 
-        <HBox sx={{ justifySelf: "end", gridColumn: 6 }}>
+        <HBox sx={{ justifySelf: "end", gridColumn: 6, mr: 1 }}>
           <KycStatusLabel status={form.digiStatus} />
         </HBox>
 
@@ -638,6 +643,7 @@ const KycCheckSection = ({
   errors = {},
   footerNote,
   aadhaarOtpTimer = 0,
+  showAadhaarImageUpload = true,
   ...handlers
 }) => (
   <SectionBlock
@@ -666,6 +672,7 @@ const KycCheckSection = ({
         verifying={verifying}
         handlers={handlers}
         errors={errors}
+        showAadhaarImageUpload={showAadhaarImageUpload}
       />
     )}
     {footerNote}

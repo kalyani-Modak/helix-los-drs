@@ -12,22 +12,31 @@ const SectionBlock = ({ sectionKey, titleKey, subTitleKey, count, defaultExpande
     return (
       <HBox sx={{ mb: 2, border: "1px solid #ddd", borderRadius: "4px", overflow: "hidden", ...sx }}>
         {titleKey && (
-          <HBox sx={{ display: "flex", alignItems: "center", gap: 0.75, px: 2, pt: 1.5 }}>
+          <HBox sx={{
+            display: "flex",
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 0.75,
+            px: 2,
+            py: 1,
+            width: "100%",
+            boxSizing: "border-box",
+          }}>
             {showHeaderMeta && icon && (
               <HBox sx={{ color: colors.primary, display: "flex", alignItems: "center" }}>
                 {icon}
               </HBox>
             )}
-            <HBox sx={{ display: "flex", flexDirection: "column", gap: 0.25 }}>
+            <HBox sx={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 1, minWidth: 0 }}>
               <HLabel
-                sx={{ color: text.primary, fontWeight: 600 }}
+                sx={{ color: text.primary, fontWeight: 600, whiteSpace: "nowrap" }}
                 value={titleKey}
                 align="left"
                 colon={false}
               />
               {showHeaderMeta && subTitleKey && (
                 <HLabel
-                  sx={{ color: text.secondary, fontSize: "11px" }}
+                  sx={{ color: text.secondary, fontSize: "11px", whiteSpace: "nowrap" }}
                   value={subTitleKey}
                   align="left"
                   colon={false}
