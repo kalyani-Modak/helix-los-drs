@@ -42,7 +42,7 @@ const KycStatusLabel = ({ status }) => {
         height: "32px",
         flexShrink: 0,
         marginLeft: "auto",
-        
+
       }}
     >
       <HLabel
@@ -174,7 +174,7 @@ const KycOtpRow = ({
         }
         startIcon={<VerifiedUserOutlinedIcon fontSize="small" />}
         onClick={onValidateOtp}
-        sx={{  width: "140px", minWidth: "140px", height: "32px", minHeight: "32px", mt: 1 }}
+        sx={{ width: "140px", minWidth: "140px", height: "32px", minHeight: "32px", mt: 1 }}
       />
     </HBox>
     {/* Status */}
@@ -188,10 +188,11 @@ const IndividualKyc = ({
   verifying,
   handlers,
   errors = {},
+  aadhaarOtpTimer = 0,
 }) => {
-  const [aadhaarOtpTimer, setAadhaarOtpTimer] = useState(0);
   const [aadhaarOtpExpired, setAadhaarOtpExpired] = useState(false);
   const aadhaarImageInputRef = useRef(null);
+  const aadhaarOtpTimerWasRunning = useRef(false);
   const toast = useToast();
 
   useEffect(() => {
@@ -201,53 +202,14 @@ const IndividualKyc = ({
   }, [aadhaarOtpExpired, toast]);
 
   useEffect(() => {
-    if (aadhaarOtpTimer <= 0) {
-      return undefined;
-    }
-    const timer = setInterval(() => {
-      setAadhaarOtpTimer((prev) => {
-        if (prev <= 1) {
-          setAadhaarOtpExpired(true);
-          return 0;
-        }
-        return prev - 1;
-      });
-    }, 1000);
-
-    return () => clearInterval(timer);
-  }, [aadhaarOtpTimer]);
-
-  const handleSendAadhaarOtp = async () => {
-    setAadhaarOtpExpired(false);
-    setField("aadhaarOtp", "");
-
-    try {
-      const result = await handlers.onSendAadhaarOtp();
-
-      if (result !== false) {
-        setAadhaarOtpTimer(30);
-      }
-    } catch (error) {
-      setAadhaarOtpTimer(0);
+    if (aadhaarOtpTimer > 0) {
+      aadhaarOtpTimerWasRunning.current = true;
       setAadhaarOtpExpired(false);
+    } else if (aadhaarOtpTimerWasRunning.current) {
+      aadhaarOtpTimerWasRunning.current = false;
+      if (form.aadhaarOtpSent) setAadhaarOtpExpired(true);
     }
-  };
-
-  const handleValidateAadhaarOtp = async () => {
-    const result = await handlers.onValidateAadhaarOtp();
-
-    if (result === true) {
-      // Stop timer
-      setAadhaarOtpTimer(0);
-
-      // Reset OTP state
-      setAadhaarOtpExpired(false);
-      setField("aadhaarOtpSent", false);
-      setField("aadhaarOtp", "");
-      setField("aadhaarStatus", "VERIFIED");
-    }
-    return result;
-  };
+  }, [aadhaarOtpTimer, form.aadhaarOtpSent]);
 
   const handleAadhaarImageUpload = (event) => {
     const file = event.target.files?.[0];
@@ -324,8 +286,8 @@ const IndividualKyc = ({
           setField("aadhaarOtp", e.target.value)
         }
         otpSent={form.aadhaarOtpSent}
-        onSendOtp={handleSendAadhaarOtp}
-        onValidateOtp={handleValidateAadhaarOtp}
+        onSendOtp={handlers.onSendAadhaarOtp}
+        onValidateOtp={handlers.onValidateAadhaarOtp}
         sending={verifying.aadhaarSend}
         validating={verifying.aadhaarValidate}
         status={form.aadhaarStatus}
@@ -479,7 +441,7 @@ const IndividualKyc = ({
             disabled={!form.pan || !form.aadhaar}
             onClick={handlers.onCheckPanAadhaarLink}
             startIcon={<VerifiedUserOutlinedIcon fontSize="small" />}
-            sx={{ width: "140px", minWidth: "140px", height: "32px", minHeight: "32px", flexShrink: 0,mr:1.8 }}
+            sx={{ width: "140px", minWidth: "140px", height: "32px", minHeight: "32px", flexShrink: 0, mr: 1.8 }}
           />
         </HBox>
         <KycStatusLabel status={form.panAadhaarLinked} />
@@ -489,13 +451,16 @@ const IndividualKyc = ({
       <KycOtpRow
         labelKey="label.qde.field.ckyc"
         value={form.ckycNumber}
-        onChange={(e) =>
-          setField("ckycNumber", e.target.value)
-        }
+        onChange={(e) => {
+          if (!form.ckycTriggered) {
+            setField("ckycNumber", e.target.value);
+          }
+        }}
         otpValue={form.ckycOtp}
         onOtpChange={(e) =>
           setField("ckycOtp", e.target.value)
         }
+        disabled={form.ckycStatus === "VERIFIED"}
         otpSent={form.ckycOtpSent}
         onSendOtp={handlers.onSendCkycOtp}
         onValidateOtp={handlers.onValidateCkycOtp}
@@ -533,10 +498,10 @@ const IndividualKyc = ({
           loading={verifying.digilocker}
           onClick={handlers.onDigilocker}
           startIcon={<VerifiedUserOutlinedIcon fontSize="small" />}
-          sx={{ width: "140px", minWidth: "140px", height: "32px", minHeight: "32px", flexShrink: 0,mr:1.8 }}
+          sx={{ width: "140px", minWidth: "140px", height: "32px", minHeight: "32px", flexShrink: 0, mr: 1.8 }}
         />
 
-        <KycStatusLabel status={KycStatusLabel} />
+        <KycStatusLabel status={form.digiStatus} />
 
       </HBox>
     </>
@@ -551,35 +516,36 @@ const NonIndividualKyc = ({
   errors = {},
 }) => (
   <>
-  <KycVerifyRow
+    <KycVerifyRow
       labelKey="URN No."
-      value={form.pan}
+      value={form.urn}
       onChange={(e) =>
-        setField("pan", e.target.value.toUpperCase())
+        setField("urn", e.target.value.toUpperCase())
       }
-      status={form.bizPanStatus}
-      verifying={verifying.bizPan}
-      onVerify={handlers.onVerifyBusinessPan}
+      status={form.urnStatus}
+      verifying={verifying.urn}
+      onVerify={handlers.onVerifyUrn}
       required
-      error={Boolean(errors.pan)}
-      maxLength={10}
-      placeholder="AAACX1234K"
+      error={Boolean(errors.urn)}
+      disableVerifyWhenEmpty={false}
+      placeholder="Unique Reference Number"
       KycStatusLabel={KycStatusLabel}
     />
     { /*Business pan */}
     <KycVerifyRow
       labelKey="label.qde.field.businessPan"
-      value={form.pan}
+      value={form.bizPan}
       onChange={(e) =>
-        setField("pan", e.target.value.toUpperCase())
+        setField("bizPan", e.target.value.toUpperCase())
       }
       status={form.bizPanStatus}
       verifying={verifying.bizPan}
       onVerify={handlers.onVerifyBusinessPan}
       required
-      error={Boolean(errors.pan)}
+      error={Boolean(errors.bizPan)}
       maxLength={10}
       placeholder="AAACX1234K"
+      disableVerifyWhenEmpty={false}
       KycStatusLabel={KycStatusLabel}
     />
 
@@ -593,16 +559,16 @@ const NonIndividualKyc = ({
       status={form.gstinStatus}
       verifying={verifying.gstin}
       onVerify={handlers.onVerifyGstin}
-      disabled={form.gstRegistered !== "Y"}
       maxLength={15}
       placeholder="22AAAAA0000A1Z5"
+      disableVerifyWhenEmpty={false}
       KycStatusLabel={KycStatusLabel}
     />
 
     {/* CIN */}
     <HBox sx={{ display: "flex", alignItems: "center", width: "100%", gap: 1, mb: 0.2 }}>
       <HBox sx={{ width: "280px", minWidth: "280px", flexShrink: 0 }}>
-        <HLabel value="label.qde.field.cin"  align="left" colon={false} />
+        <HLabel value="label.qde.field.cin" align="left" colon={false} />
       </HBox>
 
       <HTextField
@@ -619,30 +585,30 @@ const NonIndividualKyc = ({
         width="350px"
         error={Boolean(errors.cin)}
       />
-      
+
       <HBox
-  sx={{
-    display: "flex",
-    flexDirection: "column",
-    alignItems: "flex-end",
-    ml: "auto",
-    mr: 16,
-    minWidth: "200px",
-  }}
->
-  <HLabel
-    value="For reference only"
-    align="right"
-    colon={false}
-    sx={{
-      fontStyle: "italic",
-      fontSize: "11px",
-      color: "text.secondary",
-      mt: 0.3,
-      
-    }}
-  />
-</HBox>
+        sx={{
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "flex-end",
+          ml: "auto",
+          mr: 16,
+          minWidth: "200px",
+        }}
+      >
+        <HLabel
+          value="For reference only"
+          align="right"
+          colon={false}
+          sx={{
+            fontStyle: "italic",
+            fontSize: "11px",
+            color: "text.secondary",
+            mt: 0.3,
+
+          }}
+        />
+      </HBox>
     </HBox>
 
     {/* Shop Act */}
@@ -652,12 +618,13 @@ const NonIndividualKyc = ({
       onChange={(e) =>
         setField("shopAct", e.target.value)
       }
-      placeholder="Shop Act"
+      placeholder="Shop & Establishment Registration No."
       status={form.shopActStatus}
       verifying={verifying.shopAct}
       onVerify={handlers.onVerifyShopAct}
       maxLength={30}
       error={Boolean(errors.shopAct)}
+      disableVerifyWhenEmpty={false}
       KycStatusLabel={KycStatusLabel}
     />
 
@@ -673,6 +640,7 @@ const KycCheckSection = ({
   sectionKey = "kycCheck",
   errors = {},
   footerNote,
+  aadhaarOtpTimer = 0,
   ...handlers
 }) => (
   <SectionBlock
@@ -682,7 +650,7 @@ const KycCheckSection = ({
     icon={<VerifiedUserOutlinedIcon fontSize="small" />}
     noAccordion={compact}
     showHeaderMeta={compact}
-    headerStatusLabel={!isNonIndividual?"PAN-Aadhaar Linkage:":false}
+    headerStatusLabel={!isNonIndividual ? "PAN-Aadhaar Linkage:" : false}
     headerStatus={!isNonIndividual ? form.panAadhaarLinked : false}
   >
     {isNonIndividual ? (
@@ -692,6 +660,7 @@ const KycCheckSection = ({
         verifying={verifying}
         handlers={handlers}
         errors={errors}
+        aadhaarOtpTimer={aadhaarOtpTimer}
       />
     ) : (
       <IndividualKyc

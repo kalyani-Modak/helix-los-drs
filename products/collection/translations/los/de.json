@@ -5,7 +5,7 @@
   "label.qde.section.ocr": "OCR-Upload",
   "label.qde.section.kyc": "KYC-Prüfung",
   "label.qde.section.applicant": "Antragstellerdaten",
-  "label.qde.section.authSignatory": "Daten des Zeichnungsberechtigten",
+  "label.qde.section.authSignatory": "des Zeichnungsberechtigten",
   "label.qde.section.authSignatoryKyc": "KYC des Zeichnungsberechtigten",
   "label.qde.section.address": "Adressdaten",
   "label.qde.section.coApplicant": "Daten des Mitantragstellers",

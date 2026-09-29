@@ -11,7 +11,7 @@
   "label.qde.section.applicant.individual": "Applicant details - Individual",
   "label.qde.section.applicant.nonIndividual": "Applicant details - Non-Individual",
   "label.qde.section.applicant.subtitle": "Capture applicant identity, demographics and contactability.",
-  "label.qde.section.authSignatory": "Authorised signatory details",
+  "label.qde.section.authSignatory": "Authorised signatory",
   "label.qde.section.authSignatoryKyc": "Authorised signatory KYC",
   "label.qde.section.authSignatoryKyc.subtitle": "Verify authorised signatory Aadhaar(UUID), PAN and pan-aadhaar linkage.",
   "label.qde.section.address": "Address details",

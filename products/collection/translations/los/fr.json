@@ -5,7 +5,7 @@
   "label.qde.section.ocr": "Téléversement OCR",
   "label.qde.section.kyc": "Contrôle KYC",
   "label.qde.section.applicant": "Détails du demandeur",
-  "label.qde.section.authSignatory": "Détails du signataire autorisé",
+  "label.qde.section.authSignatory": "signataire autorisé",
   "label.qde.section.authSignatoryKyc": "KYC du signataire autorisé",
   "label.qde.section.address": "Détails de l'adresse",
   "label.qde.section.coApplicant": "Détails du co-emprunteur",

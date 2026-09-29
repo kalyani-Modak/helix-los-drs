@@ -828,6 +828,20 @@ const ApplicationQuickDataEntry = () => {
     return () => clearInterval(timer);
   }, [otpDialog.open]);
 
+  useEffect(() => {
+    if (aadhaarOtpTimer <= 0) return undefined;
+    const timer = setInterval(() => {
+      setAadhaarOtpTimer((remaining) => {
+        if (remaining <= 1) {
+          setAadhaarOtpExpired(true);
+          return 0;
+        }
+        return remaining - 1;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [aadhaarOtpTimer]);
+
   /**
    * "Search Existing Applications" pop search. Loads the matching application into the form,
    * searching by application number, mobile number or Aadhaar number.
@@ -1091,6 +1105,7 @@ const ApplicationQuickDataEntry = () => {
 
     if (!panRegex.test(pan)) {
       setField("panStatus", "FAILED");
+      setField("panAadhaarLinked", "PENDING");
       toast.error(t("label.qde.msg.invalidPan", "Please enter a valid PAN number"));
       return false;
     }
@@ -1108,6 +1123,7 @@ const ApplicationQuickDataEntry = () => {
     const aadhaar = form.aadhaar.trim();
     if (!/^\d{12}$/.test(aadhaar)) {
       toast.error( t( "label.qde.msg.invalidAadhaar", "Please enter a valid 12-digit Aadhaar number" ) );
+      setField("aadhaarStatus", "FAILED");
       return false;
     }
     setField("aadhaarOtp", "");
@@ -1134,11 +1150,16 @@ const ApplicationQuickDataEntry = () => {
 
     if (form.aadhaarOtp.length !== 6) {
       toast.error( t( "label.qde.msg.invalidAadhaarOtp", "Please enter a valid 6-digit OTP"));
+      setField("aadhaarStatus", "FAILED");
       return false;
     }
 
     if (form.aadhaarOtp === "123456") {
       setField("aadhaarStatus", "VERIFIED");
+      setField("aadhaarOtp", "");
+      setField("aadhaarOtpSent", false);
+      setAadhaarOtpExpired(false);
+      setAadhaarOtpTimer(0);
 
       toast.success(
         t(
@@ -1161,101 +1182,324 @@ const ApplicationQuickDataEntry = () => {
     return false;
   };
 
-  const handleCheckPanAadhaarLink = () =>
-    runVerification(
-      "panAadhaar",
-      LosQdeAPI.panAadhaarLinkage(),
-      { panNumber: form.pan, aadhaarNumber: form.aadhaar },
-      "panAadhaarLinked"
-    );
+  const handleCheckPanAadhaarLink = () => {
+    if (
+      form.panStatus === "VERIFIED" &&
+      form.aadhaarStatus === "VERIFIED"
+    ) {
+      setField("panAadhaarLinked", "VERIFIED");
 
-  const handleTriggerCkyc = () =>
-    runVerification(
-      "ckycTrigger",
-      LosQdeAPI.ckycTrigger(),
-      { ckycNumber: form.ckycNumber, panNumber: form.pan },
-      "ckycStatus",
-      (data) => {
-        if (data?.ckycNumber) setField("ckycNumber", data.ckycNumber);
-      }
-    );
+      toast.success(
+        t(
+          "label.qde.msg.panAadhaarLinked",
+          "PAN-Aadhaar linkage verified successfully"
+        )
+      );
 
-  const handleSendCkycOtp = () => {
-    if (!requireValue(form.ckycNumber, "label.qde.msg.enterCkyc", "Enter a CKYC number first")) {
-      return undefined;
+      return true;
     }
-    return sendOtp("ckycSend", LosQdeAPI.ckycOtpSend(), { ckycNumber: form.ckycNumber }, "ckycOtpSent");
+
+    setField("panAadhaarLinked", "FAILED");
+
+    toast.error(
+      t(
+        "label.qde.msg.panAadhaarNotVerified",
+        "Please verify PAN and Aadhaar first"
+      )
+    );
+
+    return false;
   };
 
-  const handleValidateCkycOtp = () =>
-    runVerification(
-      "ckycValidate",
-      LosQdeAPI.ckycOtpValidate(),
-      { ckycNumber: form.ckycNumber, otp: form.ckycOtp },
-      "ckycStatus"
-    );
+  const handleTriggerCkyc = () => {
+    let ckycNumber = form.ckycNumber?.trim();
+    if (!ckycNumber) {
+      ckycNumber = `CKYC${Math.floor(
+        10000000000000 + Math.random() * 90000000000000
+      )}`;
+    }
+    setField("ckycNumber", ckycNumber);
+    setField("ckycTriggered", true);
+    setField("ckycOtpSent", false);
+    setField("ckycOtp", "");
+    setField("ckycStatus", "PENDING");
+
+    toast.success(`CKYC registry hit. Number fetched.`);
+
+    return true;
+  };
+
+  const handleSendCkycOtp = () => {
+  if (!form.ckycTriggered) {
+    toast.error("Trigger CKYC first to fetch the CKYC number.");
+    return false;
+  }
+
+  if (!form.ckycNumber) {
+    toast.error("CKYC number is required.");
+    return false;
+  }
+  setField("ckycOtp", "");
+  setField("ckycOtpSent", true);
+  setField("ckycStatus", "PENDING");
+
+  toast.success("OTP sent successfully. (Demo OTP: 123456)");
+
+  return true;
+
+ // return sendOtp("ckycSend",LosQdeAPI.ckycOtpSend(),{ckycNumber: form.ckycNumber},"ckycOtpSent");
+};
+
+
+  const handleValidateCkycOtp = () => {
+    if (!form.ckycOtp) {
+      toast.error("Please enter OTP");
+      return false;
+    }
+
+    if (form.ckycOtp.length !== 6) {
+      toast.error("Please enter a valid 6-digit OTP");
+      return false;
+    }
+
+    if (form.ckycOtp === "123456") {
+      setField("ckycStatus", "VERIFIED");
+      setField("ckycOtpSent", false);
+      setField("ckycOtp", "");
+      toast.success("CKYC verified successfully");
+      return true;
+    }
+    setField("ckycStatus", "FAILED");
+    toast.error("Invalid CKYC OTP");
+    return false;
+    // runVerification("ckycValidate",LosQdeAPI.ckycOtpValidate(),{ ckycNumber: form.ckycNumber, otp: form.ckycOtp },"ckycStatus");
+
+  };
+   
 
   const handleDigilocker = () => {
-    if (!requireValue(form.digiRef || form.mobile, "label.qde.msg.enterDigiRef", "Enter DigiLocker reference or mobile first")) {
-      return undefined;
-    }
-    return runVerification(
-      "digilocker",
-      LosQdeAPI.digilocker(),
-      {
-        mobileNumber: form.mobile || null,
-        referenceNumber: form.digiRef || null,
-        aadhaarNumber: form.aadhaar || null,
-      },
-      "digiStatus",
-      (data) => {
-        if (data?.referenceNumber) setField("digiRef", data.referenceNumber);
-      }
-    );
+    const digiRef = form.digiRef?.trim();
+    if (!digiRef) { 
+        setField("digiStatus", "FAILED");
+        toast.error( t( "label.qde.msg.enterDigiRef", "Enter DigiLocker reference or mobile first" ) ); 
+        return false; }
+
+        setField("digiRef", digiRef); setField("digiStatus", "VERIFIED");
+         toast.success( t( "label.qde.msg.digiLockerVerified", "DigiLocker verified successfully" ) );
+         return true;
+
+    // if (!requireValue(form.digiRef || form.mobile, "label.qde.msg.enterDigiRef", "Enter DigiLocker reference or mobile first")) {
+    //   return undefined;
+    // }
+    // return runVerification(
+    //   "digilocker",
+    //   LosQdeAPI.digilocker(),
+    //   {
+    //     mobileNumber: form.mobile || null,
+    //     referenceNumber: form.digiRef || null,
+    //     aadhaarNumber: form.aadhaar || null,
+    //   },
+    //   "digiStatus",
+    //   (data) => {
+    //     if (data?.referenceNumber) setField("digiRef", data.referenceNumber);
+    //   }
+    // );
   };
 
   // ---- KYC handlers (non-individual) ---------------------------------------
 
-  const handleVerifyBusinessPan = () =>
-    runVerification("bizPan", LosQdeAPI.verifyPan(), { panNumber: form.pan, entityPan: true }, "bizPanStatus");
+  const handleVerifyBusinessPan = () =>{
+    //runVerification("bizPan", LosQdeAPI.verifyPan(), { panNumber: form.pan, entityPan: true }, "bizPanStatus");
+    if (!requireValue(form.bizPan, "label.qde.msg.enterBussPan", "Enter a Business PAN number first")) {
+      setField("bizPanStatus", "FAILED");
+      return false;
+    }
+    const bizPan = form.bizPan.trim().toUpperCase();
+    const panRegex = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
 
-  const handleVerifyGstin = () =>
-    runVerification("gstin", LosQdeAPI.verifyPan(), { gstin: form.gstin, panNumber: form.pan }, "gstinStatus");
+    if (!panRegex.test(bizPan)) {
+      setField("bizPanStatus", "FAILED");
+      setField("panAadhaarLinked", "PENDING");
+      toast.error(t("label.qde.msg.invalidPan", "Please enter a valid PAN number"));
+      return false;
+    }
+    setField("bizPan", bizPan);
+    setField("bizPanStatus", "VERIFIED");
+    toast.success(t("label.qde.msg.PanVerify", "PAN Verified"));
 
-  const handleVerifyUrn = () =>
-    runVerification("urn", LosQdeAPI.verifyPan(), { urn: form.urn, panNumber: form.pan }, "urnStatus");
+    return true;
+  }
 
-  const handleVerifyShopAct = () =>
-    runVerification("shopAct", LosQdeAPI.verifyPan(), { shopAct: form.shopAct, panNumber: form.pan }, "shopActStatus");
+  const handleVerifyGstin = () => {
+    //runVerification("gstin", LosQdeAPI.verifyPan(), { gstin: form.gstin, panNumber: form.pan }, "gstinStatus");
+    const gstin = form.gstin?.trim().toUpperCase() || "";
+    if (!gstin) {
+      setField("gstinStatus", "FAILED");
+      toast.error(t("label.qde.msg.emptyGSTIN", "Please enter a GSTIN number"));
+      return;
+    }
 
+    if (gstin.length !== 15) {
+      setField("gstinStatus", "FAILED");
+       toast.error(t("label.qde.msg.invalidGSTIN", "Please enter a valid GSTIN number"));
+      return;
+    }
+    setField("gstinStatus", "VERIFIED");
+    toast.success(t("label.qde.msg.GstinVerify", "GSTIN Verified"));
+  }
+
+  const handleVerifyUrn = () => {
+    const urn = form.urn?.trim();
+
+    if (!urn) {
+      setField("urnStatus", "FAILED");
+      toast.error(t("label.qde.msg.enterUrn","Please enter URN No."));
+      return false;
+    }
+    setField("urn", urn);
+    setField("urnStatus", "VERIFIED");
+
+    toast.success(t("label.qde.msg.urnVerified","URN No. verified successfully"));
+    return true;
+  };
+
+  const handleVerifyShopAct = () =>{
+  //  runVerification("shopAct", LosQdeAPI.verifyPan(), { shopAct: form.shopAct, panNumber: form.pan }, "shopActStatus");
+   const shopAct = form.shopAct?.trim().toUpperCase() || "";
+    if (!shopAct) {
+      setField("shopActStatus", "FAILED");
+      toast.error(t("label.qde.msg.emptyshopact", "Please enter a shop act number"));
+      return;
+    }
+
+    if (shopAct.length <= 3) {
+      setField("shopActStatus", "FAILED");
+       toast.error(t("label.qde.msg.invalidshopact", "Please enter a valid shop act number"));
+      return;
+    }
+    setField("shopActStatus", "VERIFIED");
+    toast.success(t("label.qde.msg.shopactVerify", "shop act Verified"));
+  }
   // ---- Authorised signatory KYC --------------------------------------------
 
-  const handleVerifyAsPan = () =>
-    runVerification("asPan", LosQdeAPI.verifyPan(), { panNumber: form.asPan }, "asPanStatus");
+  const handleVerifyAsPan = () => {
+    const pan = form.asPan?.trim().toUpperCase() || "";
+    if (!pan) {
+      setField("asPanStatus", "FAILED");
+      setField("asPanAadhaarLinked", "FAILED");
+      toast.error(t("label.qde.msg.enterPan", "Enter a PAN number first"));
+      return false;
+    }
+    if (!PAN_PATTERN.test(pan)) {
+      setField("asPanStatus", "FAILED");
+      setField("asPanAadhaarLinked", "FAILED");
+      toast.error(t("label.qde.msg.invalidPan", "Please enter a valid PAN number"));
+      return false;
+    }
 
-  const handleSendAsAadhaarOtp = () =>
-    sendOtp(
-      "asAadhaarSend",
-      LosQdeAPI.aadhaarOtpSend(),
-      { aadhaarNumber: form.asAadhaar },
-      "asAadhaarOtpSent"
-    );
+    setField("asPan", pan);
+    setField("asPanStatus", "VERIFIED");
+    toast.success(t("label.qde.msg.PanVerify", "PAN Verified"));
+    return true;
+  };
 
-  const handleValidateAsAadhaarOtp = () =>
-    runVerification(
-      "asAadhaarValidate",
-      LosQdeAPI.aadhaarOtpValidate(),
-      { aadhaarNumber: form.asAadhaar, otp: form.asAadhaarOtp },
-      "asAadhaarStatus"
-    );
+  const handleSendAsAadhaarOtp = () => {
+    const aadhaar = form.asAadhaar?.trim() || "";
+    if (!aadhaar) {
+      setField("asAadhaarStatus", "FAILED");
+      setField("asPanAadhaarLinked", "FAILED");
+      toast.error(t("label.qde.msg.enterAadhaar", "Enter Aadhaar number first"));
+      return false;
+    }
+    if (!AADHAAR_PATTERN.test(aadhaar)) {
+      setField("asAadhaarStatus", "FAILED");
+      setField("asPanAadhaarLinked", "FAILED");
+      toast.error(t("label.qde.msg.invalidAadhaar", "Please enter a valid 12-digit Aadhaar number"));
+      return false;
+    }
 
-  const handleCheckAsPanAadhaarLink = () =>
-    runVerification(
-      "asPanAadhaar",
-      LosQdeAPI.panAadhaarLinkage(),
-      { panNumber: form.asPan, aadhaarNumber: form.asAadhaar },
-      "asPanAadhaarLinked"
+    setField("asAadhaar", aadhaar);
+    setField("asAadhaarOtp", "");
+    setField("asAadhaarOtpSent", true);
+    setField("asAadhaarStatus", "PENDING");
+    setAadhaarOtpExpired(false);
+    setAadhaarOtpTimer(30);
+    toast.success(
+      t(
+        "label.qde.msg.aadhaarOtpSent",
+        "UIDAI: OTP sent to Aadhaar-registered mobile. (Demo OTP: 123456) · 30 resend(s) left"
+      )
     );
+    return true;
+  };
+
+  const handleValidateAsAadhaarOtp = () => {
+    const aadhaar = form.asAadhaar?.trim() || "";
+    if (!aadhaar) {
+      setField("asAadhaarStatus", "FAILED");
+      setField("asPanAadhaarLinked", "FAILED");
+      toast.error(t("label.qde.msg.enterAadhaar", "Enter Aadhaar number first"));
+      return false;
+    }
+    if (!AADHAAR_PATTERN.test(aadhaar)) {
+      setField("asAadhaarStatus", "FAILED");
+      setField("asPanAadhaarLinked", "FAILED");
+      toast.error(t("label.qde.msg.invalidAadhaar", "Please enter a valid 12-digit Aadhaar number"));
+      return false;
+    }
+    if (!form.asAadhaarOtp) {
+      setField("asAadhaarStatus", "FAILED");
+      setField("asPanAadhaarLinked", "FAILED");
+      toast.error(t("label.qde.msg.enterAadhaarOtp", "Please enter OTP"));
+      return false;
+    }
+    if (!/^\d{6}$/.test(form.asAadhaarOtp)) {
+      setField("asAadhaarStatus", "FAILED");
+      setField("asPanAadhaarLinked", "FAILED");
+      toast.error(t("label.qde.msg.invalidAadhaarOtp", "Please enter a valid 6-digit OTP"));
+      return false;
+    }
+
+    if (form.asAadhaarOtp === "123456") {
+      setField("asAadhaarStatus", "VERIFIED");
+      setField("asAadhaarOtp", "");
+      setField("asAadhaarOtpSent", false);
+      setAadhaarOtpExpired(false);
+      setAadhaarOtpTimer(0);
+      toast.success(t("label.qde.msg.aadhaarVerified", "Aadhaar verified successfully"));
+      return true;
+    }
+
+    setField("asAadhaarStatus", "FAILED");
+    setField("asPanAadhaarLinked", "FAILED");
+    toast.error(t("label.qde.msg.aadhaarVerificationFailed", "Invalid Aadhaar OTP"));
+    return false;
+  };
+
+  const handleCheckAsPanAadhaarLink = () => {
+    if (
+      form.asPanStatus === "VERIFIED" &&
+      form.asAadhaarStatus === "VERIFIED"
+    ) {
+      setField("asPanAadhaarLinked", "VERIFIED");
+      toast.success(
+        t(
+          "label.qde.msg.panAadhaarLinked",
+          "PAN-Aadhaar linkage verified successfully"
+        )
+      );
+      return true;
+    }
+
+    setField("asPanAadhaarLinked", "FAILED");
+    toast.error(
+      t(
+        "label.qde.msg.panAadhaarNotVerified",
+        "Please verify PAN and Aadhaar first"
+      )
+    );
+    return false;
+  };
 
   const openOtp = useCallback(
     (field, target) => {
@@ -1263,9 +1507,14 @@ const ApplicationQuickDataEntry = () => {
         return;
       }
 
-      const isMobile = field === "mobile";
+      const isMobile = field === "mobile" || field === "asMobile";
 
       if (isMobile && !/^[6-9]\d{9}$/.test(target)) {
+        toast.error("Enter 10-digit mobile starting 6-9.");
+        return;
+      }
+      if (!isMobile && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(target)) {
+        toast.error("Invalid email format (RFC 5322).");
         return;
       }
 
@@ -1276,7 +1525,7 @@ const ApplicationQuickDataEntry = () => {
         partyId: null,
       });
 
-      toast(
+      toast.success(
         `OTP sent to ${target}. (Demo OTP: 123456)`,
         "success"
       );
@@ -1299,12 +1548,15 @@ const ApplicationQuickDataEntry = () => {
         );
       } else if (otpDialog.field === "mobile") {
         setField("mobileVerified", true);
-        toast("Mobile verified", "success");
+        toast.success("Mobile verified", "success");
+      } else if (otpDialog.field === "asMobile") {
+        setField("asMobileVerified", true);
+        toast.success("Mobile verified", "success");
       }
 
-      if (otpDialog.field === "email") {
-        setField("emailVerified", true);
-        toast("Email verified", "success");
+      if (otpDialog.field === "email" || otpDialog.field === "asEmail") {
+        setField(otpDialog.field === "asEmail" ? "asEmailVerified" : "emailVerified", true);
+        toast.success("Email verified", "success");
       }
 
       setOtpDialog({
@@ -1684,6 +1936,7 @@ const ApplicationQuickDataEntry = () => {
               <KycCheckSection
                 form={form}
                 setField={setField}
+                aadhaarOtpTimer={aadhaarOtpTimer}
                 isNonIndividual={isNonIndividual}
                 verifying={verifying}
                 onVerifyPan={handleVerifyPan}
@@ -1717,9 +1970,8 @@ const ApplicationQuickDataEntry = () => {
                   <AuthSignatorySection
                     form={form}
                     setField={setField}
-                    verifyingMobile={Boolean(verifying.mobileSend)}
-                    onVerifyAsMobile={() => openMobileOtp("asMobile", form.asMobile)}
-                    onVerifyAsEmail={() => setField("asEmailVerified", true)}
+                    onVerifyAsMobile={() => openOtp("asMobile", form.asMobile)}
+                    onVerifyAsEmail={() => openOtp("asEmail", form.asEmail)}
                     errors={formErrors.applicant}
                   />
                   
@@ -1727,6 +1979,7 @@ const ApplicationQuickDataEntry = () => {
                   <AuthSignatoryKycSection
                     form={form}
                     setField={setField}
+                    aadhaarOtpTimer={aadhaarOtpTimer}
                     verifying={verifying}
                     onVerifyAsPan={handleVerifyAsPan}
                     onSendAsAadhaarOtp={handleSendAsAadhaarOtp}
@@ -1809,13 +2062,13 @@ const ApplicationQuickDataEntry = () => {
         }
         onValidate={handleValidateOtp}
         channel={
-          otpDialog.field === "mobile"
+          otpDialog.field === "mobile" || otpDialog.field === "asMobile"
             ? t("label.qde.field.mobile", "Mobile number")
             : t("label.qde.field.email", "Email")
         }
         target={otpDialog.target}
         loading={Boolean(
-          otpDialog.field === "mobile"
+          otpDialog.field === "mobile" || otpDialog.field === "asMobile"
             ? verifying.mobileValidate
             : verifying.emailValidate
         )}

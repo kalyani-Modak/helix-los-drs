@@ -5,7 +5,7 @@
   "label.qde.section.ocr": "Carga OCR",
   "label.qde.section.kyc": "Verificación KYC",
   "label.qde.section.applicant": "Datos del solicitante",
-  "label.qde.section.authSignatory": "Datos del firmante autorizado",
+  "label.qde.section.authSignatory": "firmante autorizado",
   "label.qde.section.authSignatoryKyc": "KYC del firmante autorizado",
   "label.qde.section.address": "Datos de dirección",
   "label.qde.section.coApplicant": "Datos del cosolicitante",
