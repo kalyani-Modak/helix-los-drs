@@ -3,12 +3,12 @@ import { Grid } from "@mui/material";
 import { HAccordion, HBox, useDrsTheme, HLabel } from "@helix/component-library";
 import { useIntl } from "react-intl";
 
-const SectionBlock = ({ sectionKey, titleKey, subTitleKey, count, defaultExpanded = true, icon, noAccordion = false, showHeaderMeta = false, sx, children }) => {
+const SectionBlock = ({ sectionKey, titleKey, subTitleKey, count, defaultExpanded = true, icon, noAccordion = false, showHeaderMeta = false, sx, headerStatusLabel, headerStatus, children }) => {
   const [expanded, setExpanded] = useState({ [sectionKey]: defaultExpanded });
   const { colors, text, border, action } = useDrsTheme();
   const intl = useIntl();
 
- if (noAccordion) {
+  if (noAccordion) {
     return (
       <HBox sx={{ mb: 2, border: "1px solid #ddd", borderRadius: "4px", overflow: "hidden", ...sx }}>
         {titleKey && (
@@ -125,6 +125,69 @@ const SectionBlock = ({ sectionKey, titleKey, subTitleKey, count, defaultExpande
       {icon && (
         <HBox className="qde-section-icon">
           {icon}
+        </HBox>
+      )}
+      {headerStatusLabel && (
+        <HBox
+          sx={{
+            position: "absolute",
+            right: "64px",
+            top: "10px",
+            display: "flex",
+            alignItems: "center",
+            gap: 1,
+            zIndex: 3,
+            backgroundColor:"transparent"
+          }}
+        >
+          <HLabel
+            value={headerStatusLabel}
+            align="left"
+            colon={false}
+            sx={{
+              fontSize: "11px",
+              color: text.secondary,
+            }}
+          />
+
+          <HLabel
+            value={
+              headerStatus === "VERIFIED"
+                ? "Verified"
+                : headerStatus === "FAILED"
+                  ? "Failed"
+                  : "Pending"
+            }
+            align="center"
+            colon={false}
+            sx={{
+              fontSize: "11px",
+              fontWeight: 600,
+              padding: "3px 10px",
+              borderRadius: "12px",
+
+              color:
+                headerStatus === "VERIFIED"
+                  ? "#2e7d32"
+                  : headerStatus === "FAILED"
+                    ? "#d32f2f"
+                    : "#757575",
+
+              backgroundColor:
+                headerStatus === "VERIFIED"
+                  ? "#e8f5e9"
+                  : headerStatus === "FAILED"
+                    ? "#ffebee"
+                    : "#f5f5f5",
+
+              border:
+                headerStatus === "VERIFIED"
+                  ? "1px solid #a5d6a7"
+                  : headerStatus === "FAILED"
+                    ? "1px solid #ef9a9a"
+                    : "1px solid #d6d6d6",
+            }}
+          />
         </HBox>
       )}
 

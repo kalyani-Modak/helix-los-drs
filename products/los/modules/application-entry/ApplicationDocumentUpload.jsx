@@ -1817,7 +1817,8 @@ const ApplicationDocumentUpload = () => {
             ) +
             "/documents" +
             `?szApplicantId=${encodeURIComponent(applicableFor)}` +
-            `&szStageDue=${encodeURIComponent(stage)}`
+            `&szStageDue=${encodeURIComponent(stage)}`+
+            `&szApplicantCategory=${encodeURIComponent(applicantCategory)}`
           )
         );
 

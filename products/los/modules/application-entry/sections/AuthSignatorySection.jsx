@@ -16,8 +16,8 @@ const AuthSignatorySection = ({
 
   return (
     <SectionBlock sectionKey="authSignatory" titleKey="label.qde.section.authSignatory" noAccordion={noAccordion} icon={<PersonOutlineOutlinedIcon fontSize="small" />} >
-      <HBox sx={{ width: "100%", display: "flex", flexDirection: "row", flexWrap: "wrap" }}>
-        <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
+      <HBox sx={{ width: "100%", display: "flex", flexDirection: "row", flexWrap: "wrap",gap:0.5 }}>
+        <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 1.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
           <HLabel value="label.qde.field.firstName" required align="left" colon={false} />
           <HTextField
             value={form.asFirstName}
@@ -30,7 +30,7 @@ const AuthSignatorySection = ({
           />
         </HBox>
 
-        <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
+        <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 1.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
           <HLabel value="label.qde.field.middleName" align="left" colon={false} />
           <HTextField
             value={form.asMiddleName}
@@ -41,7 +41,7 @@ const AuthSignatorySection = ({
           />
         </HBox>
 
-        <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
+        <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 1.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
           <HLabel value="label.qde.field.lastName" required align="left" colon={false} />
           <HTextField
             value={form.asLastName}
@@ -54,7 +54,7 @@ const AuthSignatorySection = ({
           />
         </HBox>
 
-        <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px", mt: 1 }}>
+        <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 1.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px", mt: 1 }}>
           <HLabel value="label.qde.field.dob" required align="left" colon={false} />
           <HDatePicker
             value={toPickerValue(form.asDob)}
@@ -65,7 +65,7 @@ const AuthSignatorySection = ({
           />
         </HBox>
 
-        <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px", mt: 1 }}>
+        <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 1.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px", mt: 1 }}>
           <HLabel value="label.qde.field.designation" required align="left" colon={false} />
           <HTextField
             value={form.asDesignation}
@@ -74,12 +74,12 @@ const AuthSignatorySection = ({
             required
             error={Boolean(err("asDesignation"))}
             width="100%"
+            placeholder="Director / Partner / Proprietor"
           />
         </HBox>
 
-        <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px", mt: 1 }}>
+        <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column",  minWidth: 0, boxSizing: "border-box", gap: 0, paddingRight: "8px", marginBottom: "8px", mt: 1 }}>
           <HLabel value="label.qde.field.mobile" required align="left" colon={false} />
-          <HBox sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
             <HBox sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
               <HTextField
                 value={form.asMobile}
@@ -89,7 +89,7 @@ const AuthSignatorySection = ({
                 type="phone"
                 length={10}
                 error={Boolean(err("asMobile"))}
-                width="160px"
+                width="330px"
               />
               <HButton
                 label="label.qde.button.verify"
@@ -99,27 +99,21 @@ const AuthSignatorySection = ({
                 loading={verifyingMobile}
                 disabled={!form.asMobile}
                 onClick={onVerifyAsMobile}
+                sx={{mt:1}}
               />
             </HBox>
-            <HLabel
-              value={form.asMobileVerified ? "label.qde.status.verified" : "label.qde.status.pending"}
-              align="left"
-              colon={false}
-            />
-          </HBox>
+           
         </HBox>
 
-        <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
-          <HLabel value="label.qde.field.email" required align="left" colon={false} />
-          <HBox sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-            <HBox sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+        <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", minWidth: 0,gap:0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
+          <HLabel value="label.qde.field.email"  align="left" colon={false} />
+            <HBox sx={{ display: "flex", alignItems: "center", gap: 0.5, flexWrap: "wrap" }}>
               <HTextField
                 value={form.asEmail}
                 onChange={(e) => setField("asEmail", e.target.value)}
                 editable
-                required
                 error={Boolean(err("asEmail"))}
-                width="200px"
+                width="330px"
               />
               <HButton
                 label="label.qde.button.verify"
@@ -128,14 +122,9 @@ const AuthSignatorySection = ({
                 inline
                 disabled={!form.asEmail}
                 onClick={onVerifyAsEmail}
+                sx={{mt:1}}
               />
             </HBox>
-            <HLabel
-              value={form.asEmailVerified ? "label.qde.status.verified" : "label.qde.status.pending"}
-              align="left"
-              colon={false}
-            />
-          </HBox>
         </HBox>
       </HBox>
     </SectionBlock>

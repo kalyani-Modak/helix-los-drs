@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { useIntl } from "react-intl";
 import { useLocation, useNavigate } from "react-router-dom";
 import { HAxiosService, HBox, HBreadCrumb, HButtonBar, HPaper, TitleBar, useToast, HLabel, HButton, HTextField, useDrsTheme } from "@helix/component-library";
-import { LosQdeAPI } from "./apiEndpoints";
+import { LosQdeAPI,LosDocumentAPI } from "./apiEndpoints";
 import { unwrapApiResponse } from "./unwrapApiResponse";
 import { VERIFICATION_STATUS } from "./constants/qdeOptions";
 
@@ -1339,14 +1339,91 @@ const ApplicationQuickDataEntry = () => {
 
     const data = unwrapQdePayload(response);
     const appNo = data?.szApplicationNo || data?.applicationNumber || data?.applicationNo;
+    const applicantId = data?.applicantDetails?.szApplicantId;
+    const orgId = data?.szOrgId ;
 
     if (appNo) {
       persistedDraftRef.current = true;
+      if (form.aadhaarImage) {
+        const documentRequests = [
+        {
+          itemId: null,
+          custom: false,
+          docName: null,
+          iDocumentsSrNo: null,
+          szApplicationNo: appNo,
+          szOrgId: orgId,
+          szDocCode: "AADHAAR",
+          szApplicantId: applicantId,
+          szAssetSrNo: null,
+          szStageDue: "PRE_SUBMISSION",
+          szDocWaiveAllowYn: "N",
+          szReceivedYn: "Y",
+          szWaivedYn: "N",
+          szWaiverDec: null,
+          szWaiverReason: null,
+          szDifferYn: "N",
+          szMandatoryYn: "Y",
+          szOriginalReqYn: "Y",
+          szVerfDecision: null,
+          szVerifiedBy: null,
+          szUserSpecifiedYn: "N",
+          documentId: null,
+          szDocFamilyCode: "KYC",
+          szDocFamilyDesc: "Personal Identification and KYC Documents",
+          cFraudYn: "N",
+          szRemarks: null,
+          iDueDays: null,
+          dtDueDate: null,
+          szDocketLocation: null,
+          iNoOfPages: null,
+          cLevel: "P",
+          dtRecieptDate: null,
+          dtDeferralDate: null,
+          szCreatedBy: null,
+          dtCreatedOn: null,
+          szUpdatedBy: null,
+          dtUpdatedOn: null,
+            filePartName: "aadhaarFile"
+          }
+        ];
+
+        const formData = new FormData();
+
+        formData.append(
+          "request",
+          new Blob(
+            [JSON.stringify(documentRequests)],
+            {
+              type: "application/json",
+            }
+          )
+        );
+
+        formData.append(
+          "aadhaarFile",
+          form.aadhaarImage,
+          form.aadhaarImage.name
+        );
+
+        await HAxiosService.POST(
+          LosDocumentAPI.LosDocumentAPI(
+            "ECF-DocumentUpload"
+          ) + "/documents/upload" +
+          `?applicationNo=${encodeURIComponent(appNo)}` +
+          `&orgId=${encodeURIComponent(orgId || "001")}`,
+          formData,
+          {},
+          false,
+          { "Content-Type": "multipart/form-data" }
+        );
+      }
+
       setField("applicationNo", appNo);
     }
 
     return appNo;
-  }, [buildPayload, form.applicationNo, setField]);
+  }, [buildPayload, form, setField]);
 
 
   const validateForm = useCallback(() => {
