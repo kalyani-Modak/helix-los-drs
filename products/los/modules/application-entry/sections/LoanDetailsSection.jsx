@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ALIGNMENT, HDropdown, HTextField, HBox, HLabel, useDrsTheme, useToast } from "@helix/component-library";
 import SectionBlock from "../components/SectionBlock";
-import { LOAN_TYPES, PRODUCTS, SCHEMES } from "../constants/qdeOptions";
+import { PRODUCTS, SCHEMES } from "../constants/qdeOptions";
 import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
 
 const LoanDetailsSection = ({ form, setField, errors = {} }) => {

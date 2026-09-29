@@ -1525,10 +1525,7 @@ const ApplicationQuickDataEntry = () => {
         partyId: null,
       });
 
-      toast.success(
-        `OTP sent to ${target}. (Demo OTP: 123456)`,
-        "success"
-      );
+      toast.success(`OTP sent to ${target}. (Demo OTP: 123456)`);
     },
     [toast]
   );
@@ -1536,7 +1533,7 @@ const ApplicationQuickDataEntry = () => {
   const handleValidateOtp = useCallback(
     (enteredOtp) => {
       if (enteredOtp !== "123456") {
-        toast("Invalid OTP. Try again.", "error");
+        toast.error("Invalid OTP. Try again.");
         return;
       }
 
@@ -1866,49 +1863,20 @@ const ApplicationQuickDataEntry = () => {
   // }, [loadApplicationOptions]);
   
   return (
-    <HBox sx={{ mt: 2 }}>
-      <HBreadCrumb />
-      <TitleBar title={t("label.qde.title", "Quick data entry")} />
-      <HLabel
-        value="Fast initial capture of applicant, product and key eligibility details before detailed data entry."
-        align="left"
-        colon={false}
-      />
-     
+    <HBox sx={{ mt: 2, width: "100%", minWidth: 0, maxWidth: "100%" }}>
       <HBox>
-        <HBox sx={{ display: "flex", flexDirection: "column", gap: 2, pb: 8 }}>
-          <HPaper>
-            {/* Added temporary */}
-            {/* <HBox sx={{ display: "flex", flexDirection: "row", alignItems: "center", width: "100%", marginBottom: "12px", }} >
-              <HLabel
-                value={t(
-                  "label.docupload.field.applicationNo",
-                  "Application No."
-                )}
-                translate={false}
-                required
-                align="left"
-                colon={false}
-              />
+        <HBreadCrumb />
+        <TitleBar title={t("label.qde.title", "Quick data entry")} />
+        <HLabel
+          value="Fast initial capture of applicant, product and key eligibility details before detailed data entry."
+          align="left"
+          colon={false}
+        />
+      </HBox>
 
-              <HDropdown
-                name="applicationNo"
-                options={applicationOptions}
-                value={applicationNo}
-                onChange={(e) => {
-                  const nextApplicationNo = e.target.value;
-                  setApplicationNo(nextApplicationNo);
-                  if (nextApplicationNo) {
-                    handleSearchApplications({
-                      applicationNo: nextApplicationNo,
-                      mobile: "",
-                      aadhaar: "",
-                    });
-                  }
-                }}
-                width="290px"
-              />
-            </HBox> */}
+      <HBox sx={{ width: "100%", minWidth: 0, maxWidth: "100%" }}>
+        <HBox sx={{ display: "flex", flexDirection: "column", gap: 2, pb: 8 }}>
+          <HPaper sx={{ width: "100%", minWidth: 0, maxWidth: "100%" }}>
 
             <HBox sx={{ p: 2, width: "100%" }} data-menu-id={screenMenuId}>
               <QdeProgressBar
@@ -2012,19 +1980,20 @@ const ApplicationQuickDataEntry = () => {
                 primaryAddress={form}
                 onSearchCustomer={handleSearchCustomer}
               />
+              <HBox sx={{ width: "100%", minWidth: 0, maxWidth: "100%" }}>
+                <GuarantorSection
+                  items={form.guarantors || []}
+                  onAdd={addGuarantor}
+                  onRemove={removeGuarantor}
+                  onChange={updateGuarantor}
+                  errors={formErrors.guarantors}
+                  primaryBorrowerType={form.borrowerType}
+                  kycHandlers={partyKycHandlers}
+                  primaryAddress={form}
+                  onSearchCustomer={handleSearchCustomer}
+                />
+              </HBox>
 
-              <GuarantorSection
-                items={form.guarantors || []}
-                onAdd={addGuarantor}
-                onRemove={removeGuarantor}
-                onChange={updateGuarantor}
-                errors={formErrors.guarantors}
-                primaryBorrowerType={form.borrowerType}
-                kycHandlers={partyKycHandlers}
-                primaryAddress={form}
-                onSearchCustomer={handleSearchCustomer}
-              />
-           
               <HBox id="qde-loan">
                 <LoanDetailsSection form={form} setField={setField} errors={formErrors.applicant} />
               </HBox>

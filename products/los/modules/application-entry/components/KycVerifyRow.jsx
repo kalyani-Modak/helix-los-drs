@@ -20,22 +20,23 @@ const KycVerifyRow = ({
 }) => (
   <HBox
     sx={{
-      display: "flex",
-      flexDirection: "row",
+      display: "grid",
+      gridTemplateColumns: "minmax(0, 24%) minmax(0, 29%) minmax(0, 13%) minmax(0, 12%) auto auto",
       alignItems: "center",
       width: "100%",
+      minWidth: 0,
       gap: 1,
       mb: 0.2,
+      "@media (max-width: 900px)": {
+        gridTemplateColumns: "minmax(0, 24%) minmax(0, 29%) minmax(0, 13%) minmax(0, 12%) auto auto",
+      },
+      "@media (max-width: 600px)": {
+        gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)",
+      },
     }}
   >
     {/* Label */}
-    <HBox
-      sx={{
-        width: "280px",
-        minWidth: "280px",
-        flexShrink: 0,
-      }}
-    >
+    <HBox sx={{ minWidth: 0 }}>
       <HLabel
         value={labelKey}
         required={required}
@@ -54,18 +55,10 @@ const KycVerifyRow = ({
       error={error}
       placeholder={placeholder}
       length={maxLength}
-      width="350px"
+      width="100%"
     />
-  <HBox sx={{ flex: 1 }} />
-    {/* Space reserved for Aadhaar OTP + Get OTP */}
-    <HBox
-      sx={{
-        width: "228px",
-        minWidth: "228px",
-        flexShrink: 0,
-      }}
-    />
-
+    <HBox sx={{ minWidth: 0 }} />
+    <HBox sx={{ minWidth: 0 }} />
     {/* Verify */}
     <HButton
       label={
@@ -82,19 +75,13 @@ const KycVerifyRow = ({
         <VerifiedUserOutlinedIcon fontSize="small" />
       }
       onClick={onVerify}
-      sx={{
-        width: "140px",
-        minWidth: "140px",
-        height: "32px",
-        minHeight: "32px",
-        flexShrink: 0,
-        mr:1.8
-      }}
+      sx={{ height: "32px", minHeight: "32px", whiteSpace: "nowrap" }}
     />
 
     {/* Status */}
-    
+    <HBox sx={{ justifySelf: "end" }}>
       <KycStatusLabel status={status} />
+    </HBox>
   </HBox>
 );
 

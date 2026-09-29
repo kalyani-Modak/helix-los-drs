@@ -336,26 +336,6 @@ const ApplicantDetailsSection = ({
                 {mobileError}
               </HBox>
             )}
-
-            {form.mobileVerified && (
-              <HBox
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 0.5,
-                }}
-              >
-                <CheckCircleOutlineIcon
-                  fontSize="small"
-                  sx={{ color: "success.main" }}
-                />
-
-                <HLabel
-                  value="Mobile verified"
-                  colon={false}
-                />
-              </HBox>
-            )}
           </HBox>
         </HBox>
 
@@ -429,7 +409,7 @@ const ApplicantDetailsSection = ({
             </HBox>
 
             {emailError && (
-              <HBox sx={{ fontSize: "12px", color: "red" }} >
+              <HBox sx={{ fontSize: "12px", color: "red", mt: 0.5 }} >
                 {emailError}
               </HBox>
             )}

@@ -2,7 +2,6 @@ import { useEffect, useRef, useState } from "react";
 import { HButton, HLabel, HTextField, HBox, useToast } from "@helix/component-library";
 import KycVerifyRow from "../components/KycVerifyRow";
 import SectionBlock from "../components/SectionBlock";
-import UploadFileOutlinedIcon from "@mui/icons-material/UploadFileOutlined";
 import VerifiedUserOutlinedIcon from '@mui/icons-material/VerifiedUserOutlined';
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
 import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
@@ -41,8 +40,6 @@ const KycStatusLabel = ({ status }) => {
         justifyContent: "center",
         height: "32px",
         flexShrink: 0,
-        marginLeft: "auto",
-
       }}
     >
       <HLabel
@@ -59,9 +56,6 @@ const KycStatusLabel = ({ status }) => {
           fontWeight: 600,
           lineHeight: 1.2,
           whiteSpace: "nowrap",
-          width: "64px",
-          minWidth: "64px",
-          maxWidth: "64px",
           boxSizing: "border-box",
         }}
       />
@@ -93,8 +87,18 @@ const KycOtpRow = ({
   onVerify,
 }) => (
 
-  <HBox sx={{ display: "flex", flexDirection: "row", alignItems: "center", width: "100%", gap: 1, mb: 0.2 }}>
-    <HBox sx={{ width: "280px", minWidth: "280px", flexShrink: 0, display: "flex", flexDirection: "row", alignItems: "center", gap: 15 }}>
+  <HBox sx={{
+    display: "grid",
+    gridTemplateColumns: "minmax(0, 24%) minmax(0, 29%) minmax(0, 13%) minmax(0, 12%) auto auto",
+    alignItems: "center",
+    width: "100%",
+    minWidth: 0,
+    gap: 1,
+    mb: 0.2,
+    "@media (max-width: 900px)": { gridTemplateColumns: "minmax(0, 24%) minmax(0, 29%) minmax(0, 13%) minmax(0, 12%) auto auto" },
+    "@media (max-width: 600px)": { gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)" },
+  }}>
+    <HBox sx={{ minWidth: 0, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 1, flexWrap: "wrap" }}>
       <HLabel
         value={labelKey}
         required={required}
@@ -114,7 +118,6 @@ const KycOtpRow = ({
           sx={{ height: "30px", minHeight: "30px", mt: 1, whiteSpace: "nowrap", }}
         />)}
     </HBox>
-    <HBox sx={{ display: "flex", flexDirection: "row", alignItems: "center", width: "100%", gap: 2, mb: 0.2 }}>
       <HTextField
         value={value ?? ""}
         onChange={onChange}
@@ -124,7 +127,7 @@ const KycOtpRow = ({
         error={error}
         placeholder={placeholder}
         length={maxLength}
-        width="350px"
+        width="100%"
       />
 
 
@@ -137,7 +140,7 @@ const KycOtpRow = ({
         type="number"
         length={6}
         placeholder="Enter OTP"
-        width="200px"
+        width="100%"
       />
 
       {/* Get OTP */}
@@ -155,7 +158,7 @@ const KycOtpRow = ({
         loading={sending}
         disabled={disabled || otpTimer > 0}
         onClick={onSendOtp}
-        sx={{ width: "140px", minWidth: "140px", height: "32px", minHeight: "32px", flexShrink: 0, mt: 1 }}
+        sx={{ height: "32px", minHeight: "32px", mt: 1, whiteSpace: "nowrap", width: "100%" }}
       />
 
       {/* Validate OTP */}
@@ -174,11 +177,12 @@ const KycOtpRow = ({
         }
         startIcon={<VerifiedUserOutlinedIcon fontSize="small" />}
         onClick={onValidateOtp}
-        sx={{ width: "140px", minWidth: "140px", height: "32px", minHeight: "32px", mt: 1 }}
+        sx={{ height: "32px", minHeight: "32px", mt: 1, whiteSpace: "nowrap", width: "100%" }}
       />
-    </HBox>
     {/* Status */}
-    <KycStatusLabel status={status} />
+    <HBox sx={{ justifySelf: "end" }}>
+      <KycStatusLabel status={status} />
+    </HBox>
   </HBox>
 );
 
@@ -316,9 +320,8 @@ const IndividualKyc = ({
         {/* Label section */}
         <HBox
           sx={{
-            width: "280px",
-            minWidth: "280px",
-            flexShrink: 0,
+            minWidth: 0,
+            flex: "1 1 auto",
             flexDirection: "column",
             alignItems: "flex-start",
           }}
@@ -339,7 +342,7 @@ const IndividualKyc = ({
             sx={{
               fontSize: "11px",
               color: "text.secondary",
-              whiteSpace: "nowrap",
+              whiteSpace: "normal",
             }}
           />
         </HBox>
@@ -391,7 +394,7 @@ const IndividualKyc = ({
                 sx={{
                   fontSize: "12px",
                   color: "text.secondary",
-                  maxWidth: "180px",
+                  maxWidth: "100%",
                   overflow: "hidden",
                   textOverflow: "ellipsis",
                   whiteSpace: "nowrap",
@@ -426,13 +429,14 @@ const IndividualKyc = ({
       </HBox>
 
       {/* PAN - Aadhaar Link */}
-      <HBox sx={{ display: "flex", flexDirection: "row", alignItems: "center", width: "100%", gap: 1, mb: 0.2 }}>
-        <HBox sx={{ width: "280px", minWidth: "280px", flexShrink: 0 }}>
+      <HBox sx={{ display: "grid", gridTemplateColumns: "minmax(0, 24%) minmax(0, 29%) minmax(0, 13%) minmax(0, 12%) auto auto", alignItems: "center", width: "100%", minWidth: 0, gap: 1, mb: 0.2 }}>
+        <HBox sx={{ minWidth: 0 }}>
           <HLabel value="label.qde.field.panAadhaarLink" align="left" colon={false} />
         </HBox>
-        <HBox sx={{ flex: 1 }} />
-        <HBox sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
-          <HButton
+        <HBox sx={{ minWidth: 0 }} />
+        <HBox sx={{ minWidth: 0 }} />
+        <HBox sx={{ minWidth: 0 }} />
+        <HButton
             label="label.qde.button.verify"
             variant="outlined"
             size="small"
@@ -441,10 +445,11 @@ const IndividualKyc = ({
             disabled={!form.pan || !form.aadhaar}
             onClick={handlers.onCheckPanAadhaarLink}
             startIcon={<VerifiedUserOutlinedIcon fontSize="small" />}
-            sx={{ width: "140px", minWidth: "140px", height: "32px", minHeight: "32px", flexShrink: 0, mr: 1.8 }}
+            sx={{ height: "32px", minHeight: "32px", whiteSpace: "nowrap", gridColumn: 5 }}
           />
+        <HBox sx={{ justifySelf: "end", gridColumn: 6 }}>
+          <KycStatusLabel status={form.panAadhaarLinked} />
         </HBox>
-        <KycStatusLabel status={form.panAadhaarLinked} />
       </HBox>
 
       {/* CKYC + OTP - SAME ROW */}
@@ -475,8 +480,8 @@ const IndividualKyc = ({
       />
 
       {/* DigiLocker */}
-      <HBox sx={{ display: "flex", flexDirection: "row", alignItems: "center", width: "100%", gap: 1, mb: 0.2 }}>
-        <HBox sx={{ width: "280px", minWidth: "280px", flexShrink: 0 }}>
+      <HBox sx={{ display: "grid", gridTemplateColumns: "minmax(0, 24%) minmax(0, 29%) minmax(0, 13%) minmax(0, 12%) auto auto", alignItems: "center", width: "100%", minWidth: 0, gap: 1, mb: 0.2 }}>
+        <HBox sx={{ minWidth: 0 }}>
           <HLabel value="label.qde.field.digilocker" align="left" colon={false} />
         </HBox>
 
@@ -485,11 +490,12 @@ const IndividualKyc = ({
             value={form.digiRef}
             onChange={(e) => setField("digiRef", e.target.value)}
             editable
-            width="350px"
+            width="100%"
             placeholder="Import documents via DigiLocker"
           />
         </HBox>
-        <HBox sx={{ flex: 1 }} />
+        <HBox sx={{ minWidth: 0 }} />
+        <HBox sx={{ minWidth: 0 }} />
         <HButton
           label="label.qde.button.verify"
           variant="outlined"
@@ -498,10 +504,12 @@ const IndividualKyc = ({
           loading={verifying.digilocker}
           onClick={handlers.onDigilocker}
           startIcon={<VerifiedUserOutlinedIcon fontSize="small" />}
-          sx={{ width: "140px", minWidth: "140px", height: "32px", minHeight: "32px", flexShrink: 0, mr: 1.8 }}
+          sx={{ height: "32px", minHeight: "32px", whiteSpace: "nowrap" }}
         />
 
-        <KycStatusLabel status={form.digiStatus} />
+        <HBox sx={{ justifySelf: "end", gridColumn: 6 }}>
+          <KycStatusLabel status={form.digiStatus} />
+        </HBox>
 
       </HBox>
     </>
@@ -516,7 +524,7 @@ const NonIndividualKyc = ({
   errors = {},
 }) => (
   <>
-    <KycVerifyRow
+      <KycVerifyRow
       labelKey="URN No."
       value={form.urn}
       onChange={(e) =>
@@ -566,70 +574,59 @@ const NonIndividualKyc = ({
     />
 
     {/* CIN */}
-    <HBox sx={{ display: "flex", alignItems: "center", width: "100%", gap: 1, mb: 0.2 }}>
-      <HBox sx={{ width: "280px", minWidth: "280px", flexShrink: 0 }}>
+    <HBox sx={{
+      display: "grid",
+      gridTemplateColumns: "minmax(0, 24%) minmax(0, 29%) minmax(0, 13%) minmax(0, 12%) auto auto",
+      alignItems: "center",
+      width: "100%",
+      minWidth: 0,
+      gap: 1,
+      mb: 0.2,
+      "@media (max-width: 900px)": { gridTemplateColumns: "minmax(0, 24%) minmax(0, 29%) minmax(0, 13%) minmax(0, 12%) auto auto" },
+      "@media (max-width: 600px)": { gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)" },
+    }}>
+      <HBox sx={{ minWidth: 0 }}>
         <HLabel value="label.qde.field.cin" align="left" colon={false} />
       </HBox>
-
       <HTextField
         value={form.cin}
-        onChange={(e) =>
-          setField("cin", e.target.value.toUpperCase())
-        }
+        onChange={(e) => setField("cin", e.target.value.toUpperCase())}
         editable
         placeholder="CIN"
-        status={form.cinStatus}
-        verifying={verifying.cin}
-        onVerify={handlers.onVerifyCin}
         length={21}
-        width="350px"
+        width="100%"
         error={Boolean(errors.cin)}
       />
-
-      <HBox
-        sx={{
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "flex-end",
-          ml: "auto",
-          mr: 16,
-          minWidth: "200px",
-        }}
-      >
+      <HBox sx={{ minWidth: 0 }} />
+      <HBox sx={{ minWidth: 0 }} />
+      <HBox sx={{ minWidth: 0 }}>
         <HLabel
           value="For reference only"
-          align="right"
+          align="left"
           colon={false}
-          sx={{
-            fontStyle: "italic",
-            fontSize: "11px",
-            color: "text.secondary",
-            mt: 0.3,
-
-          }}
+          sx={{ fontStyle: "italic", fontSize: "11px", color: "text.secondary", mt: 0.3 }}
         />
       </HBox>
+      <HBox sx={{ minWidth: 0 }} />
     </HBox>
 
-    {/* Shop Act */}
-    <KycVerifyRow
-      labelKey="label.qde.field.shopAct"
-      value={form.shopAct}
-      onChange={(e) =>
-        setField("shopAct", e.target.value)
-      }
-      placeholder="Shop & Establishment Registration No."
-      status={form.shopActStatus}
-      verifying={verifying.shopAct}
-      onVerify={handlers.onVerifyShopAct}
-      maxLength={30}
-      error={Boolean(errors.shopAct)}
-      disableVerifyWhenEmpty={false}
-      KycStatusLabel={KycStatusLabel}
-    />
-
-  </>
-);
+      {/* Shop Act */}
+      <KycVerifyRow
+        labelKey="label.qde.field.shopAct"
+        value={form.shopAct}
+        onChange={(e) =>
+          setField("shopAct", e.target.value)
+        }
+        placeholder="Shop Act"
+        status={form.shopActStatus}
+        verifying={verifying.shopAct}
+        onVerify={handlers.onVerifyShopAct}
+        maxLength={30}
+        error={Boolean(errors.shopAct)}
+        KycStatusLabel={KycStatusLabel}
+      />
+    </>
+    );
 
 const KycCheckSection = ({
   form,

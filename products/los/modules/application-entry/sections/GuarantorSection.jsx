@@ -35,19 +35,24 @@ const GuarantorSection = ({ items = [], onAdd, onRemove, onChange, errors = {}, 
         </Grid>
       ) : (
         items.map((party, index) => (
-          <PartyRow
+          <Grid
             key={party.id}
-            party={party}
-            index={index}
-            titleKey={rowTitle}
-            onChange={onChange}
-            onRemove={onRemove}
-            errors={errors[party.id] || {}}
-            primaryBorrowerType={primaryBorrowerType}
-            kycHandlers={kycHandlers}
-            primaryAddress={primaryAddress}
-            onSearchCustomer={onSearchCustomer}
-          />
+            size={12}
+            sx={{ width: "100%", minWidth: 0, maxWidth: "100%", boxSizing: "border-box" }}>
+            <PartyRow
+              key={party.id}
+              party={party}
+              index={index}
+              titleKey={rowTitle}
+              onChange={onChange}
+              onRemove={onRemove}
+              errors={errors[party.id] || {}}
+              primaryBorrowerType={primaryBorrowerType}
+              kycHandlers={kycHandlers}
+              primaryAddress={primaryAddress}
+              onSearchCustomer={onSearchCustomer}
+            />
+          </Grid>
         ))
       )}
     </SectionBlock>

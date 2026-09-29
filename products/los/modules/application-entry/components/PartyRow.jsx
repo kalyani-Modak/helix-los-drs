@@ -104,10 +104,7 @@ const PartyRow = ({
               )
             }
             onClick={() => setExpanded((value) => !value)}
-            sx={{
-              minWidth: "auto",
-              px: 0,
-            }}
+            sx={{ width: "auto", minWidth: "auto", px: 0, flexShrink: 0 }}
           />
 
           <HLabel
@@ -155,7 +152,7 @@ const PartyRow = ({
       </HBox>
 
       {expanded && <>
-      <HBox sx={{ width: "100%", display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 2, alignItems: "start", "@media (max-width: 700px)": { gridTemplateColumns: "1fr" } }}>
+      <HBox sx={{ width: "100%", minWidth: 0, maxWidth: "100%", boxSizing: "border-box", display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 2, alignItems: "start", "@media (max-width: 700px)": { gridTemplateColumns: "1fr" } }}>
         <PartyField label="label.qde.field.relationship"><HTextField value={party.relationship || ""} onChange={(e) => field("relationship", e.target.value)} editable width="100%" /></PartyField>
         <PartyField label="label.qde.field.borrowerType" required>
           {individualOnly ? (
