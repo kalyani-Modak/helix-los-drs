@@ -5,7 +5,6 @@ import { HAxiosService, HBox, HBreadCrumb, HButtonBar, HPaper, TitleBar, useToas
 import { LosQdeAPI,LosDocumentAPI } from "./apiEndpoints";
 import { unwrapApiResponse } from "./unwrapApiResponse";
 import { DEFAULT_LOAN_TYPE, DEFAULT_PORTFOLIO, VERIFICATION_STATUS } from "./constants/qdeOptions";
-import { VERIFICATION_STATUS } from "./constants/qdeOptions";
 import { useQdeLookups, QDE_LOOKUP_TYPES } from "./hooks/useQdeLookups";
 import OtpVerifyDialog from "./components/OtpVerifyDialog";
 import SearchApplicationDialog from "./components/SearchApplicationDialog";
