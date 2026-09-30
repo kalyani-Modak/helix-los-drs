@@ -188,7 +188,7 @@ const ApplicationQuickDataEntry = () => {
     partyId: null,
   });
   const [ocrFileName, setOcrFileName] = useState("");
-  const [ocrStatusKey, setOcrStatusKey] = useState("label.qde.status.pending");
+  const [ocrStatusKey, setOcrStatusKey] = useState("label.qde.status.noFile");
 
   // Field-level validation errors, wired down into each section that needs them.
   const [searchDialogOpen, setSearchDialogOpen] = useState(false);

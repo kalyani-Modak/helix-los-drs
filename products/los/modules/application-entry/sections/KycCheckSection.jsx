@@ -597,7 +597,7 @@ const NonIndividualKyc = ({
         value={form.cin}
         onChange={(e) => setField("cin", e.target.value.toUpperCase())}
         editable
-        placeholder="CIN"
+        placeholder="L000000XX0000XXX000000"
         length={21}
         width="100%"
         error={Boolean(errors.cin)}
@@ -622,7 +622,7 @@ const NonIndividualKyc = ({
         onChange={(e) =>
           setField("shopAct", e.target.value)
         }
-        placeholder="Shop Act"
+        placeholder="Shop Act & Establishment Registration No."
         status={form.shopActStatus}
         verifying={verifying.shopAct}
         onVerify={handlers.onVerifyShopAct}
