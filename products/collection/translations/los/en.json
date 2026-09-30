@@ -190,5 +190,7 @@
   "label.docupload.validation.applicableFor": "Please select the applicable party for this checklist",
   "label.docupload.validation.stage": "Please select a Stage",
   "label.docupload.validation.customerType": "Please select a Customer Type",
-  "label.docupload.validation.mandatoryDocuments": "Please receive and upload all mandatory documents before submitting"
+  "label.docupload.validation.mandatoryDocuments": "Please receive and upload all mandatory documents before submitting",
+  "label.qde.section.personal.title":"Personal Details",
+  "label.qde.section.contact.title":"Contact & Correspondence"
 }

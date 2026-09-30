@@ -3,12 +3,15 @@
  *
  * HDropdown renders `{ label, value }` objects and does not translate the label,
  * so these carry display text (they are master data placeholders until the
- * corresponding master APIs are wired). HRadioGroup, on the other hand, passes
- * `label` through react-intl, so radio options carry i18n keys.
+ * corresponding master APIs are wired).
+ *
+ * HRadioGroup, on the other hand, passes `label` through react-intl,
+ * so radio options carry i18n keys.
  */
 
 /** Turns a plain string list into the `{ label, value }` shape HDropdown expects. */
-export const toOptions = (values = []) => values.map((v) => ({ label: v, value: v }));
+export const toOptions = (values = []) =>
+  values.map((v) => ({ label: v, value: v }));
 
 export const APPLICATION_TYPES = toOptions(["Fresh", "Enhancement", "Renewal", "Takeover", "Top Up"]);
 
@@ -23,7 +26,74 @@ export const PORTFOLIOS = toOptions([
 
 export const DEFAULT_PORTFOLIO = "Home Loan";
 
-export const GENDERS = toOptions(["Male", "Female", "Transgender", "Other"]);
+/* -------------------------------------------------------------------------- */
+/* Applicant / Personal Details                                              */
+/* -------------------------------------------------------------------------- */
+
+export const TITLES = toOptions([
+  "Mr.",
+  "Mrs.",
+  "Ms.",
+  "Miss",
+  "Dr.",
+]);
+
+export const GENDERS = toOptions([
+  "Male",
+  "Female",
+  "Transgender",
+  "Other",
+]);
+
+export const MARITAL_STATUSES = toOptions([
+  "Single",
+  "Married",
+  "Divorced",
+  "Widowed",
+  "Separated",
+]);
+
+export const EDUCATION_LEVELS = toOptions([
+  "Below 10th",
+  "10th Pass",
+  "12th Pass",
+  "Diploma",
+  "Graduate",
+  "Post Graduate",
+  "Doctorate",
+  "Professional Qualification",
+]);
+
+export const NATIONALITIES = toOptions([
+  "Indian",
+  "NRI",
+  "OCI",
+  "Other",
+]);
+
+export const RELIGIONS = toOptions([
+  "Hindu",
+  "Muslim",
+  "Christian",
+  "Sikh",
+  "Buddhist",
+  "Jain",
+  "Parsi",
+  "Other",
+]);
+
+export const RESIDENCE_STATUSES = toOptions([
+  "Resident",
+  "Non-Resident",
+  "NRI",
+  "PIO",
+]);
+
+export const Profiles = toOptions([
+  "Salaried",
+  "SENP",
+  "SEP",
+]);
 
 export const BORROWER_CATEGORIES = toOptions([
   "General",
@@ -35,6 +105,10 @@ export const BORROWER_CATEGORIES = toOptions([
   "Senior Citizen",
   "Staff",
 ]);
+
+/* -------------------------------------------------------------------------- */
+/* Address                                                                   */
+/* -------------------------------------------------------------------------- */
 
 export const ADDRESS_TYPES_INDIVIDUAL = toOptions([
   "Permanent",
@@ -66,6 +140,10 @@ export const ENTITY_TYPES = toOptions([
   "Association of Persons",
 ]);
 
+/* -------------------------------------------------------------------------- */
+/* Product                                                                   */
+/* -------------------------------------------------------------------------- */
+
 /** Products offered under the default Home Loan portfolio. */
 export const PRODUCTS = toOptions([
   "Home Loan - Purchase",
@@ -77,21 +155,57 @@ export const PRODUCTS = toOptions([
 ]);
 
 export const SCHEMES = [
-  { label: "HL Prime - Salaried", value: "HL-PRIME-SAL" },
-  { label: "HL Prime - Self Employed", value: "HL-PRIME-SE" },
-  { label: "HL Affordable Housing", value: "HL-AFFORD" },
-  { label: "PMAY - CLSS", value: "HL-PMAY-CLSS" },
-  { label: "HL Balance Transfer Plus", value: "HL-BT-PLUS" },
+  {
+    label: "HL Prime - Salaried",
+    value: "HL-PRIME-SAL",
+  },
+  {
+    label: "HL Prime - Self Employed",
+    value: "HL-PRIME-SE",
+  },
+  {
+    label: "HL Affordable Housing",
+    value: "HL-AFFORD",
+  },
+  {
+    label: "PMAY - CLSS",
+    value: "HL-PMAY-CLSS",
+  },
+  {
+    label: "HL Balance Transfer Plus",
+    value: "HL-BT-PLUS",
+  },
 ];
 
 export const BRANCHES = [
-  { label: "Mumbai - Fort", value: "BR-MUM-001" },
-  { label: "Mumbai - Andheri East", value: "BR-MUM-002" },
-  { label: "Pune - Shivaji Nagar", value: "BR-PNQ-001" },
-  { label: "Bengaluru - Koramangala", value: "BR-BLR-001" },
-  { label: "Delhi - Connaught Place", value: "BR-DEL-001" },
-  { label: "Chennai - T Nagar", value: "BR-MAA-001" },
-  { label: "Hyderabad - Banjara Hills", value: "BR-HYD-001" },
+  {
+    label: "Mumbai - Fort",
+    value: "BR-MUM-001",
+  },
+  {
+    label: "Mumbai - Andheri East",
+    value: "BR-MUM-002",
+  },
+  {
+    label: "Pune - Shivaji Nagar",
+    value: "BR-PNQ-001",
+  },
+  {
+    label: "Bengaluru - Koramangala",
+    value: "BR-BLR-001",
+  },
+  {
+    label: "Delhi - Connaught Place",
+    value: "BR-DEL-001",
+  },
+  {
+    label: "Chennai - T Nagar",
+    value: "BR-MAA-001",
+  },
+  {
+    label: "Hyderabad - Banjara Hills",
+    value: "BR-HYD-001",
+  },
 ];
 
 export const LOAN_TYPES = toOptions([
@@ -101,6 +215,10 @@ export const LOAN_TYPES = toOptions([
   "Bullet Repayment",
   "Drop Line Overdraft",
 ]);
+
+/* -------------------------------------------------------------------------- */
+/* OCR                                                                       */
+/* -------------------------------------------------------------------------- */
 
 export const OCR_DOC_TYPES = toOptions([
   "Application Form",
@@ -142,6 +260,11 @@ const STATUS_LABEL_KEYS = {
 };
 
 /** Maps a persisted verification status to its i18n key for HLabel. */
-export const statusLabelKey = (status) => STATUS_LABEL_KEYS[status] || "label.qde.status.notStarted";
+export const statusLabelKey = (status) =>
+  STATUS_LABEL_KEYS[status] || "label.qde.status.notStarted";
+
+/* -------------------------------------------------------------------------- */
+/* Borrower / Customer                                                       */
+/* -------------------------------------------------------------------------- */
 
 export const BORROWER_TYPE_NON_INDIVIDUAL = "Non-Individual";

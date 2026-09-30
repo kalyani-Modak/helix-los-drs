@@ -124,6 +124,7 @@ import ApplicationListPage from "./pages/ApplicationListPage";
 import WorkflowGraphicalLogPage from "./pages/WorkflowGraphicalLogPage";
 import ApplicationQuickDataEntry from "../../../products/los/modules/application-entry/ApplicationQuickDataEntry"
 import ApplicationDocumentUpload from "../../../products/los/modules/application-entry/ApplicationDocumentUpload"; 
+import DetailedDataEntry from "../../../products/los/modules/application-entry/DetailedDataEntry";
 
 import { collectionTransactionsRoutes, collectionMasterRoutes } from "./routes/collections.routes";
 
@@ -333,6 +334,7 @@ const AppContent = ({ language, setLanguage }) => {
             <Route path="workflow-registry/graphical-log/:appNo" element={<WorkflowGraphicalLogPage />} />
             <Route path="application-entry/retail" element={<ApplicationQuickDataEntry />} />
             <Route path="application-entry/uploadDocument" element={<ApplicationDocumentUpload />} />
+            <Route path="application-entry/detailedDataEntry" element={<DetailedDataEntry />} />
         
 
             {/* Account list: no persistent AccountHeader / FunctionGroupsBar */}
