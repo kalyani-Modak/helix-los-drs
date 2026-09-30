@@ -93,8 +93,36 @@ export const SCHEMES = [
   { label: "Promotional", value: "PROMO" },
 ];
 
-/** Empty per prototype -- Sourcing/Servicing Branch show no options until a real Branch Master is wired. */
-export const BRANCHES = [];
+export const BRANCHES = [
+  { label: "Bengaluru - MG Road", value: "BLR-MGROAD" },
+  { label: "Bengaluru - Whitefield", value: "BLR-WHITEFIELD" },
+  { label: "Bengaluru - Koramangala", value: "BLR-KORAMANGALA" },
+  { label: "Bengaluru - Indiranagar", value: "BLR-INDIRANAGAR" },
+  { label: "Chennai - T Nagar", value: "CHN-TNAGAR" },
+  { label: "Chennai - Anna Nagar", value: "CHN-ANNANAGAR" },
+  { label: "Chennai - Adyar", value: "CHN-ADYAR" },
+  { label: "Chennai - Velachery", value: "CHN-VELACHERY" },
+  { label: "Delhi - Connaught Place", value: "DEL-CP" },
+  { label: "Delhi - Saket", value: "DEL-SAKET" },
+  { label: "Delhi - Dwarka", value: "DEL-DWARKA" },
+  { label: "Delhi - Rohini", value: "DEL-ROHINI" },
+  { label: "Kolkata - Park Street", value: "KOL-PARKSTREET" },
+  { label: "Kolkata - Salt Lake", value: "KOL-SALTLAKE" },
+  { label: "Kolkata - Ballygunge", value: "KOL-BALLYGUNGE" },
+  { label: "Kolkata - New Town", value: "KOL-NEWTOWN" },
+  { label: "Hyderabad - Banjara Hills", value: "HYD-BANJARAHILLS" },
+  { label: "Hyderabad - Gachibowli", value: "HYD-GACHIBOWLI" },
+  { label: "Hyderabad - Secunderabad", value: "HYD-SECUNDERABAD" },
+  { label: "Hyderabad - Hitech City", value: "HYD-HITECHCITY" },
+  { label: "Mumbai - Fort", value: "MUM-FORT" },
+  { label: "Mumbai - Andheri", value: "MUM-ANDHERI" },
+  { label: "Mumbai - Bandra", value: "MUM-BANDRA" },
+  { label: "Mumbai - Lower Parel", value: "MUM-LOWERPAREL" },
+  { label: "Pune - Camp", value: "PUN-CAMP" },
+  { label: "Pune - Kothrud", value: "PUN-KOTHRUD" },
+  { label: "Pune - Hinjewadi", value: "PUN-HINJEWADI" },
+  { label: "Pune - Viman Nagar", value: "PUN-VIMANNAGAR" },
+];
 
 export const LOAN_TYPES = [{ label: "Term Loan", value: "TERM" }];
 

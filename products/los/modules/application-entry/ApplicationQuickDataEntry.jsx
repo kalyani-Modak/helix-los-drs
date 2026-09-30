@@ -2023,6 +2023,7 @@ const ApplicationQuickDataEntry = () => {
                   setField={setField}
                   errors={formErrors.applicant}
                   channelOptions={lookups["los.channel"]}
+                  branchOptions={lookups["los.branch"]}
                 />
               </HBox>
             </HBox>

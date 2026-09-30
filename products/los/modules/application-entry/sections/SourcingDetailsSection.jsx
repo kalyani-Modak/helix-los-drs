@@ -3,7 +3,7 @@ import SectionBlock from "../components/SectionBlock";
 import { BRANCHES, CHANNELS } from "../constants/qdeOptions";
 import AccountTreeOutlinedIcon from "@mui/icons-material/AccountTreeOutlined";
 
-const SourcingDetailsSection = ({ form, setField, errors = {}, channelOptions = CHANNELS }) => {
+const SourcingDetailsSection = ({ form, setField, errors = {}, channelOptions = CHANNELS, branchOptions = BRANCHES }) => {
   const isDsa = form.channel === "DSA";
   const isRm = form.channel === "RM";
   const isDealer = form.channel === "Dealer";
@@ -30,7 +30,7 @@ const SourcingDetailsSection = ({ form, setField, errors = {}, channelOptions = 
           <HLabel value="label.qde.field.sourcingBranch" required align="left" colon={false} />
           <HDropdown
             name="sourcingBranch"
-            options={BRANCHES}
+            options={branchOptions}
             value={form.sourcingBranch}
             onChange={(e) => setField("sourcingBranch", e.target.value)}
             required
@@ -44,7 +44,7 @@ const SourcingDetailsSection = ({ form, setField, errors = {}, channelOptions = 
           <HLabel value="label.qde.field.servicingBranch" required align="left" colon={false} />
           <HDropdown
             name="servicingBranch"
-            options={BRANCHES}
+            options={branchOptions}
             value={form.servicingBranch}
             onChange={(e) => setField("servicingBranch", e.target.value)}
             required

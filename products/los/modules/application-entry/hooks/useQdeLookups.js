@@ -18,6 +18,7 @@ export const QDE_LOOKUP_TYPES = [
   "los.product",
   "los.scheme",
   "los.relationship",
+  "los.branch",
 ];
 
 const toHDropdownOptions = (values = []) =>
