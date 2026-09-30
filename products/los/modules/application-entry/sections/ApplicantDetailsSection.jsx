@@ -13,6 +13,9 @@ const ApplicantDetailsSection = ({
   onVerifyMobile,
   onVerifyEmail,
   errors = {},
+  genderOptions = GENDERS,
+  entityTypeOptions = ENTITY_TYPES,
+  borrowerCategoryOptions = BORROWER_CATEGORIES,
 }) => {
   const intl = useIntl();
   const err = (name) => errors[name];
@@ -74,7 +77,7 @@ const ApplicantDetailsSection = ({
               />
               <HDropdown
                 name="entityType"
-                options={ENTITY_TYPES}
+                options={entityTypeOptions}
                 value={form.entityType}
                 onChange={(e) => setField("entityType", e.target.value)}
                 required
@@ -174,7 +177,7 @@ const ApplicantDetailsSection = ({
               />
               <HDropdown
                 name="gender"
-                options={GENDERS}
+                options={genderOptions}
                 value={form.gender}
                 onChange={(e) => setField("gender", e.target.value)}
                 required
@@ -214,8 +217,8 @@ const ApplicantDetailsSection = ({
               />
               <HDropdown
                 name="profile"
-                options={BORROWER_CATEGORIES}
-                value={form.profile || "Salaried" }
+                options={borrowerCategoryOptions}
+                value={form.profile || "SAL" }
                 onChange={(e) => setField("profile", e.target.value)}
                 width="100%"
               />

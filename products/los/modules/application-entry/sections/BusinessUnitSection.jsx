@@ -6,7 +6,15 @@ import { APPLICATION_TYPES, PORTFOLIOS } from "../constants/qdeOptions";
 import { useIntl } from "react-intl";
 import BusinessCenterOutlinedIcon from "@mui/icons-material/BusinessCenterOutlined";
 
-const BusinessUnitSection = ({ form, setField, errors = {}, onOpenApplicationSearch, onClearApplicationNo }) => {
+const BusinessUnitSection = ({
+  form,
+  setField,
+  errors = {},
+  onOpenApplicationSearch,
+  onClearApplicationNo,
+  applicationTypeOptions = APPLICATION_TYPES,
+  portfolioOptions = PORTFOLIOS,
+}) => {
   const intl = useIntl();
   const err = (name) => errors[name];
 
@@ -31,8 +39,8 @@ const BusinessUnitSection = ({ form, setField, errors = {}, onOpenApplicationSea
 
           <HDropdown
             name="applicationType"
-            options={APPLICATION_TYPES}
-            value={form.applicationType || "New"}
+            options={applicationTypeOptions}
+            value={form.applicationType || "N"}
             onChange={(e) =>
               setField("applicationType", e.target.value)
             }
@@ -56,8 +64,8 @@ const BusinessUnitSection = ({ form, setField, errors = {}, onOpenApplicationSea
 
           <HDropdown
             name="portfolio"
-            options={PORTFOLIOS}
-            value="Home Loan"
+            options={portfolioOptions}
+            value={portfolioOptions[0]?.value}
             onChange={(e) =>
               setField("portfolio", e.target.value)
             }

@@ -10,35 +10,37 @@
 /** Turns a plain string list into the `{ label, value }` shape HDropdown expects. */
 export const toOptions = (values = []) => values.map((v) => ({ label: v, value: v }));
 
-export const APPLICATION_TYPES = toOptions(["New", "Balance Transfer", "Top Up"]);
+export const APPLICATION_TYPES = [
+  { label: "Balance Transfer", value: "BLTR" },
+  { label: "New", value: "N" },
+  { label: "Top Up", value: "TOPUP" },
+];
 
-export const PORTFOLIOS = toOptions([
-  "Home Loan",
-  "Loan Against Property",
-  "Personal Loan",
-  "Business Loan",
-  "Auto Loan",
-  "Gold Loan",
-]);
+export const PORTFOLIOS = [{ label: "Home Loan", value: "HL" }];
 
 export const DEFAULT_PORTFOLIO = "Home Loan";
 
-export const GENDERS = toOptions(["Male", "Female", "Transgender", "Other"]);
+export const GENDERS = [
+  { label: "Female", value: "F" },
+  { label: "Male", value: "M" },
+  { label: "Transgender", value: "T" },
+];
 
 export const Profiles = toOptions(["Salaried", "SENP", "SEP"]);
 
-export const BORROWER_CATEGORIES = toOptions([
-  "SEP",
-  "SENP",
-  "Salaried",
-]);
+/** Also used as "Customer Profile" on Co-Applicant/Guarantor rows — same field, same lookup type. */
+export const BORROWER_CATEGORIES = [
+  { label: "Salaried", value: "SAL" },
+  { label: "SENP", value: "SENP" },
+  { label: "SEP", value: "SEP" },
+];
 
-export const ADDRESS_TYPES_INDIVIDUAL = toOptions([
-  "Permanent",
-  "Current",
-  "Office",
-  "Other",
-]);
+export const ADDRESS_TYPES_INDIVIDUAL = [
+  { label: "Current", value: "CURR" },
+  { label: "Office", value: "OFF" },
+  { label: "Others", value: "OTH" },
+  { label: "Permanent", value: "PERM" },
+];
 
 export const ADDRESS_TYPES_NON_INDIVIDUAL = toOptions([
   "Registered Office",
@@ -48,7 +50,25 @@ export const ADDRESS_TYPES_NON_INDIVIDUAL = toOptions([
   "Communication",
 ]);
 
-export const CHANNELS = toOptions(["Branch", "DSA", "RM", "Dealer", "Connector", "Tele Sales"]);
+export const CHANNELS = [
+  { label: "Branch", value: "BRANCH" },
+  { label: "Dealer", value: "Dealer" },
+  { label: "DSA", value: "DSA" },
+  { label: "RM", value: "RM" },
+];
+
+export const RELATIONSHIPS = [
+  { label: "Brother", value: "BROTHER" },
+  { label: "Daughter", value: "DAUGHTER" },
+  { label: "Director", value: "DIRECTOR" },
+  { label: "Father", value: "FATHER" },
+  { label: "Mother", value: "MOTHER" },
+  { label: "Other", value: "OTHER" },
+  { label: "Partner", value: "PARTNER" },
+  { label: "Sister", value: "SISTER" },
+  { label: "Son", value: "SON" },
+  { label: "Spouse", value: "SPOUSE" },
+];
 
 export const ENTITY_TYPES = toOptions([
   "Proprietorship",
@@ -63,44 +83,22 @@ export const ENTITY_TYPES = toOptions([
 ]);
 
 /** Products offered under the default Home Loan portfolio. */
-export const PRODUCTS = toOptions([
-  "Home Loan - Purchase",
-  "Home Loan - Construction",
-  "Home Loan - Plot Purchase",
-  "Home Loan - Improvement",
-  "Home Loan - Extension",
-  "Home Loan - Balance Transfer",
-]);
+export const PRODUCTS = [
+  { label: "HL Fixed", value: "HLFIXED" },
+  { label: "HL Floating", value: "HLFLOAT" },
+];
 
 export const SCHEMES = [
-  { label: "HL Prime - Salaried", value: "HL-PRIME-SAL" },
-  { label: "HL Prime - Self Employed", value: "HL-PRIME-SE" },
-  { label: "HL Affordable Housing", value: "HL-AFFORD" },
-  { label: "PMAY - CLSS", value: "HL-PMAY-CLSS" },
-  { label: "HL Balance Transfer Plus", value: "HL-BT-PLUS" },
+  { label: "Standard", value: "STD" },
+  { label: "Promotional", value: "PROMO" },
 ];
 
-export const BRANCHES = [
-  { label: "Mumbai - Fort", value: "BR-MUM-001" },
-  { label: "Mumbai - Andheri East", value: "BR-MUM-002" },
-  { label: "Pune - Shivaji Nagar", value: "BR-PNQ-001" },
-  { label: "Bengaluru - Koramangala", value: "BR-BLR-001" },
-  { label: "Delhi - Connaught Place", value: "BR-DEL-001" },
-  { label: "Chennai - T Nagar", value: "BR-MAA-001" },
-  { label: "Hyderabad - Banjara Hills", value: "BR-HYD-001" },
-];
+/** Empty per prototype -- Sourcing/Servicing Branch show no options until a real Branch Master is wired. */
+export const BRANCHES = [];
 
-export const LOAN_TYPES = toOptions([
-  "Term Loan",
-  "Overdraft",
-  "Cash Credit",
-  "Bullet Repayment",
-  "Drop Line Overdraft",
-]);
+export const LOAN_TYPES = [{ label: "Term Loan", value: "TERM" }];
 
-export const OCR_DOC_TYPES = toOptions([
-  "Application Form"
-]);
+export const OCR_DOC_TYPES = [{ label: "Application Form", value: "APPFORM" }];
 
 /** Radio option sets — `label` is resolved through react-intl by HRadio. */
 // export const BORROWER_TYPE_OPTIONS = [

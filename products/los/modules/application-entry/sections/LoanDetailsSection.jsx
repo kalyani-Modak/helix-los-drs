@@ -5,7 +5,7 @@ import SectionBlock from "../components/SectionBlock";
 import { PRODUCTS, SCHEMES } from "../constants/qdeOptions";
 import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
 
-const LoanDetailsSection = ({ form, setField, errors = {} }) => {
+const LoanDetailsSection = ({ form, setField, errors = {}, productOptions = PRODUCTS, schemeOptions = SCHEMES }) => {
   const err = (name) => errors[name];
   const toast = useToast();
   const { colors, text, border, action } = useDrsTheme();
@@ -192,7 +192,7 @@ const openSimulator = () => {
 
           <HDropdown
             name="product"
-            options={PRODUCTS}
+            options={productOptions}
             value={form.product}
             onChange={(e) => setField("product", e.target.value)}
             required
@@ -220,7 +220,7 @@ const openSimulator = () => {
 
           <HDropdown
             name="scheme"
-            options={SCHEMES}
+            options={schemeOptions}
             value={form.scheme}
             onChange={(e) => setField("scheme", e.target.value)}
             width="100%"

@@ -5,6 +5,7 @@ import { HAxiosService, HBox, HBreadCrumb, HButtonBar, HPaper, TitleBar, useToas
 import { LosQdeAPI,LosDocumentAPI } from "./apiEndpoints";
 import { unwrapApiResponse } from "./unwrapApiResponse";
 import { VERIFICATION_STATUS } from "./constants/qdeOptions";
+import { useQdeLookups, QDE_LOOKUP_TYPES } from "./hooks/useQdeLookups";
 
 import OtpVerifyDialog from "./components/OtpVerifyDialog";
 import SearchApplicationDialog from "./components/SearchApplicationDialog";
@@ -199,6 +200,8 @@ const ApplicationQuickDataEntry = () => {
   const persistedDraftRef = useRef(false);
 
   const isNonIndividual = form.borrowerType === "Non-Individual";
+
+  const { lookups } = useQdeLookups(ORG_ID, QDE_LOOKUP_TYPES);
 
   useEffect(() => {
   setCurrentProgressStep(0);
@@ -1889,6 +1892,8 @@ const ApplicationQuickDataEntry = () => {
                   errors={formErrors.applicant}
                   onOpenApplicationSearch={() => setSearchDialogOpen(true)}
                   onClearApplicationNo={handleClearApplication}
+                  applicationTypeOptions={lookups["los.applicationtype"]}
+                  portfolioOptions={lookups["los.portfolio"]}
                 />
               </HBox>
 
@@ -1898,6 +1903,7 @@ const ApplicationQuickDataEntry = () => {
                 onFileSelect={handleFileSelect}
                 ocrFileName={ocrFileName}
                 ocrStatusKey={ocrStatusKey}
+                docTypeOptions={lookups["los.doctype"]}
               />
 
              <HBox id="qde-kyc">
@@ -1931,6 +1937,9 @@ const ApplicationQuickDataEntry = () => {
                 onVerifyMobile={() => openOtp("mobile", form.mobile)}
                 onVerifyEmail={() => openOtp("email", form.email)}
                 errors={formErrors.applicant}
+                genderOptions={lookups["party.gender"]}
+                entityTypeOptions={lookups["los.entitytype"]}
+                borrowerCategoryOptions={lookups["los.borrowercategory"]}
               />
               </HBox>
               {isNonIndividual ? (
@@ -1966,6 +1975,8 @@ const ApplicationQuickDataEntry = () => {
                   // onPincodeLookup={handlePincodeLookup}
                   noAccordion={false}
                   errors={formErrors.applicant}
+                  individualOptions={lookups["los.address.type.individual"]}
+                  nonIndividualOptions={lookups["los.address.type.nonindividual"]}
                 />
               </HBox>
 
@@ -1979,6 +1990,7 @@ const ApplicationQuickDataEntry = () => {
                 kycHandlers={partyKycHandlers}
                 primaryAddress={form}
                 onSearchCustomer={handleSearchCustomer}
+                lookups={lookups}
               />
               <HBox sx={{ width: "100%", minWidth: 0, maxWidth: "100%" }}>
                 <GuarantorSection
@@ -1991,15 +2003,27 @@ const ApplicationQuickDataEntry = () => {
                   kycHandlers={partyKycHandlers}
                   primaryAddress={form}
                   onSearchCustomer={handleSearchCustomer}
+                  lookups={lookups}
                 />
               </HBox>
 
               <HBox id="qde-loan">
-                <LoanDetailsSection form={form} setField={setField} errors={formErrors.applicant} />
+                <LoanDetailsSection
+                  form={form}
+                  setField={setField}
+                  errors={formErrors.applicant}
+                  productOptions={lookups["los.product"]}
+                  schemeOptions={lookups["los.scheme"]}
+                />
               </HBox>
 
               <HBox id="qde-sourcing">
-                <SourcingDetailsSection form={form} setField={setField} errors={formErrors.applicant} />
+                <SourcingDetailsSection
+                  form={form}
+                  setField={setField}
+                  errors={formErrors.applicant}
+                  channelOptions={lookups["los.channel"]}
+                />
               </HBox>
             </HBox>
           </HPaper>

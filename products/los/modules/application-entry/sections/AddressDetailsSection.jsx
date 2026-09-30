@@ -3,8 +3,17 @@ import SectionBlock from "../components/SectionBlock";
 import { ADDRESS_TYPES_INDIVIDUAL, ADDRESS_TYPES_NON_INDIVIDUAL } from "../constants/qdeOptions";
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
 
-const AddressDetailsSection = ({ form, setField, isNonIndividual, noAccordion, errors = {}, readOnly = false }) => {
-  const addressTypes = isNonIndividual ? ADDRESS_TYPES_NON_INDIVIDUAL : ADDRESS_TYPES_INDIVIDUAL;
+const AddressDetailsSection = ({
+  form,
+  setField,
+  isNonIndividual,
+  noAccordion,
+  errors = {},
+  readOnly = false,
+  individualOptions = ADDRESS_TYPES_INDIVIDUAL,
+  nonIndividualOptions = ADDRESS_TYPES_NON_INDIVIDUAL,
+}) => {
+  const addressTypes = isNonIndividual ? nonIndividualOptions : individualOptions;
   const err = (name) => errors[name];
   const toast = useToast();
 
@@ -68,7 +77,7 @@ const AddressDetailsSection = ({ form, setField, isNonIndividual, noAccordion, e
           <HDropdown
             name="addressType"
             options={addressTypes}
-            value={form.addressType || !isNonIndividual ? "Current" : "" }
+            value={form.addressType || !isNonIndividual ? "CURR" : "" }
             onChange={(e) => setField("addressType", e.target.value)}
             disabled={readOnly}
             required

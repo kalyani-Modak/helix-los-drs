@@ -6,7 +6,7 @@ import SectionBlock from "../components/SectionBlock";
 import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
 import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
 
-const GuarantorSection = ({ items = [], onAdd, onRemove, onChange, errors = {}, primaryBorrowerType, kycHandlers, primaryAddress, onSearchCustomer }) => {
+const GuarantorSection = ({ items = [], onAdd, onRemove, onChange, errors = {}, primaryBorrowerType, kycHandlers, primaryAddress, onSearchCustomer, lookups }) => {
   const intl = useIntl();
   const rowTitle = intl.formatMessage({
     id: "label.qde.guarantor.item",
@@ -51,6 +51,7 @@ const GuarantorSection = ({ items = [], onAdd, onRemove, onChange, errors = {}, 
               kycHandlers={kycHandlers}
               primaryAddress={primaryAddress}
               onSearchCustomer={onSearchCustomer}
+              lookups={lookups}
             />
           </Grid>
         ))

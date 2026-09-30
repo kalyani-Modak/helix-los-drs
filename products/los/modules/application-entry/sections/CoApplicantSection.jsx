@@ -6,7 +6,7 @@ import SectionBlock from "../components/SectionBlock";
 import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
 import PersonAddAltIcon from '@mui/icons-material/PersonAddAlt';
 
-const CoApplicantSection = ({ items = [], onAdd, onRemove, onChange, errors = {}, primaryBorrowerType, kycHandlers, primaryAddress, onSearchCustomer }) => {
+const CoApplicantSection = ({ items = [], onAdd, onRemove, onChange, errors = {}, primaryBorrowerType, kycHandlers, primaryAddress, onSearchCustomer, lookups }) => {
   const intl = useIntl();
   const rowTitle = intl.formatMessage({
     id: "label.qde.coApplicant.item",
@@ -53,6 +53,7 @@ const CoApplicantSection = ({ items = [], onAdd, onRemove, onChange, errors = {}
               kycHandlers={kycHandlers}
               primaryAddress={primaryAddress}
               onSearchCustomer={onSearchCustomer}
+              lookups={lookups}
             />
           </Grid>
         ))

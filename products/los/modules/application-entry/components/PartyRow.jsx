@@ -1,6 +1,6 @@
 import { cloneElement, useEffect, useState } from "react";
 import { HButton, HCheckBox, HDatePicker, HDropdown, HLabel, HTextField, HBox, useDrsTheme, HRadio } from "@helix/component-library";
-import { BORROWER_CATEGORIES, ENTITY_TYPES, GENDERS } from "../constants/qdeOptions";
+import { BORROWER_CATEGORIES, ENTITY_TYPES, GENDERS, RELATIONSHIPS } from "../constants/qdeOptions";
 import { fromPickerValue, toPickerValue } from "../dateHelpers";
 import AddressDetailsSection from "../sections/AddressDetailsSection";
 import KycCheckSection from "../sections/KycCheckSection";
@@ -30,9 +30,14 @@ const PartyRow = ({
   primaryAddress = {},
   kycHandlers = {},
   onSearchCustomer,
+  lookups = {},
 }) => {
   const { colors, text, surfaces, border, action } = useDrsTheme();
   const [customerSearchOpen, setCustomerSearchOpen] = useState(false);
+  const relationshipOptions = lookups["los.relationship"] || RELATIONSHIPS;
+  const genderOptions = lookups["party.gender"] || GENDERS;
+  const entityTypeOptions = lookups["los.entitytype"] || ENTITY_TYPES;
+  const borrowerCategoryOptions = lookups["los.borrowercategory"] || BORROWER_CATEGORIES;
   const [expanded, setExpanded] = useState(true);
   const isNonIndividual = party.borrowerType === "Non-Individual";
   const individualOnly = primaryBorrowerType === "Individual";
@@ -163,7 +168,9 @@ const PartyRow = ({
 
       {expanded && <>
       <HBox sx={{ width: "100%", minWidth: 0, maxWidth: "100%", boxSizing: "border-box", display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 2, alignItems: "start", "@media (max-width: 700px)": { gridTemplateColumns: "1fr" } }}>
-        <PartyField label="label.qde.field.relationship"><HTextField value={party.relationship || ""} onChange={(e) => field("relationship", e.target.value)} editable width="100%" /></PartyField>
+        <PartyField label="label.qde.field.relationship" required>
+          <HDropdown name="relationship" options={relationshipOptions} value={party.relationship || ""} onChange={(e) => field("relationship", e.target.value)} required width="100%" />
+        </PartyField>
         <PartyField label="label.qde.field.borrowerType" required>
           {individualOnly ? (
             <HBox sx={{ display: "flex", alignItems: "center", gap: 1, minHeight: 32, whiteSpace: "nowrap" }}>
@@ -253,7 +260,7 @@ const PartyRow = ({
         {isNonIndividual ? (
           <>
             <PartyField label="label.qde.field.entityName" required error={Boolean(err("entityName"))}><HTextField value={party.entityName || ""} onChange={(e) => field("entityName", e.target.value)} editable required width="100%" /></PartyField>
-            <PartyField label="label.qde.field.entityType" required><HDropdown name="entityType" options={ENTITY_TYPES} value={party.entityType || ""} onChange={(e) => field("entityType", e.target.value)} required width="100%" /></PartyField>
+            <PartyField label="label.qde.field.entityType" required><HDropdown name="entityType" options={entityTypeOptions} value={party.entityType || ""} onChange={(e) => field("entityType", e.target.value)} required width="100%" /></PartyField>
             <PartyField label="label.qde.field.doi"><HDatePicker value={toPickerValue(party.doi)} onChange={(value) => field("doi", fromPickerValue(value))} width="100%" /></PartyField>
             <PartyField label="GSTIN"><HTextField value={party.gstin || ""} onChange={(e) => field("gstin", e.target.value)} editable width="100%" /></PartyField>
           </>
@@ -262,9 +269,9 @@ const PartyRow = ({
             <PartyField label="label.qde.field.firstName" required error={Boolean(err("firstName"))}><HTextField value={party.firstName || ""} onChange={(e) => field("firstName", e.target.value)} editable required type="name" width="100%" sx={{ mb: 0.5 }} /></PartyField>
             <PartyField label="label.qde.field.middleName"><HTextField value={party.middleName || ""} onChange={(e) => field("middleName", e.target.value)} editable type="name" width="100%" /></PartyField>
             <PartyField label="label.qde.field.lastName" required error={Boolean(err("lastName"))}><HTextField value={party.lastName || ""} onChange={(e) => field("lastName", e.target.value)} editable required type="name" width="100%" /></PartyField>
-            <PartyField label="label.qde.field.gender" required><HDropdown name="gender" options={GENDERS} value={party.gender || ""} onChange={(e) => field("gender", e.target.value)} required width="100%" /></PartyField>
+            <PartyField label="label.qde.field.gender" required><HDropdown name="gender" options={genderOptions} value={party.gender || ""} onChange={(e) => field("gender", e.target.value)} required width="100%" /></PartyField>
             <PartyField label="label.qde.field.dob" required><HDatePicker value={toPickerValue(party.dob)} onChange={(value) => field("dob", fromPickerValue(value))} required width="100%" /></PartyField>
-            <PartyField label="label.qde.field.customerProfile"><HDropdown name="category" options={BORROWER_CATEGORIES} value={party.category || ""} onChange={(e) => field("category", e.target.value)} width="100%" /></PartyField>
+            <PartyField label="label.qde.field.customerProfile"><HDropdown name="category" options={borrowerCategoryOptions} value={party.category || ""} onChange={(e) => field("category", e.target.value)} width="100%" /></PartyField>
           </>
         )}
 
@@ -389,6 +396,8 @@ const PartyRow = ({
           readOnly={Boolean(party.sameAsPrimaryAddress)}
           noAccordion
           errors={errors}
+          individualOptions={lookups["los.address.type.individual"]}
+          nonIndividualOptions={lookups["los.address.type.nonindividual"]}
         />
       </HBox>
 
