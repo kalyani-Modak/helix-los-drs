@@ -313,7 +313,6 @@ const PartyRow = ({
                 field("emailVerified", false);
               }}
               editable
-              required
               type="email"
               width="100%"
             />

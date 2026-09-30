@@ -17,7 +17,7 @@ const SourcingDetailsSection = ({ form, setField, errors = {}, channelOptions = 
           <HDropdown
             name="channel"
             options={channelOptions}
-            value={form.channel}
+            value={form.channel || ""}
             onChange={(e) => setField("channel", e.target.value)}
             required
             error={Boolean(err("channel"))}
@@ -31,7 +31,7 @@ const SourcingDetailsSection = ({ form, setField, errors = {}, channelOptions = 
           <HDropdown
             name="sourcingBranch"
             options={branchOptions}
-            value={form.sourcingBranch}
+            value={form.sourcingBranch || ""}
             onChange={(e) => setField("sourcingBranch", e.target.value)}
             required
             error={Boolean(err("sourcingBranch"))}
@@ -45,7 +45,7 @@ const SourcingDetailsSection = ({ form, setField, errors = {}, channelOptions = 
           <HDropdown
             name="servicingBranch"
             options={branchOptions}
-            value={form.servicingBranch}
+            value={form.servicingBranch || ""}
             onChange={(e) => setField("servicingBranch", e.target.value)}
             required
             error={Boolean(err("servicingBranch"))}
@@ -92,7 +92,7 @@ const SourcingDetailsSection = ({ form, setField, errors = {}, channelOptions = 
               />
             </HBox>
 
-            <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
+            <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px", mt: 1  }}>
               <HLabel value="label.qde.field.dsaEmail" align="left" colon={false} />
               <HTextField
                 value={form.dsaEmail}

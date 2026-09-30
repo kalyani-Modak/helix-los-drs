@@ -209,6 +209,8 @@ const ApplicationQuickDataEntry = () => {
   const [form, setForm] = useState({
     borrowerType: "Individual",
     customerType: "New",
+    applicationType: "N",
+    addressType: "CURR",
     portfolio: DEFAULT_PORTFOLIO,
     loanType: DEFAULT_LOAN_TYPE,
   });
@@ -253,6 +255,8 @@ const ApplicationQuickDataEntry = () => {
     setForm({
       borrowerType: "Individual",
       customerType: "New",
+      applicationType: "N",
+      addressType: "CURR",
       portfolio: DEFAULT_PORTFOLIO,
       loanType: DEFAULT_LOAN_TYPE,
     });
@@ -345,6 +349,8 @@ const ApplicationQuickDataEntry = () => {
         ...clearedForm,
         borrowerType: "Individual",
         customerType: "Existing",
+        applicationType: "N",
+        addressType: "CURR",
         portfolio: DEFAULT_PORTFOLIO,
         loanType: DEFAULT_LOAN_TYPE,
       };
@@ -576,7 +582,7 @@ const ApplicationQuickDataEntry = () => {
     setForm((prev) => ({
       ...prev,
       applicationNo: response.applicationNumber || response.applicationNo || prev.applicationNo,
-      applicationType: response.applicationType || "",
+      applicationType: response.applicationType || "N",
       portfolio: response.portfolio || DEFAULT_PORTFOLIO,
       borrowerType: response.borrowerType || prev.borrowerType,
       customerType: response.customerType || applicant.customerType || prev.customerType,
@@ -636,7 +642,7 @@ const ApplicationQuickDataEntry = () => {
       asPanStatus: extra.asPanStatus || null,
       asPanAadhaarLinked: extra.asPanAadhaarLinkedStatus || null,
 
-      addressType: current.addressType || "",
+      addressType: current.addressType || (response.borrowerType === "Non-Individual" ? "" : "CURR"),
       addr1: current.addressLine1 || "",
       addr2: current.addressLine2 || "",
       addr3: extra.addr3 || "",
@@ -759,7 +765,7 @@ const ApplicationQuickDataEntry = () => {
     setForm((prev) => ({
       ...prev,
       applicationNo: response.szApplicationNo || prev.applicationNo,
-      applicationType: control.szApplicationType || "",
+      applicationType: control.szApplicationType || "N",
       portfolio: control.szPortfolioCode || DEFAULT_PORTFOLIO,
       borrowerType: control.szBorrowerType === "NON-INDIVIDUAL" ? "Non-Individual" : "Individual",
       customerType: control.szCustomerType === "EXISTING" ? "Existing" : "New",
@@ -800,7 +806,7 @@ const ApplicationQuickDataEntry = () => {
       cin: kyc.szCin || "",
       shopAct: kyc.szShopAct || "",
 
-      addressType: address.szAddressType || "",
+      addressType: address.szAddressType || (control.szBorrowerType === "NON-INDIVIDUAL" ? "" : "CURR"),
       addr1: address.szAddressLine1 || "",
       addr2: address.szAddressLine2 || "",
       addr3: address.szAddressLine3 || "",
@@ -1845,18 +1851,18 @@ const persistDraft = useCallback(async () => {
     form.szOrgId ||
     "001";
 
-  // Applicant ID may be omitted from a successful save response. Resolve it
-  // from the saved QDE only when document upload requires it.
+  // // Applicant ID may be omitted from a successful save response. Resolve it
+  // // from the saved QDE only when document upload requires it.
   let savedData = data;
-  let applicantId = getPrimaryApplicantId(data)
-    || getPrimaryApplicantId(payload);
+  let applicantId = null;
+  //   || getPrimaryApplicantId(payload);
 
-  if (form.aadhaarImage && !applicantId) {
-    savedData = unwrapQdePayload(
-      await HAxiosService.GET(LosQdeAPI.fetchQde(orgId, appNo))
-    );
-    applicantId = getPrimaryApplicantId(savedData);
-  }
+  // if (form.aadhaarImage && !applicantId) {
+  //   savedData = unwrapQdePayload(
+  //     await HAxiosService.GET(LosQdeAPI.fetchQde(orgId, appNo))
+  //   );
+  //   applicantId = getPrimaryApplicantId(savedData);
+  // }
 
   if (form.aadhaarImage && !applicantId) {
     throw new Error(

@@ -64,7 +64,7 @@ const BusinessUnitSection = ({
 
           <HDropdown
             name="portfolio"
-            options={PORTFOLIOS}
+            options={portfolioOptions?.length ? portfolioOptions : PORTFOLIOS}
             value={form.portfolio || DEFAULT_PORTFOLIO}
             onChange={(e) =>
               setField("portfolio", e.target.value)
@@ -93,13 +93,19 @@ const BusinessUnitSection = ({
             <HRadio
               label="Individual"
               checked={form.borrowerType === "Individual"}
-              onChange={() => setField("borrowerType", "Individual")}
+              onChange={() => {
+                setField("borrowerType", "Individual");
+                setField("addressType", "CURR");
+              }}
             />
 
             <HRadio
               label="Non-Individual"
               checked={form.borrowerType === "Non-Individual"}
-              onChange={() => setField("borrowerType", "Non-Individual")}
+              onChange={() => {
+                setField("borrowerType", "Non-Individual");
+                setField("addressType", "");
+              }}
             />
           </HBox>
         </HBox>
