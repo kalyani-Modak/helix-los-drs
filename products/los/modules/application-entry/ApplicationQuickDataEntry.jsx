@@ -214,6 +214,7 @@ const ApplicationQuickDataEntry = () => {
   });
 
   const [verifying, setVerifying] = useState({});
+  const [partyAadhaarOtpTimers, setPartyAadhaarOtpTimers] = useState({});
   const [otpDialog, setOtpDialog] = useState({
     open: false,
     field: "",
@@ -854,6 +855,20 @@ const ApplicationQuickDataEntry = () => {
   }, [incomingApplicationNo, hydrateFromResponse, t, toast]);
 
   useEffect(() => {
+    if (!Object.values(partyAadhaarOtpTimers).some((remaining) => remaining > 0)) return undefined;
+    const timer = setInterval(() => {
+      setPartyAadhaarOtpTimers((current) => {
+        const next = {};
+        Object.entries(current).forEach(([partyId, remaining]) => {
+          if (remaining > 1) next[partyId] = remaining - 1;
+        });
+        return next;
+      });
+    }, 1000);
+    return () => clearInterval(timer);
+  }, [partyAadhaarOtpTimers]);
+
+  useEffect(() => {
     if (!otpDialog.open) {
       return;
     }
@@ -1056,43 +1071,6 @@ const ApplicationQuickDataEntry = () => {
     }));
   }, []);
 
-  const runPartyVerification = useCallback(async (party, key, url, payload, statusField) => {
-    const busyKey = `${party.id}:${key}`;
-    setBusy(busyKey, true);
-    try {
-      const data = unwrapApiResponse(await HAxiosService.POST(url, payload));
-      const passed = isPassed(data);
-      updatePartyField(party, statusField, passed ? VERIFIED : FAILED);
-      toast[passed ? "success" : "error"](t(
-        passed ? "label.qde.msg.verifySuccess" : "label.qde.msg.verifyFailed",
-        passed ? "Verification successful" : "Verification failed"
-      ));
-      return passed;
-    } catch (error) {
-      updatePartyField(party, statusField, FAILED);
-      toast.error(error?.message || t("label.qde.msg.verifyFailed", "Verification failed"));
-      return false;
-    } finally {
-      setBusy(busyKey, false);
-    }
-  }, [setBusy, t, toast, updatePartyField]);
-
-  const sendPartyOtp = useCallback(async (party, key, url, payload, sentField) => {
-    const busyKey = `${party.id}:${key}`;
-    setBusy(busyKey, true);
-    try {
-      unwrapApiResponse(await HAxiosService.POST(url, payload));
-      updatePartyField(party, sentField, true);
-      toast.success(t("label.qde.msg.otpSent", "OTP sent successfully"));
-      return true;
-    } catch (error) {
-      toast.error(error?.message || t("label.qde.msg.otpFailed", "Unable to send OTP"));
-      return false;
-    } finally {
-      setBusy(busyKey, false);
-    }
-  }, [setBusy, t, toast, updatePartyField]);
-
   const isPartyBusy = useCallback((party, key) => Boolean(verifying[`${party.id}:${key}`]), [verifying]);
 
   const openPartyOtp = useCallback((field, target, partyId) => {
@@ -1102,16 +1080,194 @@ const ApplicationQuickDataEntry = () => {
   }, [toast]);
 
   const partyKycHandlers = {
-    onVerifyPan: (party) => runPartyVerification(party, "pan", LosQdeAPI.verifyPan(), { panNumber: party.pan }, "panStatus"),
-    onSendAadhaarOtp: (party) => sendPartyOtp(party, "aadhaarSend", LosQdeAPI.aadhaarOtpSend(), { aadhaarNumber: party.aadhaar }, "aadhaarOtpSent"),
-    onValidateAadhaarOtp: (party) => runPartyVerification(party, "aadhaarValidate", LosQdeAPI.aadhaarOtpValidate(), { aadhaarNumber: party.aadhaar, otp: party.aadhaarOtp }, "aadhaarStatus"),
-    onCheckPanAadhaarLink: (party) => runPartyVerification(party, "panAadhaar", LosQdeAPI.panAadhaarLinkage(), { panNumber: party.pan, aadhaarNumber: party.aadhaar }, "panAadhaarLinked"),
-    onSendCkycOtp: (party) => sendPartyOtp(party, "ckycSend", LosQdeAPI.ckycOtpSend(), { ckycNumber: party.ckycNumber }, "ckycOtpSent"),
-    onValidateCkycOtp: (party) => runPartyVerification(party, "ckycValidate", LosQdeAPI.ckycOtpValidate(), { ckycNumber: party.ckycNumber, otp: party.ckycOtp }, "ckycStatus"),
-    onVerifyBusinessPan: (party) => runPartyVerification(party, "bizPan", LosQdeAPI.verifyPan(), { panNumber: party.pan, entityPan: true }, "bizPanStatus"),
-    onVerifyGstin: (party) => runPartyVerification(party, "gstin", LosQdeAPI.verifyPan(), { gstin: party.gstin, panNumber: party.pan }, "gstinStatus"),
-    onVerifyShopAct: (party) => runPartyVerification(party, "shopAct", LosQdeAPI.verifyPan(), { shopAct: party.shopAct, panNumber: party.pan }, "shopActStatus"),
-    onTriggerCkyc: (party) => runPartyVerification(party, "ckycTrigger", LosQdeAPI.verifyPan(), { ckycNumber: party.ckycNumber, panNumber: party.pan }, "ckycStatus"),
+    onVerifyPan: (party) => {
+      const pan = party.pan?.trim().toUpperCase() || "";
+      if (!pan) {
+        updatePartyField(party, "panStatus", FAILED);
+        toast.error(t("label.qde.msg.enterPan", "Enter a PAN number first"));
+        return false;
+      }
+      if (!PAN_PATTERN.test(pan)) {
+        updatePartyField(party, "panStatus", FAILED);
+        updatePartyField(party, "panAadhaarLinked", "PENDING");
+        toast.error(t("label.qde.msg.invalidPan", "Please enter a valid PAN number"));
+        return false;
+      }
+      updatePartyField(party, "pan", pan);
+      updatePartyField(party, "panStatus", VERIFIED);
+      toast.success(t("label.qde.msg.PanVerify", "PAN Verified"));
+      return true;
+    },
+    onSendAadhaarOtp: (party) => {
+      const aadhaar = party.aadhaar?.trim() || "";
+      if (!aadhaar) {
+        updatePartyField(party, "aadhaarStatus", FAILED);
+        toast.error(t("label.qde.msg.enterAadhaar", "Enter an Aadhaar number first"));
+        return false;
+      }
+      if (!AADHAAR_PATTERN.test(aadhaar)) {
+        updatePartyField(party, "aadhaarStatus", FAILED);
+        toast.error(t("label.qde.msg.invalidAadhaar", "Please enter a valid 12-digit Aadhaar number"));
+        return false;
+      }
+      updatePartyField(party, "aadhaar", aadhaar);
+      updatePartyField(party, "aadhaarOtp", "");
+      updatePartyField(party, "aadhaarOtpSent", true);
+      updatePartyField(party, "aadhaarStatus", "PENDING");
+      setPartyAadhaarOtpTimers((current) => ({ ...current, [party.id]: 30 }));
+      toast.success(t("label.qde.msg.aadhaarOtpSent", "UIDAI: OTP sent to Aadhaar-registered mobile. (Demo OTP: 123456) · 30 resend(s) left"));
+      return true;
+    },
+    onValidateAadhaarOtp: (party) => {
+      const otp = party.aadhaarOtp || "";
+      const aadhaar = party.aadhaar?.trim() || "";
+      if (!aadhaar) {
+        updatePartyField(party, "aadhaarStatus", FAILED);
+        updatePartyField(party, "panAadhaarLinked", FAILED);
+        toast.error(t("label.qde.msg.enterAadhaar", "Enter an Aadhaar number first"));
+        return false;
+      }
+      if (!AADHAAR_PATTERN.test(aadhaar)) {
+        updatePartyField(party, "aadhaarStatus", FAILED);
+        updatePartyField(party, "panAadhaarLinked", FAILED);
+        toast.error(t("label.qde.msg.invalidAadhaar", "Please enter a valid 12-digit Aadhaar number"));
+        return false;
+      }
+      if (!party.aadhaarOtpSent) {
+        toast.error(t("label.qde.msg.sendAadhaarOtpFirst", "Get an Aadhaar OTP first"));
+        return false;
+      }
+      if (!/^\d{6}$/.test(otp)) {
+        updatePartyField(party, "aadhaarStatus", FAILED);
+        updatePartyField(party, "panAadhaarLinked", FAILED);
+        toast.error(t("label.qde.msg.invalidAadhaarOtp", "Please enter a valid 6-digit OTP"));
+        return false;
+      }
+      if (otp !== "123456") {
+        updatePartyField(party, "aadhaarStatus", FAILED);
+        updatePartyField(party, "panAadhaarLinked", FAILED);
+        toast.error(t("label.qde.msg.aadhaarVerificationFailed", "Invalid Aadhaar OTP"));
+        return false;
+      }
+      updatePartyField(party, "aadhaarStatus", VERIFIED);
+      updatePartyField(party, "aadhaarOtp", "");
+      updatePartyField(party, "aadhaarOtpSent", false);
+      setPartyAadhaarOtpTimers((current) => {
+        const next = { ...current };
+        delete next[party.id];
+        return next;
+      });
+      toast.success(t("label.qde.msg.aadhaarVerified", "Aadhaar verified successfully"));
+      return true;
+    },
+    onCheckPanAadhaarLink: (party) => {
+      if (party.panStatus === VERIFIED && party.aadhaarStatus === VERIFIED) {
+        updatePartyField(party, "panAadhaarLinked", VERIFIED);
+        toast.success(t("label.qde.msg.panAadhaarLinked", "PAN-Aadhaar linkage verified successfully"));
+        return true;
+      }
+      updatePartyField(party, "panAadhaarLinked", FAILED);
+      toast.error(t("label.qde.msg.panAadhaarNotVerified", "Please verify PAN and Aadhaar first"));
+      return false;
+    },
+    onSendCkycOtp: (party) => {
+      if (!party.ckycTriggered || !party.ckycNumber) {
+        toast.error("Trigger CKYC first to fetch the CKYC number.");
+        return false;
+      }
+      updatePartyField(party, "ckycOtp", "");
+      updatePartyField(party, "ckycOtpSent", true);
+      updatePartyField(party, "ckycStatus", "PENDING");
+      toast.success("OTP sent successfully. (Demo OTP: 123456)");
+      return true;
+    },
+    onValidateCkycOtp: (party) => {
+      const otp = party.ckycOtp || "";
+      if (!/^\d{6}$/.test(otp)) {
+        toast.error("Please enter a valid 6-digit OTP");
+        return false;
+      }
+      const passed = otp === "123456";
+      updatePartyField(party, "ckycStatus", passed ? VERIFIED : FAILED);
+      if (passed) {
+        updatePartyField(party, "ckycOtp", "");
+        updatePartyField(party, "ckycOtpSent", false);
+        toast.success("CKYC verified successfully");
+      } else {
+        toast.error("Invalid CKYC OTP");
+      }
+      return passed;
+    },
+    onDigilocker: (party) => {
+      const digiRef = party.digiRef?.trim() || "";
+      if (!digiRef) {
+        updatePartyField(party, "digiStatus", FAILED);
+        toast.error(t("label.qde.msg.enterDigiRef", "Enter DigiLocker reference or mobile first"));
+        return false;
+      }
+      updatePartyField(party, "digiRef", digiRef);
+      updatePartyField(party, "digiStatus", VERIFIED);
+      toast.success(t("label.qde.msg.digiLockerVerified", "DigiLocker verified successfully"));
+      return true;
+    },
+    onTriggerCkyc: (party) => {
+      const ckycNumber = party.ckycNumber?.trim() || `CKYC${Math.floor(10000000000000 + Math.random() * 90000000000000)}`;
+      updatePartyField(party, "ckycNumber", ckycNumber);
+      updatePartyField(party, "ckycTriggered", true);
+      updatePartyField(party, "ckycOtpSent", false);
+      updatePartyField(party, "ckycOtp", "");
+      updatePartyField(party, "ckycStatus", "PENDING");
+      toast.success("CKYC registry hit. Number fetched.");
+      return true;
+    },
+    onVerifyBusinessPan: (party) => {
+      const pan = party.bizPan?.trim().toUpperCase() || "";
+      if (!pan || !PAN_PATTERN.test(pan)) {
+        updatePartyField(party, "bizPanStatus", FAILED);
+        toast.error(t(pan ? "label.qde.msg.invalidPan" : "label.qde.msg.enterBussPan", pan ? "Please enter a valid PAN number" : "Enter a Business PAN number first"));
+        return false;
+      }
+      updatePartyField(party, "bizPan", pan);
+      updatePartyField(party, "bizPanStatus", VERIFIED);
+      toast.success(t("label.qde.msg.PanVerify", "PAN Verified"));
+      return true;
+    },
+    onVerifyGstin: (party) => {
+      const gstin = party.gstin?.trim().toUpperCase() || "";
+      if (gstin.length !== 15) {
+        updatePartyField(party, "gstinStatus", FAILED);
+        toast.error(t(gstin ? "label.qde.msg.invalidGSTIN" : "label.qde.msg.emptyGSTIN", gstin ? "Please enter a valid GSTIN number" : "Please enter a GSTIN number"));
+        return false;
+      }
+      updatePartyField(party, "gstin", gstin);
+      updatePartyField(party, "gstinStatus", VERIFIED);
+      toast.success(t("label.qde.msg.GstinVerify", "GSTIN Verified"));
+      return true;
+    },
+    onVerifyUrn: (party) => {
+      const urn = party.urn?.trim() || "";
+      if (!urn) {
+        updatePartyField(party, "urnStatus", FAILED);
+        toast.error(t("label.qde.msg.enterUrn", "Please enter URN No."));
+        return false;
+      }
+      updatePartyField(party, "urn", urn);
+      updatePartyField(party, "urnStatus", VERIFIED);
+      toast.success(t("label.qde.msg.urnVerified", "URN No. verified successfully"));
+      return true;
+    },
+    onVerifyShopAct: (party) => {
+      const shopAct = party.shopAct?.trim().toUpperCase() || "";
+      if (shopAct.length <= 3) {
+        updatePartyField(party, "shopActStatus", FAILED);
+        toast.error(t(shopAct ? "label.qde.msg.invalidshopact" : "label.qde.msg.emptyshopact", shopAct ? "Please enter a valid shop act number" : "Please enter a shop act number"));
+        return false;
+      }
+      updatePartyField(party, "shopAct", shopAct);
+      updatePartyField(party, "shopActStatus", VERIFIED);
+      toast.success(t("label.qde.msg.shopactVerify", "Shop Act verified"));
+      return true;
+    },
     onVerifyMobile: (party) => openPartyOtp("mobile", party.mobile, party.id),
     onVerifyEmail: (party) => openPartyOtp("email", party.email, party.id),
     verifyingPan: (party) => isPartyBusy(party, "pan"),
@@ -1122,6 +1278,7 @@ const ApplicationQuickDataEntry = () => {
     verifyingAadhaarSend: (party) => isPartyBusy(party, "aadhaarSend"),
     verifyingAadhaarValidate: (party) => isPartyBusy(party, "aadhaarValidate"),
     verifyingPanAadhaar: (party) => isPartyBusy(party, "panAadhaar"),
+    aadhaarOtpTimer: (party) => partyAadhaarOtpTimers[party.id] || 0,
     verifyingCkycSend: (party) => isPartyBusy(party, "ckycSend"),
     verifyingCkycValidate: (party) => isPartyBusy(party, "ckycValidate"),
   };

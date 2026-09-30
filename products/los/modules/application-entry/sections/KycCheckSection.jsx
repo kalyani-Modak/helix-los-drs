@@ -29,8 +29,9 @@ const KycStatusLabel = ({ status }) => {
     },
   };
 
+  const normalizedStatus = String(status || "PENDING").toUpperCase();
   const currentStatus =
-    statusConfig[status] || statusConfig.PENDING;
+    statusConfig[normalizedStatus] || statusConfig.PENDING;
 
   return (
     <HBox
@@ -663,7 +664,6 @@ const KycCheckSection = ({
         verifying={verifying}
         handlers={handlers}
         errors={errors}
-        aadhaarOtpTimer={aadhaarOtpTimer}
       />
     ) : (
       <IndividualKyc
@@ -672,6 +672,7 @@ const KycCheckSection = ({
         verifying={verifying}
         handlers={handlers}
         errors={errors}
+        aadhaarOtpTimer={aadhaarOtpTimer}
         showAadhaarImageUpload={showAadhaarImageUpload}
       />
     )}

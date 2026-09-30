@@ -70,6 +70,7 @@ const PartyRow = ({
         return [key.charAt(0).toLowerCase() + key.slice(1), getter(party)];
       })
   );
+  const partyAadhaarOtpTimer = kycHandlers.aadhaarOtpTimer?.(party) || 0;
   const verifyContact = (name, value, valid) => {
     if (!valid(value)) return;
     field(name, true);
@@ -342,6 +343,7 @@ const PartyRow = ({
           sectionKey={`party-${party.id}-kyc`}
           errors={errors}
           showAadhaarImageUpload={false}
+          aadhaarOtpTimer={partyAadhaarOtpTimer}
           footerNote={isNonIndividual && (
             <HLabel
               value="Authorised Signatory is captured once per application (at the primary borrower level)."
