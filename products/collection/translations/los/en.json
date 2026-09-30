@@ -110,6 +110,7 @@
   "label.qde.option.yes": "Yes",
   "label.qde.option.no": "No",
   "label.qde.status.pending": "Pending",
+  "label.qde.status.noFile": "No File",
   "label.qde.status.verified": "Verified",
   "label.qde.status.failed": "Failed",
   "label.qde.status.notStarted": "Not started",
