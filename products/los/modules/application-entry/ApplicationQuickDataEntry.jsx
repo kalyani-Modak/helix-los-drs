@@ -1,12 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useIntl } from "react-intl";
 import { useLocation, useNavigate } from "react-router-dom";
-import { HAxiosService, HBox, HBreadCrumb, HButtonBar, HPaper, TitleBar, useToast, HLabel, HButton, HTextField, useDrsTheme } from "@helix/component-library";
+import { HAxiosService, HBox, HBreadCrumb, HButtonBar, HPaper, TitleBar, useToast, HLabel, HButton,useDrsTheme } from "@helix/component-library";
 import { LosQdeAPI,LosDocumentAPI } from "./apiEndpoints";
 import { unwrapApiResponse } from "./unwrapApiResponse";
+import { DEFAULT_LOAN_TYPE, DEFAULT_PORTFOLIO, VERIFICATION_STATUS } from "./constants/qdeOptions";
 import { VERIFICATION_STATUS } from "./constants/qdeOptions";
 import { useQdeLookups, QDE_LOOKUP_TYPES } from "./hooks/useQdeLookups";
-
 import OtpVerifyDialog from "./components/OtpVerifyDialog";
 import SearchApplicationDialog from "./components/SearchApplicationDialog";
 import BusinessUnitSection from "./sections/BusinessUnitSection";
@@ -49,6 +49,38 @@ const unwrapQdePayload = (response) => {
     || response?.data?.data
     || {}
   );
+};
+const mergeSavedPartyIds = (currentParties = [], savedParties = []) => {
+  if (!Array.isArray(currentParties)) {
+    return currentParties;
+  }
+
+  if (!Array.isArray(savedParties)) {
+    return currentParties;
+  }
+
+  return currentParties.map((party, index) => {
+    const existingMatch = party?.szApplicantId
+      ? savedParties.find(
+          (saved) =>
+            saved?.szApplicantId === party.szApplicantId
+        )
+      : null;
+
+    // Match by applicant ID first. For new parties without IDs,
+    // use the same index as a fallback.
+    const savedParty =
+      existingMatch || savedParties[index];
+
+    if (!savedParty?.szApplicantId) {
+      return party;
+    }
+
+    return {
+      ...party,
+      szApplicantId: savedParty.szApplicantId,
+    };
+  });
 };
 
 const validateKycFields = (obj, isNonInd, translate) => {
@@ -178,6 +210,8 @@ const ApplicationQuickDataEntry = () => {
   const [form, setForm] = useState({
     borrowerType: "Individual",
     customerType: "New",
+    portfolio: DEFAULT_PORTFOLIO,
+    loanType: DEFAULT_LOAN_TYPE,
   });
 
   const [verifying, setVerifying] = useState({});
@@ -216,7 +250,12 @@ const ApplicationQuickDataEntry = () => {
   }, []);
 
   const resetForm = useCallback(() => {
-    setForm({ borrowerType: "Individual", customerType: "New" });
+    setForm({
+      borrowerType: "Individual",
+      customerType: "New",
+      portfolio: DEFAULT_PORTFOLIO,
+      loanType: DEFAULT_LOAN_TYPE,
+    });
   }, []);
 
   const addCoApplicant = useCallback(() => {
@@ -306,6 +345,8 @@ const ApplicationQuickDataEntry = () => {
         ...clearedForm,
         borrowerType: "Individual",
         customerType: "Existing",
+        portfolio: DEFAULT_PORTFOLIO,
+        loanType: DEFAULT_LOAN_TYPE,
       };
     });
 
@@ -536,7 +577,7 @@ const ApplicationQuickDataEntry = () => {
       ...prev,
       applicationNo: response.applicationNumber || response.applicationNo || prev.applicationNo,
       applicationType: response.applicationType || "",
-      portfolio: response.portfolio || null,
+      portfolio: response.portfolio || DEFAULT_PORTFOLIO,
       borrowerType: response.borrowerType || prev.borrowerType,
       customerType: response.customerType || applicant.customerType || prev.customerType,
       customerId: response.customerId || applicant.existingCustomerId || "",
@@ -609,7 +650,7 @@ const ApplicationQuickDataEntry = () => {
       coApplicants: withIds(response.coApplicants),
       guarantors: withIds(response.guarantors),
 
-      loanType: response.loanType || loan.loanPurpose || null,
+      loanType: response.loanType || loan.loanPurpose || DEFAULT_LOAN_TYPE,
       product: loan.productName || "",
       scheme: loan.schemeCode || "",
       loanAmount: loan.requestedAmount != null ? String(loan.requestedAmount) : "",
@@ -719,7 +760,7 @@ const ApplicationQuickDataEntry = () => {
       ...prev,
       applicationNo: response.szApplicationNo || prev.applicationNo,
       applicationType: control.szApplicationType || "",
-      portfolio: control.szPortfolioCode || null,
+      portfolio: control.szPortfolioCode || DEFAULT_PORTFOLIO,
       borrowerType: control.szBorrowerType === "NON-INDIVIDUAL" ? "Non-Individual" : "Individual",
       customerType: control.szCustomerType === "EXISTING" ? "Existing" : "New",
       customerId: applicant.szCustomerId || "",
@@ -783,7 +824,7 @@ const ApplicationQuickDataEntry = () => {
       coApplicants: (Array.isArray(response.coApplicants) ? response.coApplicants : []).map(partyFromQde),
       guarantors: (Array.isArray(response.guarantors) ? response.guarantors : []).map(partyFromQde),
 
-      loanType: loan.szLoanType || null,
+      loanType: loan.szLoanType || DEFAULT_LOAN_TYPE,
       product: loan.szProductCode || "",
       scheme: loan.szSchemeCode || "",
       loanAmount: loan.fAppliedAmount != null ? String(loan.fAppliedAmount) : "",
@@ -1575,38 +1616,155 @@ const ApplicationQuickDataEntry = () => {
     setOcrStatusKey(file ? "label.qde.status.pending" : "label.qde.status.notStarted");
   }, []);
 
-  const persistDraft = useCallback(async () => {
-    const isUpdate = persistedDraftRef.current && Boolean(form.applicationNo);
-    const payload = buildPayload();
+const savedQdeRef = useRef(null);
 
-    if (!isUpdate) {
-      // A fetched application number is only a search reference. The first
-      // save must create a new QDE application number.
-      payload.szApplicationNo = null;
+// Prevents the same Aadhaar file from being uploaded again
+// every time the user saves the same draft.
+const aadhaarUploadedRef = useRef(null);
+
+const persistDraft = useCallback(async () => {
+  // 1. Build the current form payload.
+  const payload = buildPayload();
+
+  // 2. Reuse previously saved IDs when the current form
+  //    does not contain them yet.
+  const previous = savedQdeRef.current;
+
+  if (previous) {
+    payload.szApplicationNo =
+      payload.szApplicationNo ||
+      previous.szApplicationNo;
+
+    if (payload.applicantDetails && previous.applicantDetails) {
+      payload.applicantDetails = {
+        ...payload.applicantDetails,
+        szApplicantId:
+          payload.applicantDetails.szApplicantId ||
+          previous.applicantDetails.szApplicantId,
+      };
     }
 
-    const response = isUpdate
-      ? await HAxiosService.PUT(LosQdeAPI.updateDraft(form.applicationNo), payload)
-      : await HAxiosService.POST(LosQdeAPI.createDraft(), payload);
+    payload.coApplicants = mergeSavedPartyIds(
+      payload.coApplicants || [],
+      previous.coApplicants || []
+    );
 
-    const data = unwrapQdePayload(response);
-    const appNo = data?.szApplicationNo || data?.applicationNumber || data?.applicationNo;
-    const applicantId = data?.applicantDetails?.szApplicantId;
-    const orgId = data?.szOrgId ;
+    payload.guarantors = mergeSavedPartyIds(
+      payload.guarantors || [],
+      previous.guarantors || []
+    );
+  }
 
-    if (appNo) {
-      persistedDraftRef.current = true;
-      if (form.aadhaarImage) {
-        const documentRequests = [
+  // 3. Save or update using the same POST API.
+  const response = await HAxiosService.POST(
+    LosQdeAPI.createDraft(),
+    payload
+  );
+
+  const data = unwrapQdePayload(response);
+
+  if (!data) {
+    throw new Error(
+      "The server returned an empty QDE save response."
+    );
+  }
+
+  // 4. Resolve the application number.
+  //    Existing application number is retained on subsequent saves.
+  const appNo =
+    data.szApplicationNo ||
+    data.applicationNumber ||
+    data.applicationNo ||
+    payload.szApplicationNo;
+
+  if (!appNo) {
+    throw new Error(
+      "Application number was not returned by the server."
+    );
+  }
+
+  const orgId =
+    data.szOrgId ||
+    payload.szOrgId ||
+    form.szOrgId ||
+    "001";
+
+  // Applicant ID may be omitted from a successful save response. Resolve it
+  // from the saved QDE only when document upload requires it.
+  let savedData = data;
+  let applicantId = getPrimaryApplicantId(data)
+    || getPrimaryApplicantId(payload);
+
+  if (form.aadhaarImage && !applicantId) {
+    savedData = unwrapQdePayload(
+      await HAxiosService.GET(LosQdeAPI.fetchQde(orgId, appNo))
+    );
+    applicantId = getPrimaryApplicantId(savedData);
+  }
+
+  if (form.aadhaarImage && !applicantId) {
+    throw new Error(
+      "Application saved, but the applicant ID could not be loaded for Aadhaar document upload."
+    );
+  }
+
+  // 6. Keep all returned IDs for the next save.
+  //    The returned DTO is the source of truth for generated IDs.
+  const savedQde = {
+    ...payload,
+    ...savedData,
+    szOrgId: orgId,
+    szApplicationNo: appNo,
+
+    applicantDetails: {
+      ...(payload.applicantDetails || {}),
+      ...(savedData.applicantDetails || {}),
+      szApplicantId: applicantId,
+    },
+
+    coApplicants: mergeSavedPartyIds(
+      payload.coApplicants || [],
+      savedData.coApplicants || payload.coApplicants || []
+    ),
+
+    guarantors: mergeSavedPartyIds(
+      payload.guarantors || [],
+      savedData.guarantors || payload.guarantors || []
+    ),
+  };
+
+  savedQdeRef.current = savedQde;
+  persistedDraftRef.current = true;
+
+  // Keep the application number in the visible form state.
+  setField("applicationNo", appNo);
+
+  // 7. Upload Aadhaar only after the QDE save succeeds.
+  //    Do not upload the same file again on every draft save.
+  if (form.aadhaarImage) {
+    const file = form.aadhaarImage;
+
+    const uploadKey = [
+      appNo,
+      orgId,
+      file.name,
+      file.size,
+      file.lastModified,
+    ].join("|");
+
+    if (aadhaarUploadedRef.current !== uploadKey) {
+      const documentRequests = [
         {
           itemId: null,
           custom: false,
           docName: null,
           iDocumentsSrNo: null,
+
           szApplicationNo: appNo,
           szOrgId: orgId,
           szDocCode: "AADHAAR",
           szApplicantId: applicantId,
+
           szAssetSrNo: null,
           szStageDue: "PRE_SUBMISSION",
           szDocWaiveAllowYn: "N",
@@ -1617,65 +1775,80 @@ const ApplicationQuickDataEntry = () => {
           szDifferYn: "N",
           szMandatoryYn: "Y",
           szOriginalReqYn: "Y",
+
           szVerfDecision: null,
           szVerifiedBy: null,
           szUserSpecifiedYn: "N",
+
           documentId: null,
+
           szDocFamilyCode: "KYC",
-          szDocFamilyDesc: "Personal Identification and KYC Documents",
+          szDocFamilyDesc:
+            "Personal Identification and KYC Documents",
+
           cFraudYn: "N",
           szRemarks: null,
           iDueDays: null,
           dtDueDate: null,
           szDocketLocation: null,
           iNoOfPages: null,
+
           cLevel: "P",
+
           dtRecieptDate: null,
           dtDeferralDate: null,
+
           szCreatedBy: null,
           dtCreatedOn: null,
           szUpdatedBy: null,
           dtUpdatedOn: null,
-            filePartName: "aadhaarFile"
-          }
-        ];
 
-        const formData = new FormData();
+          filePartName: "aadhaarFile",
+        },
+      ];
 
-        formData.append(
-          "request",
-          new Blob(
-            [JSON.stringify(documentRequests)],
-            {
-              type: "application/json",
-            }
-          )
-        );
+      const formData = new FormData();
 
-        formData.append(
-          "aadhaarFile",
-          form.aadhaarImage,
-          form.aadhaarImage.name
-        );
+      formData.append(
+        "request",
+        new Blob(
+          [JSON.stringify(documentRequests)],
+          { type: "application/json" }
+        )
+      );
 
-        await HAxiosService.POST(
-          LosDocumentAPI.LosDocumentAPI(
-            "ECF-DocumentUpload"
-          ) + "/documents/upload" +
-          `?applicationNo=${encodeURIComponent(appNo)}` +
-          `&orgId=${encodeURIComponent(orgId || "001")}`,
-          formData,
-          {},
-          false,
-          { "Content-Type": "multipart/form-data" }
-        );
-      }
+      formData.append(
+        "aadhaarFile",
+        file,
+        file.name
+      );
 
-      setField("applicationNo", appNo);
+      const uploadUrl =
+        LosDocumentAPI.LosDocumentAPI("ECF-DocumentUpload") +
+        "/documents/upload" +
+        `?applicationNo=${encodeURIComponent(appNo)}` +
+        `&orgId=${encodeURIComponent(orgId)}`;
+
+      // Allow the browser/Axios to set the multipart boundary.
+      await HAxiosService.POST(
+        uploadUrl,
+        formData,
+        {},
+        false
+      );
+
+      // Mark as uploaded only after the request succeeds.
+      // If upload fails, the next save can retry it.
+      aadhaarUploadedRef.current = uploadKey;
     }
+  }
 
-    return appNo;
-  }, [buildPayload, form, setField]);
+  return appNo;
+}, [
+  buildPayload,
+  form,
+  setField,
+]);
 
 
   const validateForm = useCallback(() => {
@@ -1759,39 +1932,77 @@ const ApplicationQuickDataEntry = () => {
     };
   }, [form, isNonIndividual, t]);
 
-  const handleSave = useCallback(async () => {
-    const result = validateForm();
-    setFormErrors({
-      applicant: result.applicant,
-      coApplicants: result.coApplicants,
-      guarantors: result.guarantors,
-    });
 
-    if (!result.isValid) {
-  const validationMessage = [
-    "Please correct the following:",
-    "",
-    ...result.messages.map((message, index) => `${index + 1}. ${message}`)
-  ].join("\n");
+const handleSave = useCallback(async () => {
+  const result = validateForm();
 
-  toast.error(validationMessage);
+  setFormErrors({
+    applicant: result.applicant,
+    coApplicants: result.coApplicants,
+    guarantors: result.guarantors,
+  });
 
-  return { success: false };
-}
+  if (!result.isValid) {
+    const validationMessage = [
+      "Please correct the following:",
+      "",
+      ...result.messages.map(
+        (message, index) => `${index + 1}. ${message}`
+      ),
+    ].join("\n");
 
-    try {
-      const appNo = await persistDraft();
-      toast.success(
-        appNo
-          ? `${t("label.qde.msg.saved", "Application saved")} - ${appNo}`
-          : t("label.qde.msg.saved", "Application saved")
-      );
-      return { success: true };
-    } catch (error) {
-      toast.error(error?.message || t("label.qde.msg.saveFailed", "Save failed"));
-      return { success: false };
-    }
-  }, [validateForm, persistDraft, t, toast]);
+    toast.error(validationMessage);
+
+    return {
+      success: false,
+      applicationNo: null,
+    };
+  }
+
+  // 2. Save the application and related records.
+  try {
+    const appNo = await persistDraft();
+
+    // 3. Display the application number after a successful save.
+    toast.success(
+      appNo
+        ? `${t(
+            "label.qde.msg.saved",
+            "Application saved"
+          )} - ${appNo}`
+        : t(
+            "label.qde.msg.saved",
+            "Application saved"
+          )
+    );
+
+    return {
+      success: true,
+      applicationNo: appNo,
+    };
+  } catch (error) {
+    console.error("QDE save failed:", error);
+
+    toast.error(
+      error?.message ||
+        t(
+          "label.qde.msg.saveFailed",
+          "Save failed"
+        )
+    );
+
+    return {
+      success: false,
+      applicationNo:
+        savedQdeRef.current?.szApplicationNo || null,
+    };
+  }
+}, [
+  validateForm,
+  persistDraft,
+  t,
+  toast,
+]);
 
   const handleReset = useCallback(() => {
     persistedDraftRef.current = false;

@@ -2,7 +2,7 @@ import { HDropdown, HTextField, HBox, HLabel, HRadio, HButton } from "@helix/com
 import { IconButton } from "@mui/material";
 import { Search as SearchIcon } from "@mui/icons-material";
 import SectionBlock from "../components/SectionBlock";
-import { APPLICATION_TYPES, PORTFOLIOS } from "../constants/qdeOptions";
+import { APPLICATION_TYPES, DEFAULT_PORTFOLIO, PORTFOLIOS } from "../constants/qdeOptions";
 import { useIntl } from "react-intl";
 import BusinessCenterOutlinedIcon from "@mui/icons-material/BusinessCenterOutlined";
 
@@ -64,8 +64,8 @@ const BusinessUnitSection = ({
 
           <HDropdown
             name="portfolio"
-            options={portfolioOptions}
-            value={portfolioOptions[0]?.value}
+            options={PORTFOLIOS}
+            value={form.portfolio || DEFAULT_PORTFOLIO}
             onChange={(e) =>
               setField("portfolio", e.target.value)
             }

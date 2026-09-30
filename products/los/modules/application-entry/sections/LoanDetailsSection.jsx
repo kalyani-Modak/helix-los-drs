@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ALIGNMENT, HDropdown, HTextField, HBox, HLabel, useDrsTheme, useToast } from "@helix/component-library";
 import SectionBlock from "../components/SectionBlock";
-import { PRODUCTS, SCHEMES } from "../constants/qdeOptions";
+import { DEFAULT_LOAN_TYPE, PRODUCTS, SCHEMES } from "../constants/qdeOptions";
 import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
 
 const LoanDetailsSection = ({ form, setField, errors = {}, productOptions = PRODUCTS, schemeOptions = SCHEMES }) => {
@@ -166,7 +166,7 @@ const openSimulator = () => {
             colon={false}
           />
           <HTextField
-            value="Term Loan"
+            value={form.loanType || DEFAULT_LOAN_TYPE}
             required
             // align={ALIGNMENT.TEXT}
             error={Boolean(err("loanType"))}

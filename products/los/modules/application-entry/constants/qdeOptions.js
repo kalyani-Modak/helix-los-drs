@@ -19,6 +19,7 @@ export const APPLICATION_TYPES = [
 export const PORTFOLIOS = [{ label: "Home Loan", value: "HL" }];
 
 export const DEFAULT_PORTFOLIO = "Home Loan";
+export const DEFAULT_LOAN_TYPE = "Term Loan";
 
 export const GENDERS = [
   { label: "Female", value: "F" },
