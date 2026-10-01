@@ -229,8 +229,13 @@ const openSimulator = () => {
             width="100%"
             required
             placeholder="Select scheme"
+            error={Boolean(err("scheme"))}
           />
-          <HLabel value="label.qde.field.schemeSubtitle" align="left" colon={false} />
+          {err("scheme") ? (
+            <FieldError message={err("scheme")} />
+          ) : (
+            <HLabel value="label.qde.field.schemeSubtitle" align="left" colon={false} />
+          )}
         </HBox>
 
         {/* Loan Amount */}
@@ -292,8 +297,6 @@ const openSimulator = () => {
             error={Boolean(err("tenure"))}
             width="100%"
           />
-          {/* <FieldError message={err("tenure")} />
-          <HLabel value="label.qde.field.tenureSubtitle" align="left" colon={false} sx={{mt: 1}} /> */}
           {err("tenure") ? ( <FieldError message={err("tenure")} sx={{ mt: 1.5 }}/>
           ) : (
             <HLabel

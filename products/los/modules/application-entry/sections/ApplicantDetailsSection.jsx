@@ -270,7 +270,7 @@ const ApplicantDetailsSection = ({
                 error={Boolean(err("motherName"))}
                 width="100%"
               />
-              <FieldError message={err("motherName")} />
+              <FieldError message={err("motherName")} sx={{ mt: 1.5 }} />
             </HBox>
           </>
         )}

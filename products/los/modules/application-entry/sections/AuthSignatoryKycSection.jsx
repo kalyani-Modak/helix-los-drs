@@ -68,11 +68,11 @@ const AuthSignatoryKycSection = ({
       headerStatus={form.asPanAadhaarLinked }
  
     >
-      <HBox sx={{ display: "flex", alignItems: "center", gap: 1, width: "100%", mb: 1 }}>
-        <HBox sx={{ width: "280px", minWidth: "280px", flexShrink: 0, pt: 1 }}>
+      <HBox sx={{ display: "flex", alignItems: "flex-start", gap: 1, width: "100%", mb: 1 }}>
+        <HBox sx={{ width: "280px", minWidth: "280px", flexShrink: 0 }}>
           <HLabel value="Auth. Signatory Aadhaar" required align="left" colon={false} />
         </HBox>
-        <HBox sx={{ display: "flex", alignItems: "center", flexDirection:"row", gap: 5, width: "100%", }}>
+        <HBox sx={{ display: "flex", alignItems: "flex-start", flexDirection:"row", gap: 5, width: "100%", }}>
         <HBox sx={{ minWidth: 0, display: "flex", flexDirection: "column" }}>
         <HTextField
           value={form.asAadhaar ?? ""}
@@ -84,7 +84,7 @@ const AuthSignatoryKycSection = ({
           placeholder="12-digit Aadhaar number"
           width="350px"
         />
-        <FieldError message={err("asAadhaar")} />
+        <FieldError message={err("asAadhaar")} sx={{ mt: 2 }} />
         </HBox>
         <HTextField
           value={form.asAadhaarOtp ?? ""}
@@ -110,7 +110,7 @@ const AuthSignatoryKycSection = ({
           loading={verifying.asAadhaarSend}
           disabled={aadhaarOtpTimer > 0}
           onClick={onSendAsAadhaarOtp}
-          sx={{ width: "140px", minWidth: "140px", height: "32px", flexShrink: 0,mt:1 }}
+          sx={{ width: "140px", minWidth: "140px", height: "32px", flexShrink: 0 }}
         />
         </HBox>
         <HBox sx={{ flex: 1, minWidth: 0 }} />
@@ -124,12 +124,12 @@ const AuthSignatoryKycSection = ({
           disabled={!form.asAadhaarOtp}
           startIcon={<VerifiedUserOutlinedIcon fontSize="small" />}
           onClick={onValidateAsAadhaarOtp}
-          sx={{ width: "130px", minWidth: "130px", height: "32px", flexShrink: 0, mt:0.5 }}
+          sx={{ width: "130px", minWidth: "130px", height: "32px", flexShrink: 0 }}
         />
         <AuthKycStatus status={form.asAadhaarStatus} />
       </HBox>
 
-      <HBox sx={{ display: "flex", alignItems: "center", gap: 1, width: "100%", mb: 0.2 }}>
+      <HBox sx={{ display: "flex", alignItems: "flex-start", gap: 1, width: "100%", mb: 1 }}>
         <HBox sx={{ width: "280px", minWidth: "280px", flexShrink: 0 }}>
           <HLabel value="Auth. Signatory PAN" required align="left" colon={false} />
         </HBox>
@@ -144,7 +144,7 @@ const AuthSignatoryKycSection = ({
           placeholder="AAAAA9999A"
           width="350px"
         />
-        <FieldError message={err("asPan")} />
+        <FieldError message={err("asPan")} sx={{ mt: 2 }} />
         </HBox>
 
         <HBox sx={{ flex: 1, minWidth: 0 }} />

@@ -24,7 +24,7 @@ const KycVerifyRow = ({
     sx={{
       display: "grid",
       gridTemplateColumns: "minmax(0, 24%) minmax(0, 29%) minmax(0, 13%) minmax(0, 12%) auto auto",
-      alignItems: "center",
+      alignItems: "flex-start",
       width: "100%",
       minWidth: 0,
       gap: 1,
@@ -60,7 +60,7 @@ const KycVerifyRow = ({
         length={maxLength}
         width="100%"
       />
-      <FieldError message={errorMessage} />
+      <FieldError message={errorMessage} sx={{ mt: 2 }} />
     </HBox>
     <HBox sx={{ minWidth: 0 }} />
     <HBox sx={{ minWidth: 0 }} />

@@ -35,7 +35,7 @@ const ORG_ID = "001";
 const PAN_PATTERN = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
 const AADHAAR_PATTERN = /^[0-9]{12}$/;
 const CIN_PATTERN = /^[LU][0-9]{5}[A-Z]{2}[0-9]{4}[A-Z]{3}[0-9]{6}$/;
-const SHOP_ACT_PATTERN = /^[A-Z0-9][A-Z0-9\s/-]{0,29}$/i;
+const URN_ACT_PATTERN = /^[A-Z0-9][A-Z0-9\s/-]{0,15}$/i;
 const normalizeCustomerType = (...values) => {
   const value = values.find((candidate) => String(candidate ?? "").trim());
   return ["EXISTING", "EXISTING CUSTOMER", "E"].includes(
@@ -102,12 +102,12 @@ const validateKycFields = (obj, isNonInd, translate) => {
     errors.aadhaar = message("label.qde.validation.aadhaarInvalid", "Please enter a valid 12-digit Aadhaar number.");
   }
 
-  if (isNonInd && (!obj.shopAct?.trim() || !SHOP_ACT_PATTERN.test(obj.shopAct.trim()))) {
-    errors.shopAct = message("label.qde.validation.shopActInvalid", "Please enter a valid Shop Act number.");
+  if (isNonInd && (!obj.bizPan?.trim() || !PAN_PATTERN.test(obj.bizPan.trim()))) {
+    errors.bizPan = message("label.qde.validation.bizPan", "Please enter a valid PAN number.");
   }
 
-  if (isNonInd && (!obj.cin?.trim() || !CIN_PATTERN.test(obj.cin.trim().toUpperCase()))) {
-    errors.cin = message("label.qde.validation.cinInvalid", "Please enter a valid CIN.");
+  if (isNonInd && obj.cin?.trim() && !CIN_PATTERN.test(obj.cin.trim().toUpperCase())) {
+  errors.cin = message("label.qde.validation.cinInvalid", "Please enter a valid CIN." );
   }
 
   return errors;
@@ -153,7 +153,8 @@ if (!obj.dob) {
     );
   }
  }
-    // if (!obj.motherName?.trim()) errors.motherName = message("label.qde.validation.motherNameRequired", "Mother's name is mandatory.");
+    if (!obj.motherName?.trim()) {}
+      errors.motherName = message("label.qde.validation.motherNameRequired", "Mother's name is mandatory.");
   }
 
   if (!obj.mobile?.trim() || obj.mobile.trim().length !== 10) {
@@ -2087,6 +2088,9 @@ const persistDraft = useCallback(async () => {
     }
     if (!form.tenure || Number(form.tenure) <= 0) {
       applicantErrors.tenure = t("label.qde.validation.tenureInvalid", "Please enter a valid tenure in months.");
+    }
+    if (!form.scheme || Number(form.scheme) <= 0) {
+      applicantErrors.scheme = t("label.qde.validation.schemeInvalid", "Please enter a valid scheme.");
     }
 
     // Sourcing details — matches SourcingDetailsSection's exact channel values

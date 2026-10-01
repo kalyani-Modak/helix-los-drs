@@ -93,7 +93,7 @@ const KycOtpRow = ({
   <HBox sx={{
     display: "grid",
     gridTemplateColumns: "minmax(0, 24%) minmax(0, 29%) minmax(0, 13%) minmax(0, 12%) auto auto",
-    alignItems: "center",
+    alignItems: "flex-start",
     width: "100%",
     minWidth: 0,
     gap: 1,
@@ -118,7 +118,7 @@ const KycOtpRow = ({
           inline
           loading={verifying}
           onClick={onVerify}
-          sx={{ height: "30px", minHeight: "30px", mt: 1, whiteSpace: "nowrap", }}
+          sx={{ height: "30px", minHeight: "30px", whiteSpace: "nowrap" }}
         />)}
     </HBox>
       <HBox sx={{ minWidth: 0, display: "flex", flexDirection: "column" }}>
@@ -133,7 +133,7 @@ const KycOtpRow = ({
           length={maxLength}
           width="100%"
         />
-        <FieldError message={errorMessage} />
+        <FieldError message={errorMessage} sx={{ mt: 2 }} />
       </HBox>
 
 
@@ -164,7 +164,7 @@ const KycOtpRow = ({
         loading={sending}
         disabled={disabled || otpTimer > 0}
         onClick={onSendOtp}
-        sx={{ height: "32px", minHeight: "32px", mt: 1, whiteSpace: "nowrap", width: "100%" }}
+        sx={{ height: "32px", minHeight: "32px", whiteSpace: "nowrap", width: "100%" }}
       />
 
       {/* Validate OTP */}
@@ -183,7 +183,7 @@ const KycOtpRow = ({
         }
         startIcon={<VerifiedUserOutlinedIcon fontSize="small" />}
         onClick={onValidateOtp}
-        sx={{ height: "32px", minHeight: "32px", mt: 1, whiteSpace: "nowrap", width: "120px", minWidth: "120px", maxWidth: "120px", justifySelf: "center" }}
+        sx={{ height: "32px", minHeight: "32px", whiteSpace: "nowrap", width: "120px", minWidth: "120px", maxWidth: "120px", justifySelf: "center" }}
       />
     {/* Status */}
     <HBox sx={{ justifySelf: "end", mr: 1 }}>
@@ -546,12 +546,12 @@ const NonIndividualKyc = ({
       status={form.urnStatus}
       verifying={verifying.urn}
       onVerify={handlers.onVerifyUrn}
-      required
       error={Boolean(errors.urn)}
       errorMessage={errors.urn}
       disableVerifyWhenEmpty={false}
       placeholder="Unique Reference Number"
       KycStatusLabel={KycStatusLabel}
+      maxLength={16}
     />
     { /*Business pan */}
     <KycVerifyRow
@@ -592,7 +592,7 @@ const NonIndividualKyc = ({
     <HBox sx={{
       display: "grid",
       gridTemplateColumns: "minmax(0, 24%) minmax(0, 29%) minmax(0, 13%) minmax(0, 12%) auto auto",
-      alignItems: "center",
+      alignItems: "flex-start",
       width: "100%",
       minWidth: 0,
       gap: 1,
@@ -613,7 +613,7 @@ const NonIndividualKyc = ({
           width="100%"
           error={Boolean(errors.cin)}
         />
-        <FieldError message={errors.cin} />
+        <FieldError message={errors.cin} sx={{ mt: 2 }} />
       </HBox>
       <HBox sx={{ minWidth: 0 }} />
       <HBox sx={{ minWidth: 0 }} />
