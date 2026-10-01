@@ -36,6 +36,14 @@ const PAN_PATTERN = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
 const AADHAAR_PATTERN = /^[0-9]{12}$/;
 const CIN_PATTERN = /^[LU][0-9]{5}[A-Z]{2}[0-9]{4}[A-Z]{3}[0-9]{6}$/;
 const SHOP_ACT_PATTERN = /^[A-Z0-9][A-Z0-9\s/-]{0,29}$/i;
+const normalizeCustomerType = (...values) => {
+  const value = values.find((candidate) => String(candidate ?? "").trim());
+  return ["EXISTING", "EXISTING CUSTOMER", "E"].includes(
+    String(value ?? "").trim().replace(/[_-]+/g, " ").toUpperCase()
+  )
+    ? "Existing"
+    : "New";
+};
 
 const unwrapQdePayload = (response) => {
   const unwrapped = unwrapApiResponse(response);
@@ -203,6 +211,7 @@ const ApplicationQuickDataEntry = () => {
   const [aadhaarOtpExpired, setAadhaarOtpExpired] = useState(false);
   const [otpTimer, setOtpTimer] = useState(30);
   const [enteredOtp, setEnteredOtp] = useState("");
+  const [savedApplicationNo, setSavedApplicationNo] = useState("");
   const otpRefs = useRef([]);
 
   // Default: New + Individual, so only the Individual field set is visible on first render.
@@ -357,6 +366,7 @@ const ApplicationQuickDataEntry = () => {
     });
 
     persistedDraftRef.current = false;
+    setSavedApplicationNo("");
   }, []);
 
   const mapParty = (p, relationship = null) => {
@@ -442,7 +452,9 @@ const ApplicationQuickDataEntry = () => {
   const buildPayload = useCallback(() => {
     const f = form;
     const borrowerTypeCode = f.borrowerType === "Individual" ? "INDIVIDUAL" : "NON_INDIVIDUAL";
-    const customerTypeCode = f.customerType === "Existing" ? "EXISTING" : "NEW";
+    const customerTypeCode = normalizeCustomerType(f.customerType) === "Existing"
+      ? "EXISTING"
+      : "NEW";
 
     return {
       szOrgId: "001",
@@ -585,7 +597,11 @@ const ApplicationQuickDataEntry = () => {
       applicationType: response.applicationType || "N",
       portfolio: response.portfolio || DEFAULT_PORTFOLIO,
       borrowerType: response.borrowerType || prev.borrowerType,
-      customerType: response.customerType || applicant.customerType || prev.customerType,
+      customerType: normalizeCustomerType(
+        response.customerType,
+        applicant.customerType,
+        prev.customerType
+      ),
       customerId: response.customerId || applicant.existingCustomerId || "",
 
       pan: kyc.panNumber || "",
@@ -768,7 +784,11 @@ const ApplicationQuickDataEntry = () => {
       applicationType: control.szApplicationType || "N",
       portfolio: control.szPortfolioCode || DEFAULT_PORTFOLIO,
       borrowerType: control.szBorrowerType === "NON-INDIVIDUAL" ? "Non-Individual" : "Individual",
-      customerType: control.szCustomerType === "EXISTING" ? "Existing" : "New",
+      customerType: normalizeCustomerType(
+        control.szCustomerType,
+        applicant.szCustomerType,
+        prev.customerType
+      ),
       customerId: applicant.szCustomerId || "",
       applicantId: applicant.szApplicantId || "",
 
@@ -1749,6 +1769,9 @@ const ApplicationQuickDataEntry = () => {
           otpDialog.field === "mobile" ? "mobileVerified" : "emailVerified",
           true
         );
+        if (otpDialog.field === "mobile") {
+          toast.success("Mobile verified", "success");
+        }
       } else if (otpDialog.field === "mobile") {
         setField("mobileVerified", true);
         toast.success("Mobile verified", "success");
@@ -2126,6 +2149,7 @@ const handleSave = useCallback(async () => {
     const appNo = await persistDraft();
 
     // 3. Display the application number after a successful save.
+      setSavedApplicationNo(appNo);
     toast.success(
       appNo
         ? `${t(
@@ -2168,6 +2192,7 @@ const handleSave = useCallback(async () => {
 
   const handleReset = useCallback(() => {
     persistedDraftRef.current = false;
+    setSavedApplicationNo("");
     resetForm();
     setOcrFileName("");
     setOcrStatusKey("label.qde.status.notStarted");
@@ -2248,6 +2273,36 @@ const handleSave = useCallback(async () => {
           align="left"
           colon={false}
         />
+        {savedApplicationNo ? (
+          <HBox sx={{ display: "flex", justifyContent: "flex-end", width: "100%", mt: 1 }}>
+            <HBox sx={{
+              display: "flex",
+              alignItems: "center",
+              gap: 1,
+              maxWidth: "100%",
+              px: 1.25,
+              py: 0.5,
+              border: "1px solid var(--drs-border-divider, hsl(215 14% 90%))",
+              borderRadius: "6px",
+              backgroundColor: "var(--drs-surface, #fff)",
+            }}>
+              <HLabel
+                value="Application No."
+                translate={false}
+                align="left"
+                colon={false}
+                sx={{ color: "var(--drs-text-secondary, #667085)" }}
+              />
+              <HLabel
+                value={savedApplicationNo}
+                translate={false}
+                align="left"
+                colon={false}
+                sx={{ fontWeight: 600, overflowWrap: "anywhere" }}
+              />
+            </HBox>
+          </HBox>
+        ) : null}
       </HBox>
 
       <HBox sx={{ width: "100%", minWidth: 0, maxWidth: "100%" }}>
