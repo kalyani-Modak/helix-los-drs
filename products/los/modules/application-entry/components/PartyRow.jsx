@@ -1,4 +1,7 @@
 import { cloneElement, useEffect, useState } from "react";
+import { IconButton } from "@mui/material";
+import { Search as SearchIcon } from "@mui/icons-material";
+import { useIntl } from "react-intl";
 import { HButton, HCheckBox, HDatePicker, HDropdown, HLabel, HTextField, HBox, useDrsTheme, HRadio } from "@helix/component-library";
 import { BORROWER_CATEGORIES, ENTITY_TYPES, GENDERS, RELATIONSHIPS } from "../constants/qdeOptions";
 import { fromPickerValue, toPickerValue } from "../dateHelpers";
@@ -35,7 +38,8 @@ const PartyRow = ({
   lookups = {},
 }) => {
   const { colors, text, surfaces, border, action } = useDrsTheme();
-  const [customerSearchOpen, setCustomerSearchOpen] = useState(false);
+  const [applicationSearchOpen, setApplicationSearchOpen] = useState(false);
+  const [searchLoading, setSearchLoading] = useState(false);
   const relationshipOptions = lookups["los.relationship"] || RELATIONSHIPS;
   const genderOptions = lookups["party.gender"] || GENDERS;
   const entityTypeOptions = lookups["los.entitytype"] || ENTITY_TYPES;
@@ -49,6 +53,7 @@ const PartyRow = ({
   const isValidEmail = (value) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value || "");
   const field = (name, value) => onChange(party.id, name, value);
   const err = (name) => errors[name];
+  const intl = useIntl();
   const addressFields = ["addressType", "addr1", "addr2", "addr3", "landmark", "pincode", "city", "district", "state", "country"];
   const addressForm = party.sameAsPrimaryAddress ? primaryAddress : party;
 
@@ -93,6 +98,17 @@ const PartyRow = ({
 
       field(name, clearedValue);
     });
+  };
+
+  const searchExistingParty = async (criteria) => {
+    setSearchLoading(true);
+    try {
+      const found = await onSearchCustomer?.(party, criteria);
+      if (found) setApplicationSearchOpen(false);
+      return found;
+    } finally {
+      setSearchLoading(false);
+    }
   };
 
   return (
@@ -170,7 +186,7 @@ const PartyRow = ({
       </HBox>
 
       {expanded && <>
-      <HBox sx={{ width: "100%", minWidth: 0, maxWidth: "100%", boxSizing: "border-box", display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 2, alignItems: "start", "@media (max-width: 700px)": { gridTemplateColumns: "1fr" } }}>
+      <HBox sx={{ width: "100%", minWidth: 0, maxWidth: "100%", boxSizing: "border-box", display: "grid", gridTemplateColumns: "repeat(3, minmax(0, 1fr))", gap: 1.5, alignItems: "start", "@media (max-width: 700px)": { gridTemplateColumns: "1fr" } }}>
         <PartyField label="label.qde.field.relationship" required>
           <HDropdown name="relationship" options={relationshipOptions} value={party.relationship || ""} onChange={(e) => field("relationship", e.target.value)} required width="100%" />
         </PartyField>
@@ -215,12 +231,13 @@ const PartyRow = ({
             </HBox>
           )}
         </PartyField>
-        <PartyField label="label.qde.field.customerType" required sx={{ gridColumn: "1" }}>
-          <HBox sx={{ display: "flex", gap: 2, minHeight: 40 }}>
-            <HRadio label="New" checked={party.customerType === "New"} onChange={() => field("customerType", "New")} />
-            <HRadio label="Existing" checked={party.customerType === "Existing"} onChange={() => field("customerType", "Existing")} />
-          </HBox>
-        </PartyField>
+        <HBox sx={{ gridColumn: "1 / -1", width: "100%", minWidth: 0, display: "grid", gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr) minmax(0, 2fr) auto", gap: 1.5, alignItems: "end", "@media (max-width: 700px)": { gridTemplateColumns: "1fr", alignItems: "stretch" } }}>
+          <PartyField label="label.qde.field.customerType" required>
+            <HBox sx={{ display: "flex", gap: 2, minHeight: 40, alignItems: "center" }}>
+              <HRadio label="New" checked={party.customerType === "New"} onChange={() => field("customerType", "New")} />
+              <HRadio label="Existing" checked={party.customerType === "Existing"} onChange={() => field("customerType", "Existing")} />
+            </HBox>
+          </PartyField>
 
         {party.customerType === "Existing" && (
           <>
@@ -241,24 +258,48 @@ const PartyRow = ({
               </HBox>
             </PartyField>
 
-            {/* Search Records — pop search that opens "Search Existing Customer" */}
-            <PartyField label="label.qde.field.searchRecords" sx={{ gridColumn: "3" }}>
-              <HBox sx={{ display: "flex", flexDirection: "row", alignItems: "center", gap: 1, mt: 1 }}>
+              <PartyField label="label.qde.field.searchRecords" sx={{ minWidth: 0 }}>
+                <HBox sx={{ position: "relative", display: "flex", alignItems: "center", width: "50%", minWidth: 0,gap: 1.5,}}>
                 <HTextField
                   value={party.customerSearch || ""}
                   editable={false}
-                  placeholder="Open search popup..."
+                  placeholder={intl.formatMessage({
+                    id: "label.qde.placeholder.searchRecords",
+                    defaultMessage: "Open search popup...",
+                  })}
                   width="100%"
                 />
-                {/* <HButton label="label.qde.button.search" variant="outlined" size="small" sx={{mt:1}} inline onClick={() => setCustomerSearchOpen(true)} /> */}
+                <IconButton
+                  aria-label={intl.formatMessage({
+                    id: "label.qde.button.search",
+                    defaultMessage: "Search",
+                  })}
+                  title={intl.formatMessage({
+                    id: "label.qde.button.search",
+                    defaultMessage: "Search",
+                  })}
+                  onClick={() => setApplicationSearchOpen(true)}
+                  size="small"
+                  sx={{
+                    position: "absolute",
+                    right: 4,
+                    top: "50%",
+                    transform: "translateY(-50%)",
+                    color: "primary.main",
+                    backgroundColor: "background.paper",
+                    "&:hover": { backgroundColor: "action.hover" },
+                  }}
+                >
+                  <SearchIcon fontSize="small" />
+                </IconButton>
+                </HBox>
+              </PartyField>
+              <HBox sx={{ display: "flex", alignItems: "center", justifyContent: "flex-end", gap: 1.5, "@media (max-width: 700px)": { justifyContent: "flex-start", pb: 0 } }}>
+                <HButton label="label.qde.button.clear" variant="text" size="small" inline onClick={clearParty} />
               </HBox>
-            </PartyField>
-          </>
-        )}
-
-        {party.customerType !== "Existing" && (
-          <HBox sx={{ gridColumn: "2 / -1", minHeight: 40 }} />
-        )}
+            </>
+          )}
+        </HBox>
 
         {isNonIndividual ? (
           <>
@@ -406,10 +447,11 @@ const PartyRow = ({
         />
       </HBox>
 
-      <SearchCustomerDialog
-        open={customerSearchOpen}
-        onClose={() => setCustomerSearchOpen(false)}
-        onSearch={(criteria) => (onSearchCustomer ? onSearchCustomer(party, criteria) : Promise.resolve(false))}
+      <SearchApplicationDialog
+        open={applicationSearchOpen}
+        onClose={() => setApplicationSearchOpen(false)}
+        onSearch={searchExistingParty}
+        loading={searchLoading}
       />
       </>}
     </SectionBlock>

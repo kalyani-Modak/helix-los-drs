@@ -4,7 +4,14 @@ import { useLocation, useNavigate } from "react-router-dom";
 import { HAxiosService, HBox, HBreadCrumb, HButtonBar, HPaper, TitleBar, useToast, HLabel, HButton,useDrsTheme } from "@helix/component-library";
 import { LosQdeAPI,LosDocumentAPI } from "./apiEndpoints";
 import { unwrapApiResponse } from "./unwrapApiResponse";
-import { DEFAULT_LOAN_TYPE, DEFAULT_PORTFOLIO, VERIFICATION_STATUS } from "./constants/qdeOptions";
+import {
+  ADDRESS_TYPES_INDIVIDUAL,
+  ADDRESS_TYPES_NON_INDIVIDUAL,
+  DEFAULT_LOAN_TYPE,
+  DEFAULT_PORTFOLIO,
+  GENDERS,
+  VERIFICATION_STATUS,
+} from "./constants/qdeOptions";
 import { useQdeLookups, QDE_LOOKUP_TYPES } from "./hooks/useQdeLookups";
 import OtpVerifyDialog from "./components/OtpVerifyDialog";
 import SearchApplicationDialog from "./components/SearchApplicationDialog";
@@ -43,6 +50,19 @@ const normalizeCustomerType = (...values) => {
   )
     ? "Existing"
     : "New";
+};
+
+const normalizeLookupValue = (value, options, fallbackOptions = []) => {
+  if (value == null || value === "") return "";
+
+  const normalizedValue = String(value).trim().toLowerCase();
+  const option = [...(Array.isArray(options) ? options : []), ...fallbackOptions].find(
+    (item) => [item.value, item.label].some(
+      (candidate) => String(candidate ?? "").trim().toLowerCase() === normalizedValue
+    )
+  );
+
+  return option?.value ?? value;
 };
 
 const unwrapQdePayload = (response) => {
@@ -605,6 +625,7 @@ const ApplicationQuickDataEntry = () => {
     const loan = response.loan || {};
     const sourcing = response.sourcing || {};
     const extra = response.additionalDetails || {};
+    const customerId = response.customerId || applicant.existingCustomerId || "";
 
     const withIds = (list) =>
       (Array.isArray(list) ? list : []).map((p) => ({
@@ -622,12 +643,10 @@ const ApplicationQuickDataEntry = () => {
       applicationType: response.applicationType || "N",
       portfolio: response.portfolio || DEFAULT_PORTFOLIO,
       borrowerType: response.borrowerType || prev.borrowerType,
-      customerType: normalizeCustomerType(
-        response.customerType,
-        applicant.customerType,
-        prev.customerType
-      ),
-      customerId: response.customerId || applicant.existingCustomerId || "",
+      customerType: customerId
+        ? "Existing"
+        : normalizeCustomerType(response.customerType, applicant.customerType, prev.customerType),
+      customerId,
 
       pan: kyc.panNumber || "",
       panStatus: response.panStatus || null,
@@ -739,7 +758,11 @@ const ApplicationQuickDataEntry = () => {
       firstName: individual.szFirstName || "",
       middleName: individual.szMiddleName || "",
       lastName: individual.szLastName || "",
-      gender: individual.szGender || "",
+      gender: normalizeLookupValue(
+        individual.szGender,
+        lookups["party.gender"],
+        GENDERS
+      ),
       dob: individual.dtDateOfBirth || "",
       fatherName: individual.szFatherName || "",
       motherName: individual.szMotherName || "",
@@ -757,15 +780,24 @@ const ApplicationQuickDataEntry = () => {
       email: party?.szEmail || "",
 
       pan: kyc.szPanNumber || "",
+      panStatus: kyc.szPanVerificationStatus || null,
+      panAadhaarLinked: kyc.szPanAadhaarLinkageStatus || null,
       urn: kyc.szUrnNo || "",
       aadhaar: kyc.szAadhaarNumber || "",
+      aadhaarStatus: kyc.szAadhaarVerificationStatus || null,
       ckycNumber: kyc.szCkycNumber || "",
+      ckycStatus: kyc.szCkycVerificationStatus || null,
       digiRef: kyc.szDigiLockerDocumentId || "",
+      digiStatus: kyc.szDigiLockerVerificationStatus || null,
       gstin: kyc.szGstNumber || "",
       cin: kyc.szCin || "",
       shopAct: kyc.szShopAct || "",
 
-      addressType: address.szAddressType || "",
+      addressType: normalizeLookupValue(
+        address.szAddressType,
+        isNonInd ? lookups["los.address.type.nonindividual"] : lookups["los.address.type.individual"],
+        isNonInd ? ADDRESS_TYPES_NON_INDIVIDUAL : ADDRESS_TYPES_INDIVIDUAL
+      ),
       addr1: address.szAddressLine1 || "",
       addr2: address.szAddressLine2 || "",
       addr3: address.szAddressLine3 || "",
@@ -786,10 +818,10 @@ const ApplicationQuickDataEntry = () => {
       asAadhaar: signatoryKyc.szAuthSignatoryAadhaar || "",
       asPan: signatoryKyc.szAuthSignatoryPAN || "",
     };
-  }, []);
+  }, [lookups]);
 
   /** Loads the QdeWrapperDto returned by GET /los/fetchQde/{orgId}/{appNo} into form state. */
-  const hydrateFromQdeResponse = useCallback((response) => {
+  const hydrateFromQdeResponse = useCallback((response, preserveExistingCustomerType = false) => {
     if (!response || typeof response !== "object") return;
 
     const control = response.applicationControl || {};
@@ -802,25 +834,31 @@ const ApplicationQuickDataEntry = () => {
     const signatoryKyc = applicant.authorisedSignatoryKyc || {};
     const loan = response.loanDetails || {};
     const sourcing = response.sourcingDetails || {};
+    const customerId = applicant.szCustomerId || "";
+    const isNonIndividualApplicant = control.szBorrowerType === "NON-INDIVIDUAL";
 
     setForm((prev) => ({
       ...prev,
       applicationNo: response.szApplicationNo || prev.applicationNo,
       applicationType: control.szApplicationType || "N",
       portfolio: control.szPortfolioCode || DEFAULT_PORTFOLIO,
-      borrowerType: control.szBorrowerType === "NON-INDIVIDUAL" ? "Non-Individual" : "Individual",
-      customerType: normalizeCustomerType(
-        control.szCustomerType,
-        applicant.szCustomerType,
-        prev.customerType
-      ),
-      customerId: applicant.szCustomerId || "",
+      borrowerType: isNonIndividualApplicant ? "Non-Individual" : "Individual",
+      customerType: preserveExistingCustomerType
+        ? "Existing"
+        : customerId
+          ? "Existing"
+          : normalizeCustomerType(control.szCustomerType, applicant.szCustomerType, prev.customerType),
+      customerId,
       applicantId: applicant.szApplicantId || "",
 
       firstName: individual.szFirstName || "",
       middleName: individual.szMiddleName || "",
       lastName: individual.szLastName || "",
-      gender: individual.szGender || "",
+      gender: normalizeLookupValue(
+        individual.szGender,
+        lookups["party.gender"],
+        GENDERS
+      ),
       dob: individual.dtDateOfBirth || "",
       fatherName: individual.szFatherName || "",
       motherName: individual.szMotherName || "",
@@ -851,7 +889,13 @@ const ApplicationQuickDataEntry = () => {
       cin: kyc.szCin || "",
       shopAct: kyc.szShopAct || "",
 
-      addressType: address.szAddressType || (control.szBorrowerType === "NON-INDIVIDUAL" ? "" : "CURR"),
+      addressType: normalizeLookupValue(
+        address.szAddressType,
+        isNonIndividualApplicant
+          ? lookups["los.address.type.nonindividual"]
+          : lookups["los.address.type.individual"],
+        isNonIndividualApplicant ? ADDRESS_TYPES_NON_INDIVIDUAL : ADDRESS_TYPES_INDIVIDUAL
+      ),
       addr1: address.szAddressLine1 || "",
       addr2: address.szAddressLine2 || "",
       addr3: address.szAddressLine3 || "",
@@ -886,7 +930,7 @@ const ApplicationQuickDataEntry = () => {
       sourcingBranch: sourcing.szSourcingBranch || "",
       servicingBranch: sourcing.szServicingBranch || "",
     }));
-  }, [partyFromQde]);
+  }, [lookups, partyFromQde]);
 
   const t = useCallback(
     (id, defaultMessage) => intl.formatMessage({ id, defaultMessage }),
@@ -953,27 +997,27 @@ const ApplicationQuickDataEntry = () => {
 
   /**
    * "Search Existing Applications" pop search. Loads the matching application into the form,
-   * searching by application number, mobile number or Aadhaar number.
+  * searching by application number, mobile number or PAN number.
    */
   const handleSearchApplications = useCallback(
-    async ({ applicationNo, mobile, aadhaar }) => {
+    async ({ applicationNo, mobile, panNumber }) => {
       const appNo = (applicationNo || "").trim();
       const mobileNo = (mobile || "").trim();
-      const aadhaarNo = (aadhaar || "").trim();
+      const panNo = (panNumber || "").trim();
 
       const url = appNo
         ? LosQdeAPI.fetchQde(ORG_ID, appNo)
         : mobileNo
           ? LosQdeAPI.fetchQdeByMobile(ORG_ID, mobileNo)
-          : aadhaarNo
-            ? LosQdeAPI.fetchQdeByAadhaar(ORG_ID, aadhaarNo)
+          : panNo
+            ? LosQdeAPI.fetchQdeByPanNumber(ORG_ID, panNo)
             : null;
 
       if (!url) {
         toast.error(
           t(
             "label.qde.msg.searchCriteriaRequired",
-            "Enter an application number, mobile number or Aadhaar number."
+            "Enter an application number, mobile number or valid PAN number."
           )
         );
         return;
@@ -983,7 +1027,7 @@ const ApplicationQuickDataEntry = () => {
       try {
         const data = unwrapQdePayload(await HAxiosService.GET(url));
         persistedDraftRef.current = false;
-        hydrateFromQdeResponse(data);
+        hydrateFromQdeResponse(data, true);
         setSearchDialogOpen(false);
         const loadedAppNo = data?.szApplicationNo || appNo;
         toast.success(
@@ -998,44 +1042,51 @@ const ApplicationQuickDataEntry = () => {
     [hydrateFromQdeResponse, setBusy, t, toast]
   );
 
-  /**
-   * "Search Existing Customer" for a co-applicant / guarantor row. Looks the customer up by customer ID
-   * (party szCustomerId) or by mobile number and copies their saved details into that row only.
-   * Resolves `true` when details were loaded.
-   */
+  /** Loads an existing applicant into one co-applicant or guarantor row. */
   const handleSearchCustomer = useCallback(
-    async (party, { customerId, mobile }) => {
+    async (party, { applicationNo, mobile, panNumber }) => {
+      const appNo = (applicationNo || "").trim();
       const mobileNo = (mobile || "").trim();
-      const custId = (customerId || "").trim();
-      if (!custId && !mobileNo) {
-        toast.error(t("label.qde.msg.customerSearchCriteriaRequired", "Enter a customer ID or mobile number."));
+      const panNo = (panNumber || "").trim().toUpperCase();
+      if (!appNo && !mobileNo && !panNo) {
+        toast.error(t("label.qde.msg.searchCriteriaRequired", "Enter an application number, mobile number or valid PAN number."));
         return false;
       }
-      const byCustomerId = Boolean(custId);
-      const notFoundMessage = byCustomerId
-        ? t("label.qde.msg.customerIdNotFound", "No customer found for this customer ID")
-        : t("label.qde.msg.customerNotFound", "No customer found for this mobile number");
+      const lookupUrl = appNo
+        ? LosQdeAPI.fetchQde(ORG_ID, appNo)
+        : mobileNo
+          ? LosQdeAPI.fetchQdeByMobile(ORG_ID, mobileNo)
+          : LosQdeAPI.fetchQdeByPanNumber(ORG_ID, panNo);
+      const notFoundMessage = t("label.qde.msg.applicationNotFound", "No matching applicant found");
+      const busyKey = `${party.id}:appSearch`;
+
+      setBusy(busyKey, true);
       try {
-        const url = byCustomerId
-          ? LosQdeAPI.fetchQdeByCustomerId(ORG_ID, custId)
-          : LosQdeAPI.fetchQdeByMobile(ORG_ID, mobileNo);
-        const data = unwrapApiResponse(await HAxiosService.GET(url));
+        const data = unwrapQdePayload(await HAxiosService.GET(lookupUrl));
         const candidates = [
           data?.applicantDetails,
           ...(Array.isArray(data?.coApplicants) ? data.coApplicants : []),
           ...(Array.isArray(data?.guarantors) ? data.guarantors : []),
+          data?.szBorrowerType ? data : null,
         ].filter(Boolean);
-        const match = candidates.find((p) =>
-          byCustomerId
-            ? String(p.szCustomerId || "").trim() === custId
-            : String(p.szMobile || "").trim() === mobileNo
-        );
+
+        const match = appNo
+          ? data?.applicantDetails || candidates[0]
+          : candidates.find((candidate) => mobileNo
+            ? String(candidate.szMobile || "").trim() === mobileNo
+            : String(candidate.kycDetails?.szPanNumber || "").trim().toUpperCase() === panNo
+          );
         if (!match) {
           toast.error(notFoundMessage);
           return false;
         }
-        // Keep this row's own identity (row id, saved applicant id, relationship); take everything else from the match.
-        const { id: _rowId, applicantId: _applicantId, relationship: _relationship, ...details } = partyFromQde(match);
+
+        const {
+          id: _mappedId,
+          applicantId: _mappedApplicantId,
+          relationship: _mappedRelationship,
+          ...details
+        } = partyFromQde(match);
         if (form.borrowerType === "Individual" && details.borrowerType === "Non-Individual") {
           toast.error(
             t(
@@ -1051,8 +1102,8 @@ const ApplicationQuickDataEntry = () => {
                 ...item,
                 ...details,
                 customerType: "Existing",
-                customerId: details.customerId || custId || item.customerId || "",
-                customerSearch: custId || mobileNo,
+                customerId: details.customerId || item.customerId || "",
+                customerSearch: appNo || mobileNo || panNo,
                 sameAsPrimaryAddress: false,
               }
             : item;
@@ -1066,9 +1117,11 @@ const ApplicationQuickDataEntry = () => {
       } catch (error) {
         toast.error(error?.message || notFoundMessage);
         return false;
+      } finally {
+        setBusy(busyKey, false);
       }
     },
-    [form.borrowerType, partyFromQde, t, toast]
+    [form.borrowerType, partyFromQde, setBusy, t, toast]
   );
 
   const runVerification = useCallback(

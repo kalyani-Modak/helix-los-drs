@@ -247,7 +247,7 @@
   "label.qde.msg.applicationLoaded": "Application loaded",
   "label.qde.msg.applicationNotFound": "Application not found",
   "label.qde.placeholder.aadhaarSearch": "12-digit Aadhaar number",
-  "label.qde.msg.searchCriteriaRequired": "Enter an application number, mobile number or Aadhaar number.",
+  "label.qde.msg.searchCriteriaRequired": "Enter an application number, mobile number or valid PAN number.",
   "label.qde.dialog.searchCustomerTitle": "Search Existing Customer",
   "label.qde.msg.customerLoaded": "Customer details loaded",
   "label.qde.msg.customerNotFound": "No customer found for this mobile number",

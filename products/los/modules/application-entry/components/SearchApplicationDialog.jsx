@@ -3,12 +3,13 @@ import { Divider } from "@mui/material";
 import { useIntl } from "react-intl";
 import { HBox, HButton, HDialog, HLabel, HTextField } from "@helix/component-library";
 
-const EMPTY = { applicationNo: "", mobile: "", aadhaar: "" };
+const EMPTY = { applicationNo: "", mobile: "", panNumber: "" };
+const PAN_PATTERN = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
 
 /**
  * "Search Existing Applications" pop search. Three alternative criteria —
- * Application No. OR Mobile OR Aadhaar — exactly one of which is used per search.
- * The caller owns the lookup and receives `{ applicationNo, mobile, aadhaar }`.
+ * Application No. OR Mobile OR PAN — exactly one of which is used per search.
+ * The caller owns the lookup and receives `{ applicationNo, mobile, panNumber }`.
  */
 const SearchApplicationDialog = ({ open, onClose, onSearch, loading = false }) => {
   const intl = useIntl();
@@ -24,7 +25,9 @@ const SearchApplicationDialog = ({ open, onClose, onSearch, loading = false }) =
   const setOnly = (name, value) => setCriteria({ ...EMPTY, [name]: value });
 
   const hasCriteria = Boolean(
-    criteria.applicationNo.trim() || criteria.mobile.trim() || criteria.aadhaar.trim()
+    criteria.applicationNo.trim()
+    || criteria.mobile.trim()
+    || PAN_PATTERN.test(criteria.panNumber.trim().toUpperCase())
   );
 
   const orSeparator = (
@@ -90,14 +93,14 @@ const SearchApplicationDialog = ({ open, onClose, onSearch, loading = false }) =
         {orSeparator}
 
         <HBox sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-          <HLabel value="label.qde.field.aadhaar" align="left" colon={false} />
+          <HLabel value="label.qde.field.pan" align="left" colon={false} />
           <HTextField
-            value={criteria.aadhaar}
-            onChange={(e) => setOnly("aadhaar", e.target.value)}
+            value={criteria.panNumber}
+            onChange={(e) => setOnly("panNumber", e.target.value.toUpperCase())}
             editable
-            type="number"
-            length={12}
-            placeholder={t("label.qde.placeholder.aadhaarSearch", "12-digit Aadhaar number")}
+            type="text"
+            length={10}
+            placeholder="ABCDE1234F"
             width="100%"
           />
         </HBox>
