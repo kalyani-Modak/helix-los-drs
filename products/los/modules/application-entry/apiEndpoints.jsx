@@ -10,16 +10,16 @@ export const LosQdeAPI = {
   updateQde: () => `${base()}los/updateQde`,
   /** GET one application as a full QdeWrapperDto (org + application number). */
   fetchQde: (orgId, appNo) =>
-    `${base()}los/fetchQde/${encodeURIComponent(orgId)}/${encodeURIComponent(appNo)}`,
+    `${base()}los/fetchQde?orgId=${encodeURIComponent(orgId)}&applicationNo=${encodeURIComponent(appNo)}`,
   /** GET the latest application that has this mobile number on any of its parties. */
   fetchQdeByMobile: (orgId, mobile) =>
-    `${base()}los/fetchQdeByMobile/${encodeURIComponent(orgId)}/${encodeURIComponent(mobile)}`,
+    `${base()}los/fetchQdeByMobile?orgId=${encodeURIComponent(orgId)}&mobile=${encodeURIComponent(mobile)}`,
   /** GET the latest application that has this Aadhaar number on any of its parties. */
   fetchQdeByAadhaar: (orgId, aadhaarNumber) =>
-    `${base()}los/fetchQdeByAadhaar/${encodeURIComponent(orgId)}/${encodeURIComponent(aadhaarNumber)}`,
+    `${base()}los/fetchQdeByAadhaar?orgId=${encodeURIComponent(orgId)}&aadhaarNumber=${encodeURIComponent(aadhaarNumber)}`,
   /** GET the latest application that has this customer ID on any of its parties. */
   fetchQdeByCustomerId: (orgId, customerId) =>
-    `${base()}los/fetchQdeByCustomerId/${encodeURIComponent(orgId)}/${encodeURIComponent(customerId)}`,
+    `${base()}los/fetchQdeByCustomerId?orgId=${encodeURIComponent(orgId)}&customerId=${encodeURIComponent(customerId)}`,
   /** GET a page of lightweight application summaries for an organisation. */
   listApplications: (orgId, { status, page = 0, size = 20 } = {}) => {
     const params = new URLSearchParams({ page: String(page), size: String(size) });
