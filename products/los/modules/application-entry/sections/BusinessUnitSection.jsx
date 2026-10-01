@@ -2,6 +2,7 @@ import { HDropdown, HTextField, HBox, HLabel, HRadio, HButton } from "@helix/com
 import { IconButton } from "@mui/material";
 import { Search as SearchIcon } from "@mui/icons-material";
 import SectionBlock from "../components/SectionBlock";
+import FieldError from "../components/FieldError";
 import { APPLICATION_TYPES, DEFAULT_PORTFOLIO, PORTFOLIOS } from "../constants/qdeOptions";
 import { useIntl } from "react-intl";
 import BusinessCenterOutlinedIcon from "@mui/icons-material/BusinessCenterOutlined";
@@ -48,6 +49,7 @@ const BusinessUnitSection = ({
             error={Boolean(err("applicationType"))}
             width="100%"
           />
+          <FieldError message={err("applicationType")} />
         </HBox>
 
         {/* Portfolio */}
@@ -74,6 +76,7 @@ const BusinessUnitSection = ({
             width="100%"
             disabled
           />
+          <FieldError message={err("portfolio")} />
           <HLabel value="label.qde.field.portfolioSubtitle" align="left" colon={false} />
         </HBox>
 
@@ -167,6 +170,7 @@ const BusinessUnitSection = ({
                 error={Boolean(err("customerId"))}
                 width="100%"
               />
+              <FieldError message={err("customerId")} />
             </HBox>
 
             {/* Search Records — pop search that opens the "Search Existing Applications" dialog */}

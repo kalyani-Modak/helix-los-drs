@@ -1,5 +1,6 @@
 import { HDropdown, HTextField, HBox, HLabel, useToast } from "@helix/component-library";
 import SectionBlock from "../components/SectionBlock";
+import FieldError from "../components/FieldError";
 import { ADDRESS_TYPES_INDIVIDUAL, ADDRESS_TYPES_NON_INDIVIDUAL } from "../constants/qdeOptions";
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
 
@@ -84,9 +85,10 @@ const AddressDetailsSection = ({
             error={Boolean(err("addressType"))}
             width="100%"
           />
+          <FieldError message={err("addressType")} />
         </HBox>
 
-        <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
+        <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", alignItems: "flex-start", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
           <HLabel value="label.qde.field.addr1" required align="left" colon={false} />
           <HTextField
             value={form.addr1}
@@ -97,6 +99,7 @@ const AddressDetailsSection = ({
             error={Boolean(err("addr1"))}
             width="100%"
           />
+          <FieldError message={err("addr1")} sx={{ mt: 1.5 }} />
         </HBox>
 
         <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
@@ -122,7 +125,7 @@ const AddressDetailsSection = ({
         </HBox>
 
         {/* Landmark — mandatory only for Individual applicants, matching PartyRow's rule */}
-        <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
+        <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", alignItems: "flex-start", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
           <HLabel value="label.qde.field.landmark" required={!isNonIndividual} align="left" colon={false} />
           <HTextField
             value={form.landmark}
@@ -133,6 +136,7 @@ const AddressDetailsSection = ({
             error={Boolean(err("landmark"))}
             width="100%"
           />
+          <FieldError message={err("landmark")} sx={{ mt: 1.5 }} />
         </HBox>
 
         <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
@@ -149,11 +153,13 @@ const AddressDetailsSection = ({
             editable={!readOnly}
             disabled={readOnly}
             required
+            error={Boolean(err("pincode"))}
             width="100%"
             placeholder="560001"
           />
-
-          {form.pincode && form.pincode.length < 6 ? (
+          {err("pincode") ? (
+            <FieldError message={err("pincode")} sx={{ mt: 1.5 }} />
+          ) : form.pincode && form.pincode.length < 6 ? (
             <HLabel
               value="Postal code must be 6 digits"
               align="left"
@@ -165,7 +171,7 @@ const AddressDetailsSection = ({
               value="Indian 6-digit PIN — auto-populates City, District, State, Country."
               align="left"
               colon={false}
-              sx={{ mt: 1}}
+              sx={{ mt: 1 }}
             />
           )}
         </HBox>

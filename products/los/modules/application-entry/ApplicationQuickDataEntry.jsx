@@ -222,6 +222,12 @@ const ApplicationQuickDataEntry = () => {
     addressType: "CURR",
     portfolio: DEFAULT_PORTFOLIO,
     loanType: DEFAULT_LOAN_TYPE,
+    
+    dsaName: "salesofficer",
+    dsaCode: "EMP-9AE607",
+
+    rmName: "salesofficer",
+    rmCode: "EMP-9AE607",
   });
 
   const [verifying, setVerifying] = useState({});
@@ -257,6 +263,10 @@ const ApplicationQuickDataEntry = () => {
     setForm((prev) => ({
       ...prev,
       [name]: value,
+    }));
+    setFormErrors((prev) => ({
+      ...prev,
+      applicant: { ...prev.applicant, [name]: undefined },
     }));
   }, []);
 
@@ -305,6 +315,13 @@ const ApplicationQuickDataEntry = () => {
             : c
         ),
       }));
+        setFormErrors((prev) => ({
+          ...prev,
+          coApplicants: {
+            ...prev.coApplicants,
+            [id]: { ...prev.coApplicants[id], [field]: undefined },
+          },
+        }));
     },
     []
   );
@@ -343,6 +360,13 @@ const ApplicationQuickDataEntry = () => {
             : g
         ),
       }));
+        setFormErrors((prev) => ({
+          ...prev,
+          guarantors: {
+            ...prev.guarantors,
+            [id]: { ...prev.guarantors[id], [field]: undefined },
+          },
+        }));
     },
     []
   );
@@ -2128,16 +2152,6 @@ const handleSave = useCallback(async () => {
   });
 
   if (!result.isValid) {
-    const validationMessage = [
-      "Please correct the following:",
-      "",
-      ...result.messages.map(
-        (message, index) => `${index + 1}. ${message}`
-      ),
-    ].join("\n");
-
-    toast.error(validationMessage);
-
     return {
       success: false,
       applicationNo: null,

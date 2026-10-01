@@ -1,5 +1,6 @@
 import { HBox, HDropdown, HLabel, HTextField } from "@helix/component-library";
 import SectionBlock from "../components/SectionBlock";
+import FieldError from "../components/FieldError";
 import { BRANCHES, CHANNELS } from "../constants/qdeOptions";
 import AccountTreeOutlinedIcon from "@mui/icons-material/AccountTreeOutlined";
 
@@ -24,6 +25,7 @@ const SourcingDetailsSection = ({ form, setField, errors = {}, channelOptions = 
             width="100%"
             placeholder="Select channel"
           />
+          <FieldError message={err("channel")} />
         </HBox>
 
         <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
@@ -38,6 +40,7 @@ const SourcingDetailsSection = ({ form, setField, errors = {}, channelOptions = 
             width="100%"
             placeholder="Select branch"
           />
+          <FieldError message={err("sourcingBranch")} />
         </HBox>
 
         <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
@@ -52,6 +55,7 @@ const SourcingDetailsSection = ({ form, setField, errors = {}, channelOptions = 
             width="100%"
             placeholder="Select branch"
           />
+          <FieldError message={err("servicingBranch")} />
         </HBox>
 
         {isDsa && (
@@ -59,25 +63,29 @@ const SourcingDetailsSection = ({ form, setField, errors = {}, channelOptions = 
             <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
               <HLabel value="label.qde.field.dsaName" required align="left" colon={false} />
               <HTextField
-                value={form.dsaName}
+                value={form.dsaName || ""}
                 onChange={(e) => setField("dsaName", e.target.value)}
                 required
                 error={Boolean(err("dsaName"))}
                 width="100%"
                 placeholder="salesofficer"
+                disabled
               />
+              <FieldError message={err("dsaName")} />
             </HBox>
 
             <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
               <HLabel value="label.qde.field.dsaCode" required align="left" colon={false} />
               <HTextField
-                value={form.dsaCode}
+                value={form.dsaCode || ""}
                 onChange={(e) => setField("dsaCode", e.target.value)}
                 required
                 error={Boolean(err("dsaCode"))}
                 width="100%"
                 placeholder="EMP-9AE607"
+                disabled
               />
+              <FieldError message={err("dsaCode")} />
             </HBox>
 
             <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
@@ -116,7 +124,9 @@ const SourcingDetailsSection = ({ form, setField, errors = {}, channelOptions = 
                 error={Boolean(err("rmName"))}
                 width="100%"
                 placeholder="salesofficer"
+                disabled
               />
+              <FieldError message={err("rmName")} />
             </HBox>
 
             <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
@@ -128,7 +138,9 @@ const SourcingDetailsSection = ({ form, setField, errors = {}, channelOptions = 
                 error={Boolean(err("rmCode"))}
                 width="100%"
                 placeholder="EMP-9AE607"
+                disabled
               />
+              <FieldError message={err("rmCode")} />
             </HBox>
           </>
         )}
@@ -146,6 +158,7 @@ const SourcingDetailsSection = ({ form, setField, errors = {}, channelOptions = 
                 width="100%"
                 placeholder="Search dealer"
               />
+              <FieldError message={err("dealerName")} />
             </HBox>
 
             <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
@@ -158,6 +171,7 @@ const SourcingDetailsSection = ({ form, setField, errors = {}, channelOptions = 
                 error={Boolean(err("dealerCode"))}
                 width="100%"
               />
+              <FieldError message={err("dealerCode")} />
             </HBox>
           </>
         )}

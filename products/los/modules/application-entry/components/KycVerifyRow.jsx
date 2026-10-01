@@ -1,4 +1,5 @@
 import { HButton, HLabel, HTextField, HBox } from "@helix/component-library";
+import FieldError from "./FieldError";
 import VerifiedUserOutlinedIcon from "@mui/icons-material/VerifiedUserOutlined";
 
 const KycVerifyRow = ({
@@ -13,6 +14,7 @@ const KycVerifyRow = ({
   maxLength,
   disabled = false,
   error = false,
+  errorMessage,
   buttonLabelKey = "label.qde.button.verify",
   isTriggerButton = false,
   disableVerifyWhenEmpty = true,
@@ -46,17 +48,20 @@ const KycVerifyRow = ({
     </HBox>
 
     {/* Input */}
-    <HTextField
-      value={value ?? ""}
-      onChange={onChange}
-      editable={!disabled}
-      disabled={disabled}
-      required={required}
-      error={error}
-      placeholder={placeholder}
-      length={maxLength}
-      width="100%"
-    />
+    <HBox sx={{ minWidth: 0, display: "flex", flexDirection: "column" }}>
+      <HTextField
+        value={value ?? ""}
+        onChange={onChange}
+        editable={!disabled}
+        disabled={disabled}
+        required={required}
+        error={error}
+        placeholder={placeholder}
+        length={maxLength}
+        width="100%"
+      />
+      <FieldError message={errorMessage} />
+    </HBox>
     <HBox sx={{ minWidth: 0 }} />
     <HBox sx={{ minWidth: 0 }} />
     {/* Verify */}

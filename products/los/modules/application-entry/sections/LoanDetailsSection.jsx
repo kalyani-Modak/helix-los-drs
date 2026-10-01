@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { ALIGNMENT, HDropdown, HTextField, HBox, HLabel, useDrsTheme, useToast } from "@helix/component-library";
 import SectionBlock from "../components/SectionBlock";
+import FieldError from "../components/FieldError";
 import { DEFAULT_LOAN_TYPE, PRODUCTS, SCHEMES } from "../constants/qdeOptions";
 import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
 
@@ -173,6 +174,7 @@ const openSimulator = () => {
             width="100%"
             disabled
           />
+          <FieldError message={err("loanType")} />
         </HBox>
 
         {/* Product */}
@@ -200,6 +202,7 @@ const openSimulator = () => {
             width="100%"
             placeholder=""
           />
+          <FieldError message={err("product")} />
         </HBox>
 
         {/* Scheme */}
@@ -231,13 +234,11 @@ const openSimulator = () => {
         </HBox>
 
         {/* Loan Amount */}
-        <HBox
-          sx={{
-            width: {
+        <HBox sx={{ width: {
               xs: "100%",
               sm: "calc(50% - 8px)",
               md: "calc(33.333% - 10.67px)",
-            },flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0
+            },flexShrink: 0, display: "flex", alignItems: "flex-start", flexDirection: "column", gap: 0.5, minWidth: 0
           }}>
           <HLabel
             value="label.qde.field.loanAmount"
@@ -259,6 +260,7 @@ const openSimulator = () => {
             error={Boolean(err("loanAmount"))}
             width="100%"
           />
+          <FieldError message={err("loanAmount")} sx={{ mt: 1.5 }}/>
         </HBox>
 
         {/* Tenure */}
@@ -290,7 +292,17 @@ const openSimulator = () => {
             error={Boolean(err("tenure"))}
             width="100%"
           />
-          <HLabel value="label.qde.field.tenureSubtitle" align="left" colon={false} sx={{mt: 1}} />
+          {/* <FieldError message={err("tenure")} />
+          <HLabel value="label.qde.field.tenureSubtitle" align="left" colon={false} sx={{mt: 1}} /> */}
+          {err("tenure") ? ( <FieldError message={err("tenure")} sx={{ mt: 1.5 }}/>
+          ) : (
+            <HLabel
+              value="label.qde.field.tenureSubtitle"
+              align="left"
+              colon={false}
+              sx={{ mt: 1 }}
+            />
+          )}
         </HBox>
 
         {/* Interest Rate */}

@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
 import { HButton, HLabel, HTextField, HBox, useToast } from "@helix/component-library";
 import KycVerifyRow from "../components/KycVerifyRow";
+import FieldError from "../components/FieldError";
 import SectionBlock from "../components/SectionBlock";
 import VerifiedUserOutlinedIcon from '@mui/icons-material/VerifiedUserOutlined';
 import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
@@ -81,6 +82,7 @@ const KycOtpRow = ({
   maxLength,
   disabled = false,
   error = false,
+  errorMessage,
   otpTimer = 0,
   otpExpired = false,
   isTriggerButton = false,
@@ -119,17 +121,20 @@ const KycOtpRow = ({
           sx={{ height: "30px", minHeight: "30px", mt: 1, whiteSpace: "nowrap", }}
         />)}
     </HBox>
-      <HTextField
-        value={value ?? ""}
-        onChange={onChange}
-        editable={!disabled}
-        disabled={disabled}
-        required={required}
-        error={error}
-        placeholder={placeholder}
-        length={maxLength}
-        width="100%"
-      />
+      <HBox sx={{ minWidth: 0, display: "flex", flexDirection: "column" }}>
+        <HTextField
+          value={value ?? ""}
+          onChange={onChange}
+          editable={!disabled}
+          disabled={disabled}
+          required={required}
+          error={error}
+          placeholder={placeholder}
+          length={maxLength}
+          width="100%"
+        />
+        <FieldError message={errorMessage} />
+      </HBox>
 
 
       {/* OTP */}
@@ -274,6 +279,7 @@ const IndividualKyc = ({
         onVerify={handlers.onVerifyPan}
         required
         error={Boolean(errors.pan)}
+        errorMessage={errors.pan}
         maxLength={10}
         placeholder="ABCDE1234F"
         KycStatusLabel={KycStatusLabel}
@@ -299,6 +305,7 @@ const IndividualKyc = ({
         status={form.aadhaarStatus}
         required
         error={Boolean(errors.aadhaar)}
+        errorMessage={errors.aadhaar}
         maxLength={12}
         placeholder="12-digit Aadhaar number"
         otpTimer={aadhaarOtpTimer}
@@ -541,6 +548,7 @@ const NonIndividualKyc = ({
       onVerify={handlers.onVerifyUrn}
       required
       error={Boolean(errors.urn)}
+      errorMessage={errors.urn}
       disableVerifyWhenEmpty={false}
       placeholder="Unique Reference Number"
       KycStatusLabel={KycStatusLabel}
@@ -557,6 +565,7 @@ const NonIndividualKyc = ({
       onVerify={handlers.onVerifyBusinessPan}
       required
       error={Boolean(errors.bizPan)}
+      errorMessage={errors.bizPan}
       maxLength={10}
       placeholder="AAACX1234K"
       disableVerifyWhenEmpty={false}
@@ -594,15 +603,18 @@ const NonIndividualKyc = ({
       <HBox sx={{ minWidth: 0 }}>
         <HLabel value="label.qde.field.cin" align="left" colon={false} />
       </HBox>
-      <HTextField
-        value={form.cin}
-        onChange={(e) => setField("cin", e.target.value.toUpperCase())}
-        editable
-        placeholder="L000000XX0000XXX000000"
-        length={21}
-        width="100%"
-        error={Boolean(errors.cin)}
-      />
+      <HBox sx={{ minWidth: 0, display: "flex", flexDirection: "column" }}>
+        <HTextField
+          value={form.cin}
+          onChange={(e) => setField("cin", e.target.value.toUpperCase())}
+          editable
+          placeholder="L000000XX0000XXX000000"
+          length={21}
+          width="100%"
+          error={Boolean(errors.cin)}
+        />
+        <FieldError message={errors.cin} />
+      </HBox>
       <HBox sx={{ minWidth: 0 }} />
       <HBox sx={{ minWidth: 0 }} />
       <HBox sx={{ minWidth: 0 }}>
@@ -629,6 +641,7 @@ const NonIndividualKyc = ({
         onVerify={handlers.onVerifyShopAct}
         maxLength={30}
         error={Boolean(errors.shopAct)}
+        errorMessage={errors.shopAct}
         KycStatusLabel={KycStatusLabel}
       />
     </>

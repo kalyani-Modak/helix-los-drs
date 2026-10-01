@@ -1,5 +1,6 @@
 import { HBox, HRadio, HCheckBox, HDatePicker, HDropdown, HLabel, HTextField } from "@helix/component-library";
 import SectionBlock from "../components/SectionBlock";
+import FieldError from "../components/FieldError";
 import { BORROWER_CATEGORIES, ENTITY_TYPES, GENDERS } from "../constants/qdeOptions";
 import { fromPickerValue, toPickerValue } from "../dateHelpers";
 import { useIntl } from "react-intl";
@@ -63,6 +64,7 @@ const ApplicantDetailsSection = ({
                 width="100%"
                 placeholder="Enter entity name"
               />
+              <FieldError message={err("entityName")}  sx={{ mt: 1.5 }} />
             </HBox>
 
             <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1 }}>
@@ -81,9 +83,11 @@ const ApplicantDetailsSection = ({
                 value={form.entityType}
                 onChange={(e) => setField("entityType", e.target.value)}
                 required
+                error={Boolean(err("entityType"))}
                 width="100%"
                 placeholder="Search entity type"
               />
+              <FieldError message={err("entityType")} />
             </HBox>
 
             <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1 }}>
@@ -105,7 +109,7 @@ const ApplicantDetailsSection = ({
         ) : (
           <>
             {/* ---- Individual fields ---- */}
-            <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 2.5 }}>
+            <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", alignItems: "flex-start", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 2.5 }}>
               <HLabel
                 value={intl.formatMessage({
                   id: "label.qde.field.firstName",
@@ -124,6 +128,7 @@ const ApplicantDetailsSection = ({
                 error={Boolean(err("firstName"))}
                 width="100%"
               />
+              <FieldError message={err("firstName")} sx={{ mt: 1.5 }} />
             </HBox>
 
             <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1 }}>
@@ -163,6 +168,7 @@ const ApplicantDetailsSection = ({
                 error={Boolean(err("lastName"))}
                 width="100%"
               />
+              <FieldError message={err("lastName")} sx={{ mt: 1.5 }} />
             </HBox>
 
             <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1 }}>
@@ -184,6 +190,7 @@ const ApplicantDetailsSection = ({
                 error={Boolean(err("gender"))}
                 width="100%"
               />
+              <FieldError message={err("gender")} />
             </HBox>
 
               <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1 }}>
@@ -204,6 +211,7 @@ const ApplicantDetailsSection = ({
                   error={Boolean(err("dob"))}
                   width="100%"
                 />
+                <FieldError message={err("dob")} />
               </HBox>
 
               <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1 }}>
@@ -262,6 +270,7 @@ const ApplicantDetailsSection = ({
                 error={Boolean(err("motherName"))}
                 width="100%"
               />
+              <FieldError message={err("motherName")} />
             </HBox>
           </>
         )}
@@ -334,11 +343,7 @@ const ApplicantDetailsSection = ({
               )}
             </HBox>
 
-            {mobileError && (
-              <HBox sx={{ fontSize: "12px", color: "red", }} >
-                {mobileError}
-              </HBox>
-            )}
+            <FieldError message={mobileError} sx={{ mt: 0.5 }} />
           </HBox>
         </HBox>
 
@@ -356,7 +361,7 @@ const ApplicantDetailsSection = ({
             <HBox
               sx={{
                 display: "flex",
-                alignItems: "center",
+                alignItems: "flex-start",
                 gap: 1,
                 flexWrap: "nowrap",
               }}
@@ -411,11 +416,7 @@ const ApplicantDetailsSection = ({
               )}
             </HBox>
 
-            {emailError && (
-              <HBox sx={{ fontSize: "12px", color: "red", mt: 0.5 }} >
-                {emailError}
-              </HBox>
-            )}
+            <FieldError message={emailError} sx={{ mt: 0.5 }} />
           </HBox>
         </HBox>
 

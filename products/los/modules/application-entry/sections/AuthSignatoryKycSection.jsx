@@ -2,7 +2,7 @@ import { HButton, HLabel, HTextField, HBox } from "@helix/component-library";
 import SectionBlock from "../components/SectionBlock";
 import { statusLabelKey } from "../constants/qdeOptions";
 import VerifiedUserOutlinedIcon from "@mui/icons-material/VerifiedUserOutlined";
-import { flexDirection } from "@mui/system";
+import FieldError from "../components/FieldError";
 
 const AuthKycStatus = ({ status }) => {
   const normalizedStatus = String(status || "Pending").toUpperCase();
@@ -68,11 +68,12 @@ const AuthSignatoryKycSection = ({
       headerStatus={form.asPanAadhaarLinked }
  
     >
-      <HBox sx={{ display: "flex", alignItems: "center", gap: 1, width: "100%", mb: 0.2 }}>
-        <HBox sx={{ width: "280px", minWidth: "280px", flexShrink: 0 }}>
+      <HBox sx={{ display: "flex", alignItems: "center", gap: 1, width: "100%", mb: 1 }}>
+        <HBox sx={{ width: "280px", minWidth: "280px", flexShrink: 0, pt: 1 }}>
           <HLabel value="Auth. Signatory Aadhaar" required align="left" colon={false} />
         </HBox>
         <HBox sx={{ display: "flex", alignItems: "center", flexDirection:"row", gap: 5, width: "100%", }}>
+        <HBox sx={{ minWidth: 0, display: "flex", flexDirection: "column" }}>
         <HTextField
           value={form.asAadhaar ?? ""}
           onChange={(e) => setField("asAadhaar", e.target.value)}
@@ -83,6 +84,8 @@ const AuthSignatoryKycSection = ({
           placeholder="12-digit Aadhaar number"
           width="350px"
         />
+        <FieldError message={err("asAadhaar")} />
+        </HBox>
         <HTextField
           value={form.asAadhaarOtp ?? ""}
           onChange={(e) => setField("asAadhaarOtp", e.target.value)}
@@ -130,6 +133,7 @@ const AuthSignatoryKycSection = ({
         <HBox sx={{ width: "280px", minWidth: "280px", flexShrink: 0 }}>
           <HLabel value="Auth. Signatory PAN" required align="left" colon={false} />
         </HBox>
+        <HBox sx={{ minWidth: 0, display: "flex", flexDirection: "column" }}>
         <HTextField
           value={form.asPan ?? ""}
           onChange={(e) => setField("asPan", e.target.value.toUpperCase())}
@@ -140,6 +144,9 @@ const AuthSignatoryKycSection = ({
           placeholder="AAAAA9999A"
           width="350px"
         />
+        <FieldError message={err("asPan")} />
+        </HBox>
+
         <HBox sx={{ flex: 1, minWidth: 0 }} />
         <HButton
           label="label.qde.button.verify"

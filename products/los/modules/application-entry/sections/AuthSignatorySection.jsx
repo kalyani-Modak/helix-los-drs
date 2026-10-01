@@ -1,5 +1,6 @@
 import { HDatePicker, HLabel, HTextField, HBox } from "@helix/component-library";
 import SectionBlock from "../components/SectionBlock";
+import FieldError from "../components/FieldError";
 import { fromPickerValue, toPickerValue } from "../dateHelpers";
 import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
@@ -36,6 +37,7 @@ const AuthSignatorySection = ({
             error={Boolean(err("asFirstName"))}
             width="100%"
           />
+          <FieldError message={err("asFirstName")} sx={{ mt: 1.5 }} />
         </HBox>
 
         <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
@@ -60,6 +62,7 @@ const AuthSignatorySection = ({
             error={Boolean(err("asLastName"))}
             width="100%"
           />
+          <FieldError message={err("asLastName")} sx={{ mt: 1.5 }} />
         </HBox>
 
         <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px", mt: 1 }}>
@@ -71,6 +74,7 @@ const AuthSignatorySection = ({
             error={Boolean(err("asDob"))}
             width="100%"
           />
+          <FieldError message={err("asDob")} />
         </HBox>
 
         <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap:0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px", mt: 1 }}>
@@ -84,11 +88,12 @@ const AuthSignatorySection = ({
             width="100%"
             placeholder="Director / Partner / Proprietor"
           />
+          <FieldError message={err("asDesignation")}  sx={{ mt: 1.5 }}/>
         </HBox>
 
         <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column",  minWidth: 0, boxSizing: "border-box", gap: 0, paddingRight: "8px", marginBottom: "8px", mt: 1 }}>
           <HLabel value="label.qde.field.mobile" required align="left" colon={false} />
-            <HBox sx={{ display: "flex", alignItems: "center", flexWrap: "wrap",flexDirection: "row", }}>
+            <HBox sx={{ display: "flex", alignItems: "flex-start", flexWrap: "wrap",flexDirection: "row", }}>
               <HTextField
                 value={form.asMobile || ""}
                 onChange={(e) => {
@@ -127,11 +132,12 @@ const AuthSignatorySection = ({
                 </a>
               )}
             </HBox>
+            <FieldError message={mobileError}  sx={{ mt: 1 }} />
         </HBox>
 
         <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", minWidth: 0,gap:0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
           <HLabel value="label.qde.field.email"  align="left" colon={false} />
-            <HBox sx={{ display: "flex", alignItems: "center", gap: 0.5, flexWrap: "wrap" }}>
+            <HBox sx={{ display: "flex", alignItems: "flex-start", gap: 0.5, flexWrap: "wrap" }}>
               <HTextField
                 value={form.asEmail || ""}
                 onChange={(e) => {
@@ -167,6 +173,7 @@ const AuthSignatorySection = ({
                 </a>
               )}
             </HBox>
+            <FieldError message={emailError}  sx={{ mt: 1 }} />
         </HBox>
       </HBox>
     </SectionBlock>
