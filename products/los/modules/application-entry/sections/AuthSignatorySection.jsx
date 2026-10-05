@@ -136,7 +136,7 @@ const AuthSignatorySection = ({
         </HBox>
 
         <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", minWidth: 0,gap:0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
-          <HLabel value="label.qde.field.email"  align="left" colon={false} />
+          <HLabel value="label.qde.field.email"  align="left" colon={false} required />
             <HBox sx={{ display: "flex", alignItems: "flex-start", gap: 0.5, flexWrap: "wrap" }}>
               <HTextField
                 value={form.asEmail || ""}

@@ -355,6 +355,7 @@ const ApplicantDetailsSection = ({
             })}
             align="left"
             colon={false}
+            required
           />
 
           <HBox sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>

@@ -9,10 +9,10 @@ import AddressDetailsSection from "../sections/AddressDetailsSection";
 import KycCheckSection from "../sections/KycCheckSection";
 import SectionBlock from "./SectionBlock";
 import FieldError from "./FieldError";
-import SearchCustomerDialog from "./SearchCustomerDialog";
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
+import SearchApplicationDialog from "./SearchApplicationDialog";
 
 const PartyField = ({ label, children, required = false, error, errorSx, sx }) => (
   <HBox sx={{ width: "100%", display: "flex", flexDirection: "column", gap: 0.5, ...sx }}>

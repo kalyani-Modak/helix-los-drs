@@ -114,16 +114,34 @@ const validateKycFields = (obj, isNonInd, translate) => {
   const errors = {};
   const message = (id, fallback) => translate(id, fallback);
 
-  if (!obj.pan?.trim() || !PAN_PATTERN.test(obj.pan.trim().toUpperCase())) {
-    errors.pan = message("label.qde.validation.panInvalid", "Please enter a valid PAN number.");
-  }
+  if (isNonInd) {
+    // Non-Individual KYC uses Business PAN (bizPan).
+    // Do not validate obj.pan because that field is not used by the
+    // Non-Individual KYC section.
+    const businessPan = String(obj.bizPan ?? "").trim().toUpperCase();
 
-  if (!isNonInd && (!obj.aadhaar?.trim() || !AADHAAR_PATTERN.test(obj.aadhaar.trim()))) {
-    errors.aadhaar = message("label.qde.validation.aadhaarInvalid", "Please enter a valid 12-digit Aadhaar number.");
-  }
+    if (!businessPan || !PAN_PATTERN.test(businessPan)) {
+      errors.bizPan = message(
+        "label.qde.validation.bizPan",
+        "Please enter a valid Business PAN number."
+      );
+    }
+  } else {
+    const pan = String(obj.pan ?? "").trim().toUpperCase();
 
-  if (isNonInd && (!obj.bizPan?.trim() || !PAN_PATTERN.test(obj.bizPan.trim()))) {
-    errors.bizPan = message("label.qde.validation.bizPan", "Please enter a valid PAN number.");
+    if (!pan || !PAN_PATTERN.test(pan)) {
+      errors.pan = message(
+        "label.qde.validation.panInvalid",
+        "Please enter a valid PAN number."
+      );
+    }
+
+    if (!obj.aadhaar?.trim() || !AADHAAR_PATTERN.test(obj.aadhaar.trim())) {
+      errors.aadhaar = message(
+        "label.qde.validation.aadhaarInvalid",
+        "Please enter a valid 12-digit Aadhaar number."
+      );
+    }
   }
 
   if (isNonInd && obj.cin?.trim() && !CIN_PATTERN.test(obj.cin.trim().toUpperCase())) {
@@ -143,7 +161,8 @@ const emptyParty = () => ({
   pan: "",
 });
 
-const validatePartyFields = (obj, isNonInd, translate) => {
+const validatePartyFields = (obj, isNonInd, translate, options = {}) => {
+  const { requireMotherName = false } = options;
   const errors = {};
   const message = (id, fallback) => translate(id, fallback);
 
@@ -173,8 +192,12 @@ if (!obj.dob) {
     );
   }
  }
-    if (!obj.motherName?.trim()) {}
-      errors.motherName = message("label.qde.validation.motherNameRequired", "Mother's name is mandatory.");
+    if (requireMotherName && !String(obj.motherName ?? "").trim()) {
+      errors.motherName = message(
+        "label.qde.validation.motherNameRequired",
+        "Mother's name is mandatory."
+      );
+    }
   }
 
   if (!obj.mobile?.trim() || obj.mobile.trim().length !== 10) {
@@ -269,9 +292,18 @@ const ApplicationQuickDataEntry = () => {
     coApplicants: {},
     guarantors: {},
   });
+  const currentDraftApplicationNoRef = useRef(incomingApplicationNo || null);
+  const savedQdeRef = useRef(null);
   const persistedDraftRef = useRef(false);
+  const saveInProgressRef = useRef(false);
 
   const isNonIndividual = form.borrowerType === "Non-Individual";
+
+  // NOTE:
+  // Chrome messages such as "[Violation] 'message' handler took 400ms"
+  // are performance warnings, not JavaScript exceptions. The save guard
+  // below prevents duplicate save events while React is rendering the
+  // Non-Individual sections.
 
   const { lookups } = useQdeLookups(ORG_ID, QDE_LOOKUP_TYPES);
 
@@ -410,6 +442,8 @@ const ApplicationQuickDataEntry = () => {
       };
     });
 
+    currentDraftApplicationNoRef.current = null;
+    savedQdeRef.current = null;
     persistedDraftRef.current = false;
     setSavedApplicationNo("");
   }, []);
@@ -503,7 +537,7 @@ const ApplicationQuickDataEntry = () => {
 
     return {
       szOrgId: "001",
-      szApplicationNo: f.applicationNo || null,
+      szApplicationNo: currentDraftApplicationNoRef.current,
 
       applicationControl: {
         szApplicationType: f.applicationType || null,
@@ -544,9 +578,9 @@ const ApplicationQuickDataEntry = () => {
         szEmail: f.email || null,
 
         kycDetails: {
-          szPanNumber: f.pan || null,
+          szPanNumber: isNonIndividual ? (f.bizPan || null) : (f.pan || null),
           szUrnNo: f.urn || null,
-          szAadhaarNumber: f.aadhaar || null,
+          szAadhaarNumber: isNonIndividual ? null : (f.aadhaar || null),
           szPanVerificationStatus: f.panStatus || null,
           szPanAadhaarLinkageStatus: f.panAadhaarLinked || null,
           szCkycNumber: f.ckycNumber || null,
@@ -839,7 +873,6 @@ const ApplicationQuickDataEntry = () => {
 
     setForm((prev) => ({
       ...prev,
-      applicationNo: response.szApplicationNo || prev.applicationNo,
       applicationType: control.szApplicationType || "N",
       portfolio: control.szPortfolioCode || DEFAULT_PORTFOLIO,
       borrowerType: isNonIndividualApplicant ? "Non-Individual" : "Individual",
@@ -1026,6 +1059,7 @@ const ApplicationQuickDataEntry = () => {
       setBusy("appSearch", true);
       try {
         const data = unwrapQdePayload(await HAxiosService.GET(url));
+        currentDraftApplicationNoRef.current = savedQdeRef.current?.szApplicationNo || null;
         persistedDraftRef.current = false;
         hydrateFromQdeResponse(data, true);
         setSearchDialogOpen(false);
@@ -1180,7 +1214,7 @@ const ApplicationQuickDataEntry = () => {
   const openPartyOtp = useCallback((field, target, partyId) => {
     if (!target || (field === "mobile" && !/^[6-9]\d{9}$/.test(target))) return;
     setOtpDialog({ open: true, field, target, partyId });
-    toast(`OTP sent to ${target}. (Demo OTP: 123456)`, "success");
+    toast.success(`OTP sent to ${target}. (Demo OTP: 123456)`);
   }, [toast]);
 
   const partyKycHandlers = {
@@ -1879,8 +1913,6 @@ const ApplicationQuickDataEntry = () => {
     setOcrStatusKey(file ? "label.qde.status.pending" : "label.qde.status.notStarted");
   }, []);
 
-const savedQdeRef = useRef(null);
-
 // Prevents the same Aadhaar file from being uploaded again
 // every time the user saves the same draft.
 const aadhaarUploadedRef = useRef(null);
@@ -1955,7 +1987,13 @@ const persistDraft = useCallback(async () => {
   // // Applicant ID may be omitted from a successful save response. Resolve it
   // // from the saved QDE only when document upload requires it.
   let savedData = data;
-  let applicantId = null;
+  let applicantId =
+    savedData?.applicantDetails?.szApplicantId ||
+    savedData?.szApplicantId ||
+    savedData?.applicantId ||
+    payload?.applicantDetails?.szApplicantId ||
+    previous?.applicantDetails?.szApplicantId ||
+    null;
   //   || getPrimaryApplicantId(payload);
 
   // if (form.aadhaarImage && !applicantId) {
@@ -1997,6 +2035,7 @@ const persistDraft = useCallback(async () => {
   };
 
   savedQdeRef.current = savedQde;
+  currentDraftApplicationNoRef.current = appNo;
   persistedDraftRef.current = true;
 
   // Keep the application number in the visible form state.
@@ -2127,7 +2166,7 @@ const persistDraft = useCallback(async () => {
       applicantErrors.customerId = t("label.qde.validation.customerIdRequired", "Customer ID is mandatory for an existing customer.");
     }
 
-    Object.assign(applicantErrors, validatePartyFields(form, isNonIndividual, t));
+    Object.assign(applicantErrors, validatePartyFields(form, isNonIndividual, t, { requireMotherName: !isNonIndividual }));
 
     // Loan details
     if (!form.loanType?.trim()) {
@@ -2173,13 +2212,13 @@ const persistDraft = useCallback(async () => {
 
     const coApplicantErrors = {};
     (form.coApplicants || []).forEach((party) => {
-      const errs = validatePartyFields(party, party.borrowerType === "Non-Individual", t);
+      const errs = validatePartyFields(party, party.borrowerType === "Non-Individual", t, { requireMotherName: false });
       if (Object.keys(errs).length) coApplicantErrors[party.id] = errs;
     });
 
     const guarantorErrors = {};
     (form.guarantors || []).forEach((party) => {
-      const errs = validatePartyFields(party, party.borrowerType === "Non-Individual", t);
+      const errs = validatePartyFields(party, party.borrowerType === "Non-Individual", t, { requireMotherName: false });
       if (Object.keys(errs).length) guarantorErrors[party.id] = errs;
     });
 
@@ -2200,6 +2239,18 @@ const persistDraft = useCallback(async () => {
 
 
 const handleSave = useCallback(async () => {
+  // HButtonBar can fire the save callback again while the previous
+  // request is still running. Guard the entire save operation.
+  if (saveInProgressRef.current) {
+    return {
+      success: false,
+      applicationNo: savedQdeRef.current?.szApplicationNo || null,
+      ignored: true,
+    };
+  }
+
+  saveInProgressRef.current = true;
+
   const result = validateForm();
 
   setFormErrors({
@@ -2209,6 +2260,8 @@ const handleSave = useCallback(async () => {
   });
 
   if (!result.isValid) {
+    saveInProgressRef.current = false;
+
     return {
       success: false,
       applicationNo: null,
@@ -2253,15 +2306,23 @@ const handleSave = useCallback(async () => {
       applicationNo:
         savedQdeRef.current?.szApplicationNo || null,
     };
+  } finally {
+    saveInProgressRef.current = false;
   }
 }, [
   validateForm,
   persistDraft,
+  form.applicationNo,
+  form.coApplicants,
+  form.guarantors,
   t,
   toast,
 ]);
 
   const handleReset = useCallback(() => {
+    saveInProgressRef.current = false;
+    currentDraftApplicationNoRef.current = null;
+    savedQdeRef.current = null;
     persistedDraftRef.current = false;
     setSavedApplicationNo("");
     resetForm();
