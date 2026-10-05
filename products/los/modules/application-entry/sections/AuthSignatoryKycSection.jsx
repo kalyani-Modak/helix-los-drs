@@ -131,14 +131,13 @@ const AuthSignatoryKycSection = ({
 
       <HBox sx={{ display: "flex", alignItems: "flex-start", gap: 1, width: "100%", mb: 1 }}>
         <HBox sx={{ width: "280px", minWidth: "280px", flexShrink: 0 }}>
-          <HLabel value="Auth. Signatory PAN" required align="left" colon={false} />
+          <HLabel value="Auth. Signatory PAN" align="left" colon={false} />
         </HBox>
         <HBox sx={{ minWidth: 0, display: "flex", flexDirection: "column" }}>
         <HTextField
           value={form.asPan ?? ""}
           onChange={(e) => setField("asPan", e.target.value.toUpperCase())}
           editable
-          required
           error={Boolean(err("asPan"))}
           length={10}
           placeholder="AAAAA9999A"
