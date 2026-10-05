@@ -41,30 +41,12 @@ export const LosQdeAPI = {
 
 /** REST paths aligned with the LOS application-entry document upload service. */
 export const LosDocumentAPI = {
-  stages: () => `${base()}api/los/v1/documents/masters/stages`,
-  customerTypes: (borrowerType) =>
-    `${base()}api/los/v1/documents/masters/customer-types${
-      borrowerType ? `?borrowerType=${encodeURIComponent(borrowerType)}` : ""
-    }`,
-  waiveReasons: () => `${base()}api/los/v1/documents/masters/waive-reasons`,
-  checklist: (stage, customerType) =>
-    `${base()}api/los/v1/documents/checklist?stage=${encodeURIComponent(stage)}&customerType=${encodeURIComponent(
-      customerType
-    )}`,
-  getByAppNo: (appNo, stage, customerType, applicableFor) => {
-    const params = new URLSearchParams({ stage, customerType });
-    if (applicableFor) params.set("applicableFor", applicableFor);
-    return `${base()}api/los/v1/documents/applications/${encodeURIComponent(appNo)}?${params.toString()}`;
-  },
-  save: (appNo) => `${base()}api/los/v1/documents/applications/${encodeURIComponent(appNo)}`,
-  upload: (appNo, itemId) =>
-    `${base()}api/los/v1/documents/applications/${encodeURIComponent(appNo)}/files?itemId=${encodeURIComponent(
-      itemId
-    )}`,
-  deleteItem: (appNo, itemId) =>
-    `${base()}api/los/v1/documents/applications/${encodeURIComponent(appNo)}/items/${encodeURIComponent(itemId)}`,
-  file: (appNo, itemId) =>
-    `${base()}api/los/v1/documents/applications/${encodeURIComponent(appNo)}/items/${encodeURIComponent(itemId)}/file`,
-};
+    LosDocumentAPI: (screenMenuId) => `${getLosQdeApiPath()}los_DocUpload/${screenMenuId}`,
+  };
 
-export default LosQdeAPI;
+  export const LosDdeAPI = {
+    fetchDde : (ORG_ID, appNo)=> `${getLosQdeApiPath()}los_DDE/${screenMenuId}`,
+    updateDde : (appNo)=> `${getLosQdeApiPath()}los_DDE/${screenMenuId}`,
+    saveDde : ()=> `${getLosQdeApiPath()}los_DDE/${screenMenuId}`,
+
+  };

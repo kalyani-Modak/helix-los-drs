@@ -3,10 +3,11 @@ import { Grid } from "@mui/material";
 import { HAccordion, HBox, useDrsTheme, HLabel } from "@helix/component-library";
 import { useIntl } from "react-intl";
 
-const SectionBlock = ({ sectionKey, titleKey, subTitleKey, count, defaultExpanded = true, icon, noAccordion = false, showHeaderMeta = false, sx, headerStatusLabel, headerStatus, children }) => {
+const SectionBlock = ({ sectionKey, titleKey, subTitleKey, count, defaultExpanded = true, expanded: expandedProp, onExpandedChange, icon, noAccordion = false, showHeaderMeta = false, sx, headerStatusLabel, headerStatus, children }) => {
   const [expanded, setExpanded] = useState({ [sectionKey]: defaultExpanded });
   const { colors, text, border, action } = useDrsTheme();
   const intl = useIntl();
+  const isExpanded = expandedProp ?? expanded[sectionKey] ?? defaultExpanded;
 
   if (noAccordion) {
     return (
@@ -204,13 +205,18 @@ const SectionBlock = ({ sectionKey, titleKey, subTitleKey, count, defaultExpande
         id={`qde-section-${sectionKey}`}
         title={titleKey}
         childKeyProp={sectionKey}
-        isExpandedChildrenProp={expanded}
-        onChangeEvent={() =>
-          setExpanded((prev) => ({
-            ...prev,
-            [sectionKey]: !prev[sectionKey],
-          }))
-        }
+        isExpandedChildrenProp={{ [sectionKey]: isExpanded }}
+        onChangeEvent={() => {
+          const nextExpanded = !isExpanded;
+          if (onExpandedChange) {
+            onExpandedChange(nextExpanded);
+          } else {
+            setExpanded((prev) => ({
+              ...prev,
+              [sectionKey]: nextExpanded,
+            }));
+          }
+        }}
       >
         <Grid container spacing={1.4} alignItems="flex-start">
           {children}

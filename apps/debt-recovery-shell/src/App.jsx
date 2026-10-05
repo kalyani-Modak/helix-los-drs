@@ -123,6 +123,7 @@ import ApplicationEntryFormPage from "./pages/ApplicationEntryFormPage";
 import ApplicationListPage from "./pages/ApplicationListPage";
 import WorkflowGraphicalLogPage from "./pages/WorkflowGraphicalLogPage";
 import ApplicationQuickDataEntry from "../../../products/los/modules/application-entry/ApplicationQuickDataEntry"
+import ApplicationDetailedDataEntry from "../../../products/los/modules/application-entry/ApplicationDetailedDataEntry"
 import ApplicationDocumentUpload from "../../../products/los/modules/application-entry/ApplicationDocumentUpload"; 
 import DetailedDataEntry from "../../../products/los/modules/application-entry/DetailedDataEntry";
 
@@ -333,6 +334,7 @@ const AppContent = ({ language, setLanguage }) => {
             <Route path="workflow-registry/graphical-log" element={<WorkflowGraphicalLogPage />} />
             <Route path="workflow-registry/graphical-log/:appNo" element={<WorkflowGraphicalLogPage />} />
             <Route path="application-entry/retail" element={<ApplicationQuickDataEntry />} />
+            <Route path="application-entry/detailed-data-entry" element={<ApplicationDetailedDataEntry />} />
             <Route path="application-entry/uploadDocument" element={<ApplicationDocumentUpload />} />
             <Route path="application-entry/detailedDataEntry" element={<DetailedDataEntry />} />
         

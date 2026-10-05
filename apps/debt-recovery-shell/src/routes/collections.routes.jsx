@@ -44,6 +44,7 @@ const PartitionMaster = lazy(() => import("@batchframework/PartitionMaster"));
 const PartitionTypeMaster = lazy(() => import("@batchframework/PartitionTypeMaster"));
 const BatchProcessMaster = lazy(() => import("@batchframework/BatchProcessMaster"));
 const ApplicationQuickDataEntry = lazy(() => import("@los/ApplicationQuickDataEntry"));
+const ApplicationDetailedDataEntry = lazy(() => import("@los/ApplicationDetailedDataEntry"));
 const ApplicationDocumentUpload = lazy(() => import("@los/ApplicationDocumentUpload"));
 const ReturnMailTracking = lazy(() => import("@earlycollection/ReturnMailTracking"));
 const GenerateMail = lazy(() => import("@earlycollection/GenerateMail"));
@@ -165,6 +166,7 @@ export const collectionMasterRoutes=[
   { path: "partitionTypeMaster", component: PartitionTypeMaster, module: "collection" },
   { path: "batchProcessMaster", component: BatchProcessMaster, module: "collection" },
   { path: "application-entry/quick-data-entry", component: ApplicationQuickDataEntry, module: "los" },
+  { path: "application-entry/detailed-data-entry", component: ApplicationDetailedDataEntry, module: "los" },
   { path: "application-entry/document-upload", component: ApplicationDocumentUpload, module: "los" },
   { path: "leavePlannerMaster", component: LeavePlannerMaster, module: "collection" },
   { path: "mailMaster", component: MailMaster, module: "collection" },

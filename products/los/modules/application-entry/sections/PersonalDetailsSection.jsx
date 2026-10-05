@@ -9,15 +9,17 @@ import {
 import { useIntl } from "react-intl";
 import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
 import SectionBlock from "../components/SectionBlock";
-import {
-  EDUCATION_LEVELS,
-  GENDERS,
-  MARITAL_STATUSES,
-  NATIONALITIES,
-  RELIGIONS,
-  RESIDENCE_STATUSES,
-  TITLES,
-} from "../constants/qdeOptions";
+// import {
+//   EDUCATION_LEVELS,
+//   GENDERS,
+//   MARITAL_STATUSES,
+//   NATIONALITIES,
+//   RELIGIONS,
+//   RESIDENCE_STATUSES,
+//   TITLES,
+// } from "../constants/qdeOptions";
+import { GENDERS } from "../constants/qdeOptions";
+import { useDdeLookups } from "../hooks/useDdeLookups";
 import { fromPickerValue, toPickerValue } from "../dateHelpers";
 
 const calcAge = (dob) => {
@@ -40,10 +42,19 @@ const calcAge = (dob) => {
   return age >= 0 ? String(age) : "";
 };
 
-const PersonalDetailsSection = ({ form, setField, errors = {} }) => {
+const PersonalDetailsSection = ({ form, setField, errors = {}, orgId }) => {
   const intl = useIntl();
+  const { lookups, loading } = useDdeLookups(orgId);
   const err = (name) => Boolean(errors[name]);
   const age = useMemo(() => calcAge(form.dob), [form.dob]);
+
+  const TITLES = lookups["party.title"] || [];
+  const MARITAL_STATUSES = lookups["party.maritalstatus"] || [];
+  const NATIONALITIES = lookups["party.nationality"] || [];
+  const RELIGIONS = lookups["party.religion"] || [];
+  const EDUCATION_LEVELS = lookups["party.education"] || [];
+  const RESIDENCE_STATUSES =
+    lookups["party.residencestatus"] || [];
 
   return (
     <SectionBlock
