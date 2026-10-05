@@ -13,110 +13,38 @@
 export const toOptions = (values = []) =>
   values.map((v) => ({ label: v, value: v }));
 
-export const APPLICATION_TYPES = toOptions(["Fresh", "Enhancement", "Renewal", "Takeover", "Top Up"]);
+export const APPLICATION_TYPES = [
+  { label: "Balance Transfer", value: "BLTR" },
+  { label: "New", value: "N" },
+  { label: "Top Up", value: "TOPUP" },
+];
 
-export const PORTFOLIOS = toOptions([
-  "Home Loan",
-  "Loan Against Property",
-  "Personal Loan",
-  "Business Loan",
-  "Auto Loan",
-  "Gold Loan",
-]);
+export const PORTFOLIOS = [{ label: "Home Loan", value: "HL" }];
 
-export const DEFAULT_PORTFOLIO = "Home Loan";
+export const DEFAULT_PORTFOLIO = "HL";
+export const DEFAULT_LOAN_TYPE = "Term Loan";
 
-/* -------------------------------------------------------------------------- */
-/* Applicant / Personal Details                                              */
-/* -------------------------------------------------------------------------- */
+export const GENDERS = [
+  { label: "Female", value: "F" },
+  { label: "Male", value: "M" },
+  { label: "Transgender", value: "T" },
+];
 
-export const TITLES = toOptions([
-  "Mr.",
-  "Mrs.",
-  "Ms.",
-  "Miss",
-  "Dr.",
-]);
+export const Profiles = toOptions(["Salaried", "SENP", "SEP"]);
 
-export const GENDERS = toOptions([
-  "Male",
-  "Female",
-  "Transgender",
-  "Other",
-]);
+/** Also used as "Customer Profile" on Co-Applicant/Guarantor rows — same field, same lookup type. */
+export const BORROWER_CATEGORIES = [
+  { label: "Salaried", value: "SAL" },
+  { label: "SENP", value: "SENP" },
+  { label: "SEP", value: "SEP" },
+];
 
-export const MARITAL_STATUSES = toOptions([
-  "Single",
-  "Married",
-  "Divorced",
-  "Widowed",
-  "Separated",
-]);
-
-export const EDUCATION_LEVELS = toOptions([
-  "Below 10th",
-  "10th Pass",
-  "12th Pass",
-  "Diploma",
-  "Graduate",
-  "Post Graduate",
-  "Doctorate",
-  "Professional Qualification",
-]);
-
-export const NATIONALITIES = toOptions([
-  "Indian",
-  "NRI",
-  "OCI",
-  "Other",
-]);
-
-export const RELIGIONS = toOptions([
-  "Hindu",
-  "Muslim",
-  "Christian",
-  "Sikh",
-  "Buddhist",
-  "Jain",
-  "Parsi",
-  "Other",
-]);
-
-export const RESIDENCE_STATUSES = toOptions([
-  "Resident",
-  "Non-Resident",
-  "NRI",
-  "PIO",
-]);
-
-export const Profiles = toOptions([
-  "Salaried",
-  "SENP",
-  "SEP",
-]);
-
-export const BORROWER_CATEGORIES = toOptions([
-  "General",
-  "Priority Sector",
-  "Salaried",
-  "Self Employed Professional",
-  "Self Employed Non Professional",
-  "Agriculturist",
-  "Senior Citizen",
-  "Staff",
-]);
-
-/* -------------------------------------------------------------------------- */
-/* Address                                                                   */
-/* -------------------------------------------------------------------------- */
-
-export const ADDRESS_TYPES_INDIVIDUAL = toOptions([
-  "Permanent",
-  "Current Residence",
-  "Office",
-  "Communication",
-  "Native",
-]);
+export const ADDRESS_TYPES_INDIVIDUAL = [
+  { label: "Current", value: "CURR" },
+  { label: "Office", value: "OFF" },
+  { label: "Others", value: "OTH" },
+  { label: "Permanent", value: "PERM" },
+];
 
 export const ADDRESS_TYPES_NON_INDIVIDUAL = toOptions([
   "Registered Office",
@@ -126,7 +54,25 @@ export const ADDRESS_TYPES_NON_INDIVIDUAL = toOptions([
   "Communication",
 ]);
 
-export const CHANNELS = toOptions(["Branch", "DSA", "RM", "Digital", "Connector", "Tele Sales"]);
+export const CHANNELS = [
+  { label: "Branch", value: "BRANCH" },
+  { label: "Dealer", value: "Dealer" },
+  { label: "DSA", value: "DSA" },
+  { label: "RM", value: "RM" },
+];
+
+export const RELATIONSHIPS = [
+  { label: "Brother", value: "BROTHER" },
+  { label: "Daughter", value: "DAUGHTER" },
+  { label: "Director", value: "DIRECTOR" },
+  { label: "Father", value: "FATHER" },
+  { label: "Mother", value: "MOTHER" },
+  { label: "Other", value: "OTHER" },
+  { label: "Partner", value: "PARTNER" },
+  { label: "Sister", value: "SISTER" },
+  { label: "Son", value: "SON" },
+  { label: "Spouse", value: "SPOUSE" },
+];
 
 export const ENTITY_TYPES = toOptions([
   "Proprietorship",
@@ -145,14 +91,10 @@ export const ENTITY_TYPES = toOptions([
 /* -------------------------------------------------------------------------- */
 
 /** Products offered under the default Home Loan portfolio. */
-export const PRODUCTS = toOptions([
-  "Home Loan - Purchase",
-  "Home Loan - Construction",
-  "Home Loan - Plot Purchase",
-  "Home Loan - Improvement",
-  "Home Loan - Extension",
-  "Home Loan - Balance Transfer",
-]);
+export const PRODUCTS = [
+  { label: "HL Fixed", value: "HLFIXED" },
+  { label: "HL Floating", value: "HLFLOAT" },
+];
 
 export const SCHEMES = [
   {
@@ -175,76 +117,60 @@ export const SCHEMES = [
     label: "HL Balance Transfer Plus",
     value: "HL-BT-PLUS",
   },
+  { label: "Standard", value: "STD" },
+  { label: "Promotional", value: "PROMO" },
 ];
 
 export const BRANCHES = [
-  {
-    label: "Mumbai - Fort",
-    value: "BR-MUM-001",
-  },
-  {
-    label: "Mumbai - Andheri East",
-    value: "BR-MUM-002",
-  },
-  {
-    label: "Pune - Shivaji Nagar",
-    value: "BR-PNQ-001",
-  },
-  {
-    label: "Bengaluru - Koramangala",
-    value: "BR-BLR-001",
-  },
-  {
-    label: "Delhi - Connaught Place",
-    value: "BR-DEL-001",
-  },
-  {
-    label: "Chennai - T Nagar",
-    value: "BR-MAA-001",
-  },
-  {
-    label: "Hyderabad - Banjara Hills",
-    value: "BR-HYD-001",
-  },
+  { label: "Bengaluru - MG Road", value: "BLR-MGROAD" },
+  { label: "Bengaluru - Whitefield", value: "BLR-WHITEFIELD" },
+  { label: "Bengaluru - Koramangala", value: "BLR-KORAMANGALA" },
+  { label: "Bengaluru - Indiranagar", value: "BLR-INDIRANAGAR" },
+  { label: "Chennai - T Nagar", value: "CHN-TNAGAR" },
+  { label: "Chennai - Anna Nagar", value: "CHN-ANNANAGAR" },
+  { label: "Chennai - Adyar", value: "CHN-ADYAR" },
+  { label: "Chennai - Velachery", value: "CHN-VELACHERY" },
+  { label: "Delhi - Connaught Place", value: "DEL-CP" },
+  { label: "Delhi - Saket", value: "DEL-SAKET" },
+  { label: "Delhi - Dwarka", value: "DEL-DWARKA" },
+  { label: "Delhi - Rohini", value: "DEL-ROHINI" },
+  { label: "Kolkata - Park Street", value: "KOL-PARKSTREET" },
+  { label: "Kolkata - Salt Lake", value: "KOL-SALTLAKE" },
+  { label: "Kolkata - Ballygunge", value: "KOL-BALLYGUNGE" },
+  { label: "Kolkata - New Town", value: "KOL-NEWTOWN" },
+  { label: "Hyderabad - Banjara Hills", value: "HYD-BANJARAHILLS" },
+  { label: "Hyderabad - Gachibowli", value: "HYD-GACHIBOWLI" },
+  { label: "Hyderabad - Secunderabad", value: "HYD-SECUNDERABAD" },
+  { label: "Hyderabad - Hitech City", value: "HYD-HITECHCITY" },
+  { label: "Mumbai - Fort", value: "MUM-FORT" },
+  { label: "Mumbai - Andheri", value: "MUM-ANDHERI" },
+  { label: "Mumbai - Bandra", value: "MUM-BANDRA" },
+  { label: "Mumbai - Lower Parel", value: "MUM-LOWERPAREL" },
+  { label: "Pune - Camp", value: "PUN-CAMP" },
+  { label: "Pune - Kothrud", value: "PUN-KOTHRUD" },
+  { label: "Pune - Hinjewadi", value: "PUN-HINJEWADI" },
+  { label: "Pune - Viman Nagar", value: "PUN-VIMANNAGAR" },
 ];
 
-export const LOAN_TYPES = toOptions([
-  "Term Loan",
-  "Overdraft",
-  "Cash Credit",
-  "Bullet Repayment",
-  "Drop Line Overdraft",
-]);
+export const LOAN_TYPES = [{ label: "Term Loan", value: "TERM" }];
 
-/* -------------------------------------------------------------------------- */
-/* OCR                                                                       */
-/* -------------------------------------------------------------------------- */
-
-export const OCR_DOC_TYPES = toOptions([
-  "Application Form",
-  "PAN Card",
-  "Aadhaar Card",
-  "Passport",
-  "Voter ID",
-  "Driving Licence",
-  "Bank Statement",
-]);
+export const OCR_DOC_TYPES = [{ label: "Application Form", value: "APPFORM" }];
 
 /** Radio option sets — `label` is resolved through react-intl by HRadio. */
-export const BORROWER_TYPE_OPTIONS = [
-  { value: "Individual", label: "label.qde.option.individual" },
-  { value: "Non-Individual", label: "label.qde.option.nonIndividual" },
-];
+// export const BORROWER_TYPE_OPTIONS = [
+//   { value: "Individual", label: "label.qde.option.individual" },
+//   { value: "Non-Individual", label: "label.qde.option.nonIndividual" },
+// ];
 
-export const CUSTOMER_TYPE_OPTIONS = [
-  { value: "New", label: "label.qde.option.new" },
-  { value: "Existing", label: "label.qde.option.existing" },
-];
+// export const CUSTOMER_TYPE_OPTIONS = [
+//   { value: "New", label: "label.qde.option.new" },
+//   { value: "Existing", label: "label.qde.option.existing" },
+// ];
 
-export const YES_NO_OPTIONS = [
-  { value: "Y", label: "label.qde.option.yes" },
-  { value: "N", label: "label.qde.option.no" },
-];
+// export const YES_NO_OPTIONS = [
+//   { value: "Y", label: "label.qde.option.yes" },
+//   { value: "N", label: "label.qde.option.no" },
+// ];
 
 /** Verification lifecycle values persisted on the form. */
 export const VERIFICATION_STATUS = {

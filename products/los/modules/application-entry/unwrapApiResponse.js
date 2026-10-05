@@ -3,9 +3,9 @@ export function unwrapApiResponse(res) {
 
   if (body && typeof body === "object" && "status" in body) {
     const status = String(body.status).toUpperCase();
-
-    if (status === "SUCCESS") {
-      return body.responseJson;
+   if (status === "SUCCESS") {
+      // QDE services answer { status, message, responseJson }; older endpoints use { status, msg, data }.
+      return "data" in body ? body.data : body.responseJson;
     }
 
     const error = new Error(

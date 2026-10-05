@@ -604,7 +604,7 @@ const PolicyRulePopup = ({ open, onClose, onSaveSuccess, props }) => {
             fullWidth
             contentProps={{ dividers: true }}
             actions={
-                <Box sx={{ mr: "20px", display: "flex", alignItems: "center" }}>
+                <HBox sx={{ mr: "20px", display: "flex", alignItems: "center" }}>
                     <Tooltip title="Add" {...iconTooltipProps}>
                         <IconButton onClick={handleAdd}><AddIcon /></IconButton>
                     </Tooltip>
@@ -617,7 +617,7 @@ const PolicyRulePopup = ({ open, onClose, onSaveSuccess, props }) => {
                     <Tooltip title="Cancel" {...iconTooltipProps}>
                         <IconButton onClick={onClose}><CloseIcon /></IconButton>
                     </Tooltip>
-                </Box>
+                </HBox>
             }
         >
 
