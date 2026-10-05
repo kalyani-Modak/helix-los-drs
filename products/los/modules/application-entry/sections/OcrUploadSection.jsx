@@ -1,29 +1,23 @@
-import React from "react";
-import { Box, Grid } from "@mui/material";
-import { HDropdown, HLabel } from "@helix/component-library";
-import FieldRow from "../components/FieldRow";
+import { HBox, HDropdown, HLabel } from "@helix/component-library";
 import SectionBlock from "../components/SectionBlock";
 import { OCR_DOC_TYPES } from "../constants/qdeOptions";
+import CropFreeOutlinedIcon from "@mui/icons-material/CropFreeOutlined";
 
-/**
- * Document upload feeding the OCR extraction service. The native file input is
- * used deliberately — the library file picker is not part of the approved set
- * for this screen.
- */
-const OcrUploadSection = ({ form, setField, onFileSelect, ocrFileName, ocrStatusKey }) => (
-  <SectionBlock sectionKey="ocrUpload" titleKey="label.qde.section.ocr">
-    <FieldRow labelKey="label.qde.field.docType">
-      <HDropdown
-        name="ocrDocType"
-        options={OCR_DOC_TYPES}
-        value={form.ocrDocType}
-        onChange={(e) => setField("ocrDocType", e.target.value)}
-        width="100%"
-      />
-    </FieldRow>
+const OcrUploadSection = ({ form, setField, onFileSelect, ocrFileName, ocrStatusKey, docTypeOptions = OCR_DOC_TYPES }) => (
+  <SectionBlock sectionKey="ocrUpload" titleKey="label.qde.section.ocr" subTitleKey="label.qde.section.ocr.subtitle" icon={<CropFreeOutlinedIcon fontSize="small" />}>
+    <HBox sx={{ width: "100%", display: "flex", flexDirection: "row", flexWrap: "nowrap" }}>
+      <HBox sx={{ width: "30%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0 }}>
+        <HLabel value="label.qde.field.docType" align="left" colon={false} />
+        <HDropdown
+          name="ocrDocType"
+          options={docTypeOptions}
+          value={form.ocrDocType || "APPFORM" }
+          onChange={(e) => setField("ocrDocType", e.target.value)}
+          width="80%"
+        />
+      </HBox>
 
-    <Grid size={{ xs: 12, sm: 6, md: 4 }}>
-      <Box sx={{ display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0 }}>
+      <HBox sx={{ width: "40%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0 }}>
         <HLabel value="label.qde.field.uploadFile" align="left" colon={false} />
         <input
           id="qde-ocr-file"
@@ -37,12 +31,17 @@ const OcrUploadSection = ({ form, setField, onFileSelect, ocrFileName, ocrStatus
           align="left"
           colon={false}
         />
-      </Box>
-    </Grid>
+      </HBox>
 
-    <FieldRow labelKey="label.qde.field.ocrStatus">
-      <HLabel value={ocrStatusKey || "label.qde.status.notStarted"} align="left" colon={false} />
-    </FieldRow>
+      <HBox sx={{ width: "30%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0 }}>
+        <HLabel value="label.qde.field.ocrStatus" align="left" colon={false} />
+        <HLabel
+          value={ocrStatusKey || "label.qde.status.noFile"}
+          align="left"
+          colon={false}
+        />
+      </HBox>
+    </HBox>
   </SectionBlock>
 );
 

@@ -1,7 +1,6 @@
 import { HButton, HLabel, HTextField, HBox } from "@helix/component-library";
-import { statusLabelKey } from "../constants/qdeOptions";
-
-const DEFAULT_SIZE = { xs: 12, sm: 6, md: 4 };
+import FieldError from "./FieldError";
+import VerifiedUserOutlinedIcon from "@mui/icons-material/VerifiedUserOutlined";
 
 const KycVerifyRow = ({
   labelKey,
@@ -14,26 +13,32 @@ const KycVerifyRow = ({
   placeholder = "",
   maxLength,
   disabled = false,
+  error = false,
+  errorMessage,
   buttonLabelKey = "label.qde.button.verify",
-  size = DEFAULT_SIZE,
+  isTriggerButton = false,
+  disableVerifyWhenEmpty = true,
+  KycStatusLabel = () => null,
 }) => (
   <HBox
     sx={{
       display: "grid",
-      gridTemplateColumns: "280px 330px 1fr 130px 80px",
-      alignItems: "center",
-      columnGap: 1,
+      gridTemplateColumns: "minmax(0, 24%) minmax(0, 29%) minmax(0, 13%) minmax(0, 12%) auto auto",
+      alignItems: "flex-start",
       width: "100%",
+      minWidth: 0,
+      gap: 1,
       mb: 0.2,
+      "@media (max-width: 900px)": {
+        gridTemplateColumns: "minmax(0, 24%) minmax(0, 29%) minmax(0, 13%) minmax(0, 12%) auto auto",
+      },
+      "@media (max-width: 600px)": {
+        gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)",
+      },
     }}
   >
     {/* Label */}
-    <HBox
-      sx={{
-        width: "280px",
-        minWidth: "280px",
-      }}
-    >
+    <HBox sx={{ minWidth: 0 }}>
       <HLabel
         value={labelKey}
         required={required}
@@ -43,38 +48,47 @@ const KycVerifyRow = ({
     </HBox>
 
     {/* Input */}
-    <HTextField
-      value={value ?? ""}
-      onChange={onChange}
-      editable={!disabled}
-      disabled={disabled}
-      required={required}
-      placeholder={placeholder}
-      length={maxLength}
-      width="330px"
-    />
-
-    {/* Empty space between input and button */}
-    <HBox />
-
-    {/* Verify / Trigger button */}
+    <HBox sx={{ minWidth: 0, display: "flex", flexDirection: "column" }}>
+      <HTextField
+        value={value ?? ""}
+        onChange={onChange}
+        editable={!disabled}
+        disabled={disabled}
+        required={required}
+        error={error}
+        placeholder={placeholder}
+        length={maxLength}
+        width="100%"
+      />
+      <FieldError message={errorMessage} sx={{ mt: 2 }} />
+    </HBox>
+    <HBox sx={{ minWidth: 0 }} />
+    <HBox sx={{ minWidth: 0 }} />
+    {/* Verify */}
     <HButton
-      label={buttonLabelKey}
+      label={
+        isTriggerButton
+          ? "label.qde.button.trigger"
+          : buttonLabelKey
+      }
       variant="outlined"
       size="small"
       inline
       loading={verifying}
-      disabled={disabled || !value}
+      disabled={disabled || (disableVerifyWhenEmpty && !value)}
+      startIcon={
+        <VerifiedUserOutlinedIcon fontSize="small" />
+      }
       onClick={onVerify}
+      sx={{ height: "32px", minHeight: "32px", whiteSpace: "nowrap", width: "120px", minWidth: "120px", maxWidth: "120px" }}
     />
 
     {/* Status */}
-    <HLabel
-      value={statusLabelKey(status)}
-      align="left"
-      colon={false}
-    />
+    <HBox sx={{ justifySelf: "end", mr: 1 }}>
+      <KycStatusLabel status={status} />
+    </HBox>
   </HBox>
 );
 
 export default KycVerifyRow;
+

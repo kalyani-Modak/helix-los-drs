@@ -8,10 +8,10 @@ import DeleteOutline from "@mui/icons-material/DeleteOutline";
 import IconButton from "@mui/material/IconButton";
 import { IntlProvider, useIntl } from "react-intl";
 import { HAxiosService, HBox, HBreadCrumb, HButton, useDrsTheme, HButtonBar, HDatePicker, HDialog, HDropdown, HLabel, HPaper, HTextField, HTextarea, TitleBar, useToast, } from "@helix/component-library";
-
+import AddIcon from "@mui/icons-material/Add";
 import dayjs from "dayjs";
 
-import { LosDocumentAPI } from "./apiEndpoints";
+import { LosDocumentAPI, LosQdeAPI } from "./apiEndpoints";
 import { unwrapApiResponse } from "./unwrapApiResponse";
 
 /* ============================================================
@@ -55,6 +55,21 @@ const MOCK_STAGE_OPTIONS = [
   },
 ];
 
+const MOCK_CATEGORY_OPTIONS = [
+  {
+    label: "Salaried",
+    value: "Salaried",
+  },
+  {
+    label: "Self Employed Professional",
+    value: "Self Employed Professional",
+  },
+  {
+    label: "General",
+    value: "General",
+  }
+];
+
 
 const MOCK_WAIVE_REASON_OPTIONS = [
   {
@@ -92,7 +107,6 @@ const toDropdownOptions = (rows = []) =>
   (Array.isArray(rows) ? rows : []).map((row) => ({
     label: row.label || row.value,
     value: row.value,
-    customerType: row.customerType || "",
   }));
 
 const newCustomId = () =>
@@ -185,7 +199,7 @@ const isDocumentChanged = (item, originalItem) => {
 const ApplicationDocumentUpload = () => {
   const intl = useIntl();
   const toast = useToast();
-  const { themeVars } = useDrsTheme();
+  const { colors, surfaces, text, border, action, isDark } = useDrsTheme();
 
 
 
@@ -261,7 +275,8 @@ const ApplicationDocumentUpload = () => {
      STATE
      ========================================================== */
 
-  const [applicationNo, setApplicationNo] = useState(incomingApplicationNo || "A1");
+  const [applicationNo, setApplicationNo] = useState(incomingApplicationNo || "");
+  const [applicationOptions, setApplicationOptions] = useState([]);
 
   const [applicantOptions, setApplicantOptions] = useState([]);
 
@@ -272,10 +287,10 @@ const ApplicationDocumentUpload = () => {
   const [waiveReasonOptions, setWaiveReasonOptions,] = useState(USE_MOCK_DATA ? MOCK_WAIVE_REASON_OPTIONS : []);
 
   const [applicableFor, setApplicableFor] = useState("");
+  const [applicantCategory, setApplicantCategory] = useState("");
+  const [applicantCategoryOptions, setApplicantCategoryOptions] = useState(USE_MOCK_DATA ? MOCK_CATEGORY_OPTIONS : []);
 
   const [stage, setStage] = useState(USE_MOCK_DATA ? MOCK_DOCUMENT_DATA.stage : "");
-
-  const [customerType, setCustomerType] = useState("");
 
   const [families, setFamilies] = useState([]);
 
@@ -297,6 +312,62 @@ const ApplicationDocumentUpload = () => {
   const [deferDialog, setDeferDialog] = useState(null);
   const [validationErrors, setValidationErrors] = useState({});
   const fileInputs = useRef({});
+
+  const loadApplicationOptions = useCallback(async () => {
+    try {
+      const response = await HAxiosService.GET(
+        LosQdeAPI.listApplications(orgId)
+      ).then(unwrapApiResponse);
+
+      const rows = Array.isArray(response)
+        ? response
+        : response?.content || response?.applications || response?.data || [];
+
+      const options = rows
+        .map((row) => {
+          const value =
+            row.applicationNo ||
+            row.applicationNumber ||
+            row.szApplicationNo ||
+            row.szapplicationno;
+
+          return value
+            ? {
+              label: String(value),
+              value: String(value),
+            }
+            : null;
+        })
+        .filter(Boolean);
+
+      if (
+        incomingApplicationNo &&
+        !options.some((option) => option.value === String(incomingApplicationNo))
+      ) {
+        options.unshift({
+          label: String(incomingApplicationNo),
+          value: String(incomingApplicationNo),
+        });
+      }
+
+      setApplicationOptions(options);
+
+      if (incomingApplicationNo) {
+        setApplicationNo(String(incomingApplicationNo));
+      } else if (options.length > 0) {
+        setApplicationNo(options[0].value);
+      }
+    } catch (error) {
+      toast.error(
+        error?.message ||
+        t(
+          "label.docupload.msg.loadApplicationsFailed",
+          "Unable to load applications"
+        )
+      );
+      setApplicationOptions([]);
+    }
+  }, [incomingApplicationNo, orgId, t, toast]);
 
 
 
@@ -327,6 +398,77 @@ const ApplicationDocumentUpload = () => {
     }
 
     return STATUS.PENDING;
+  };
+
+  const getStatusPillStyle = (status) => {
+    switch (status) {
+      case STATUS.RECEIVED:
+        return {
+          backgroundColor: isDark
+            ? "rgba(76, 175, 80, 0.18)"
+            : "#e6f4ea",
+          color: isDark ? "#81c784" : "#1e7e34",
+          border: `1px solid ${isDark ? "#3f7a44" : "#b7e1c1"}`,
+        };
+
+      case STATUS.DEFERRED:
+        return {
+          backgroundColor: isDark
+            ? "rgba(255, 193, 7, 0.18)"
+            : "#fff4e5",
+          color: isDark ? "#ffd166" : "#b26a00",
+          border: `1px solid ${isDark ? "#8a5a00" : "#ffd8a8"}`,
+        };
+
+      case STATUS.WAIVED:
+        return {
+          backgroundColor: isDark
+            ? "rgba(33, 150, 243, 0.18)"
+            : "#e7f1ff",
+          color: isDark ? "#7fb8ff" : "#0b4f9e",
+          border: `1px solid ${isDark ? "#2f6fbf" : "#bcd6ff"}`,
+        };
+
+      case STATUS.PENDING:
+      default:
+        return {
+          backgroundColor: surfaces.panel,
+          color: text.secondary,
+          border: `1px solid ${border.divider}`,
+        };
+    }
+  };
+
+  const getStatusButtonSx = (status, isActive) => {
+    const pill = getStatusPillStyle(status);
+
+    if (!isActive) {
+      // Inactive = outlined neutral
+      return {
+        ...documentButtonStyle,
+        backgroundColor: "transparent",
+        color: text.secondary,
+        borderColor: border.control,
+        "&:hover": {
+          borderColor: border.hover,
+          color: colors.primary,
+          backgroundColor: action.hover,
+        },
+      };
+    }
+
+    // Active = filled with the same palette as the pill
+    return {
+      ...documentButtonStyle,
+      backgroundColor: pill.backgroundColor,
+      color: pill.color,
+      borderColor: pill.border.replace("1px solid ", ""),
+      "&:hover": {
+        backgroundColor: pill.backgroundColor,
+        color: pill.color,
+        borderColor: pill.border.replace("1px solid ", ""),
+      },
+    };
   };
 
   const receivedCount = items.filter(
@@ -590,12 +732,6 @@ const ApplicationDocumentUpload = () => {
             ""
         );
 
-        setCustomerType(
-          (current) =>
-            current ||
-            typeOpts[0]?.value ||
-            ""
-        );
       } catch (error) {
         toast.error(
           error?.message ||
@@ -619,12 +755,12 @@ const ApplicationDocumentUpload = () => {
 
   const loadChecklist = useCallback(async () => {
     try {
-      if (!applicationNo || !applicantsLoaded || !applicableFor || !stage) {
+      if (!applicationNo || !applicantsLoaded || !applicableFor || !stage || !applicantCategory) {
         setFamilies([]);
         return;
       }
 
-      const payload = await HAxiosService.GET(LosDocumentAPI.LosDocumentAPI("ECF-DocumentUpload") + "/documents" + `?szApplicantId=${applicableFor}&szStageDue=${stage}`).then(unwrapApiResponse);
+      const payload = await HAxiosService.GET(LosDocumentAPI.LosDocumentAPI("ECF-DocumentUpload") + "/documents" + `?szApplicantId=${applicableFor}&szStageDue=${stage}&szApplicantCategory=${applicantCategory}`).then(unwrapApiResponse);
 
       console.log("Incomming payload = ", payload);
       applyFamilies(payload);
@@ -635,7 +771,7 @@ const ApplicationDocumentUpload = () => {
       console.error("Failed to load document checklist", error);
       setFamilies([]);
     }
-  }, [applicationNo, applicantsLoaded, applicableFor, stage, applyFamilies]);
+  }, [applicationNo, applicantsLoaded, applicableFor, applicantCategory, stage, applyFamilies]);
 
   const loadApplicantOptions = useCallback(async () => {
     setApplicantsLoaded(false);
@@ -659,9 +795,7 @@ const ApplicationDocumentUpload = () => {
         const selectedApplicant = options.find(
           (option) => option.value === selectedValue
         );
-        setCustomerType(
-          selectedApplicant?.customerType || ""
-        );
+
         return selectedValue;
       });
       setApplicantsLoaded(true);
@@ -679,6 +813,11 @@ const ApplicationDocumentUpload = () => {
   /* ==========================================================
      INITIAL LOAD
      ========================================================== */
+
+  useEffect(() => {
+    loadApplicationOptions();
+  }, [loadApplicationOptions]);
+
   useEffect(() => {
     loadApplicantOptions();
   }, [loadApplicantOptions]);
@@ -1183,22 +1322,6 @@ const ApplicationDocumentUpload = () => {
      PREVIEW
      ========================================================== */
 
-  // const handlePreview = (item) => {
-  //   if (item.selectedFile) {
-  //     const fileUrl = URL.createObjectURL(item.selectedFile);
-
-  //     setPreview({
-  //       ...item,
-  //       fileUrl,
-  //       fileName: item.selectedFile.name,
-  //       fileType: item.selectedFile.type,
-  //     });
-
-  //     return;
-  //   }
-
-  //   // existing backend logic...
-  // };
 
   const handlePreview = async (item) => {
     setPreview((current) => {
@@ -1282,7 +1405,7 @@ const ApplicationDocumentUpload = () => {
       );
     }
 
-    if (!customerType?.trim()) {
+    if (!applicantCategory?.trim()) {
       errors.customerType = t(
         "label.docupload.validation.customerType",
         "Please select a Customer Type"
@@ -1297,7 +1420,7 @@ const ApplicationDocumentUpload = () => {
     }
 
     return true;
-  }, [applicableFor, stage, customerType,t, toast]);
+  }, [applicableFor, stage, applicantCategory, t, toast]);
 
   const validateMandatoryDocuments = () => {
     const allItems = flattenItems(families);
@@ -1349,7 +1472,7 @@ const ApplicationDocumentUpload = () => {
           };
         }
 
-        const appNo = applicationNo || incomingApplicationNo || `APP-${Date.now()}`;
+        const appNo = applicationNo || incomingApplicationNo;
 
         if (!applicationNo) {
           setApplicationNo(appNo);
@@ -1366,10 +1489,10 @@ const ApplicationDocumentUpload = () => {
         );
 
         if (currentItems.length === 0) {
+
+          toast.error(t("label.docupload.msg.notchanged", "No data changed to save"));
           return { success: true };
         }
-
-        console.log("current items = ", currentItems);
 
         const requestPayload = currentItems.map((item) => ({
           /*
@@ -1645,15 +1768,6 @@ const ApplicationDocumentUpload = () => {
          */
         const formData = new FormData();
 
-        /*
-         * JSON part
-         *
-         * Backend:
-         * @RequestPart("request")
-         * ArrayList<DocumentUploadItemRequestDto>
-         *
-         * Blob content type = application/json
-         */
         formData.append(
           "request",
           new Blob(
@@ -1664,14 +1778,6 @@ const ApplicationDocumentUpload = () => {
           )
         );
 
-        /*
-         * ==================================================
-         * ADD FILES
-         *
-         * file_1001 → PDF 1
-         * file_1002 → PDF 2
-         * ==================================================
-         */
         currentItems.forEach((item) => {
           if (item.selectedFile) {
             formData.append(
@@ -1682,17 +1788,7 @@ const ApplicationDocumentUpload = () => {
           }
         });
 
-        /*
-         * ==================================================
-         * BACKEND UPLOAD CALL
-         *
-         * POST /documents/upload
-         *
-         * NO Idempotency-Key HEADER
-         *
-         * Backend generates it internally.
-         * ==================================================
-         */
+
         const saved = unwrapApiResponse(
           await HAxiosService.POST(
             LosDocumentAPI.LosDocumentAPI(
@@ -1721,7 +1817,8 @@ const ApplicationDocumentUpload = () => {
             ) +
             "/documents" +
             `?szApplicantId=${encodeURIComponent(applicableFor)}` +
-            `&szStageDue=${encodeURIComponent(stage)}`
+            `&szStageDue=${encodeURIComponent(stage)}`+
+            `&szApplicantCategory=${encodeURIComponent(applicantCategory)}`
           )
         );
 
@@ -1834,16 +1931,16 @@ const ApplicationDocumentUpload = () => {
   return (
     <IntlProvider locale={intl.locale} messages={localeOverrides}>
       <HBox>
-       <HBox sx={{ width: "100%",padding:"0.5rem 1rem 0 1rem", flexDirection: "column", borderBottom: "1px solid var(--drs-border-divider, hsl(215 14% 90%))", }}>
-        <HBreadCrumb />
+        <HBox sx={{ width: "100%", padding: "0.5rem 1rem 0 1rem", flexDirection: "column", borderBottom: "1px solid var(--drs-border-divider, hsl(215 14% 90%))", }}>
+          <HBreadCrumb />
 
-        <TitleBar
-          title={t(
-            "label.docupload.title",
-            "Document Upload"
-          )}
-        />
-        <HLabel
+          <TitleBar
+            title={t(
+              "label.docupload.title",
+              "Document Upload"
+            )}
+          />
+          <HLabel
             value="Upload supporting documents required for the application."
             align="left"
             colon={false}
@@ -1856,9 +1953,44 @@ const ApplicationDocumentUpload = () => {
           MAIN PAPER
           ====================================================== */}
 
-        <HBox sx={{ width: "100%", padding:"0.5rem 1rem 0 1rem" }}>
+        <HBox sx={{ width: "100%", padding: "0.5rem 1rem 0 1rem" }}>
 
           <HPaper>
+            <HBox
+              style={{
+                display: "flex",
+                flexDirection: "row",
+                alignItems: "center",
+                width: "100%",
+                marginBottom: "12px",
+                gap: "5px"
+              }}
+            >
+              <HLabel
+                value={t(
+                  "label.docupload.field.applicationNo",
+                  "Application No"
+                )}
+                translate={false}
+                align="left"
+                colon={false}
+                sx={{ fontWeight: "bold" }}
+              />
+
+              <HDropdown
+                name="applicationNo"
+                options={applicationOptions}
+                value={applicationNo}
+                onChange={(e) => {
+                  const nextApplicationNo = e.target.value;
+                  setFamilies([]);
+                  setApplicantOptions([]);
+                  setApplicableFor("");
+                  setApplicationNo(nextApplicationNo);
+                }}
+                width="51%"
+              />
+            </HBox>
 
             {/* ==================================================
               TOP FILTER BAR
@@ -1874,7 +2006,8 @@ const ApplicationDocumentUpload = () => {
                 flexDirection: "row",
                 alignItems: "center",
                 width: "100%",
-                marginBottom: "8px"
+                marginBottom: "8px",
+                gap: "16px",
               }}
             >
               {/* APPLICABLE FOR */}
@@ -1883,9 +2016,8 @@ const ApplicationDocumentUpload = () => {
                   display: "flex",
                   flexDirection: "row",
                   alignItems: "center",
-                  width: "33.33%",
-                  paddingRight: "12px",
-                  boxSizing: "border-box",
+                  flex: "1",
+                  minWidth: 0,
                 }}
               >
                 <HLabel
@@ -1893,12 +2025,7 @@ const ApplicationDocumentUpload = () => {
                   required
                   align="left"
                   colon={false}
-                  style={{
-                    width: "95px",
-                    minWidth: "95px",
-                    whiteSpace: "nowrap",
-                    marginRight: "10px",
-                  }}
+                  sx={{ fontWeight: "bold", mr: "8px" }}
                 />
 
                 <HDropdown
@@ -1911,11 +2038,9 @@ const ApplicationDocumentUpload = () => {
                     const selectedApplicant = applicantOptions.find(
                       (option) => option.value === selectedValue
                     );
-                    setCustomerType(
-                      selectedApplicant?.customerType || ""
-                    );
                   }}
-                  width="300px"
+                  width="100%"
+                  sx={{ flex: 1, minWidth: 0 }}
                 />
               </HBox>
 
@@ -1926,9 +2051,8 @@ const ApplicationDocumentUpload = () => {
                   display: "flex",
                   flexDirection: "row",
                   alignItems: "center",
-                  width: "33.33%",
-                  paddingRight: "12px",
-                  boxSizing: "border-box",
+                  flex: "1",
+                  minWidth: 0,
                 }}
               >
                 <HLabel
@@ -1936,12 +2060,7 @@ const ApplicationDocumentUpload = () => {
                   required
                   align="left"
                   colon={false}
-                  style={{
-                    width: "55px",
-                    minWidth: "55px",
-                    whiteSpace: "nowrap",
-                    marginRight: "10px",
-                  }}
+                  sx={{ fontWeight: "bold", mr: "8px" }}
                 />
 
                 <HDropdown
@@ -1951,7 +2070,8 @@ const ApplicationDocumentUpload = () => {
                   onChange={(e) =>
                     setStage(e.target.value)
                   }
-                  width="220px"
+                  width="100%"
+                  sx={{ flex: 1, minWidth: 0 }}
                 />
               </HBox>
 
@@ -1962,8 +2082,8 @@ const ApplicationDocumentUpload = () => {
                   display: "flex",
                   flexDirection: "row",
                   alignItems: "center",
-                  width: "33.33%",
-                  boxSizing: "border-box",
+                  flex: "1", minWidth: 0,
+
                 }}
               >
                 <HLabel
@@ -1971,18 +2091,17 @@ const ApplicationDocumentUpload = () => {
                   required
                   align="left"
                   colon={false}
-                  style={{
-                    width: "95px",
-                    minWidth: "95px",
-                    whiteSpace: "nowrap",
-                    marginRight: "10px",
-                  }}
+                  sx={{ fontWeight: "bold", mr: "8px" }}
                 />
-
-                <HTextField
+                <HDropdown
                   name="customerType"
-                  value={customerType}
-                  sx={{ mb: 2, ml: 1 }}
+                  options={applicantCategoryOptions}
+                  value={applicantCategory}
+                  onChange={(e) =>
+                    setApplicantCategory(e.target.value)
+                  }
+                  width="100%"
+                  sx={{ flex: 1, minWidth: 0 }}
                 />
               </HBox>
             </HBox>
@@ -2006,7 +2125,7 @@ const ApplicationDocumentUpload = () => {
                 value="label.docupload.checklist.title"
                 align="left"
                 colon={false}
-                sx={{fontWeight: "bold", fontSize: "14px"}}
+                sx={{ fontWeight: "bold", fontSize: "14px" }}
               />
 
               {/* Hint (left) + received count (right) on the same line */}
@@ -2087,8 +2206,8 @@ const ApplicationDocumentUpload = () => {
                     translate={false}
                     align="left"
                     colon={false}
-                    style={{
-                      fontWeight: 600,
+                    sx={{
+                      fontWeight: "bold", fontSize: "14px"
                     }}
                   />
 
@@ -2097,7 +2216,7 @@ const ApplicationDocumentUpload = () => {
                   <HButton
                     label="label.docupload.button.addDocument"
                     variant="outlined"
-                    inline
+                    startIcon={<AddIcon sx={{ fontSize: 18 }} />}
                     onClick={() =>
                       setAddingFor(
                         addingFor === family.docFamilyCode
@@ -2105,6 +2224,7 @@ const ApplicationDocumentUpload = () => {
                           : family.docFamilyCode
                       )
                     }
+                    sx={{ ...documentButtonStyle }}
                   />
 
                 </HBox>
@@ -2140,7 +2260,7 @@ const ApplicationDocumentUpload = () => {
                       variant="outlined"
                       inline
                       onClick={() => handleAddCustom(family)}
-                      sx={{ mt: 1 }}
+                      sx={{ mt: 1, ...documentButtonStyle }}
                     />
 
                     <HButton
@@ -2148,7 +2268,7 @@ const ApplicationDocumentUpload = () => {
                       variant="outlined"
                       inline
                       onClick={() => { setAddingFor(""); setNewDocName(""); }}
-                      sx={{ mt: 1 }}
+                      sx={{ mt: 1, ...documentButtonStyle }}
                     />
 
                   </HBox>
@@ -2200,21 +2320,27 @@ const ApplicationDocumentUpload = () => {
                               value={item.szDocCode || item.szdoccode}
                               translate={false}
                               align="left"
+                              required={(item.szmandatoryyn || item.szMandatoryYn) === "Y"}
                               colon={false}
+                              sx={{ fontWeight: "bold", fontSize: "12px" }}
                             />
-
-                            <HLabel
-                              value={t(
-                                item.custom
-                                  ? "label.docupload.flag.custom"
-                                  : "label.docupload.flag.system",
-                                item.custom ? "Custom" : "System generated"
-                              )}
-                              translate={false}
-                              align="left"
-                              colon={false}
-                            />
-
+                            <HBox style={{ display: "flex", flexDirection: "row", gap: "8px", }}>
+                              <HLabel
+                                value={t(item.custom ? "label.docupload.flag.custom" : "label.docupload.flag.system",
+                                  item.custom ? "Custom" : "System generated")}
+                                translate={false}
+                                align="left"
+                                colon={false}
+                              />
+                              {item.fileName ? (
+                                <HLabel
+                                  value={`${item.fileName} ${item.fileSize ? `(${formatFileSize(item.fileSize)})` : ""}`}
+                                  translate={false}
+                                  align="left"
+                                  colon={false}
+                                />
+                              ) : null}
+                            </HBox>
                           </HBox>
 
                         </HBox>
@@ -2232,7 +2358,7 @@ const ApplicationDocumentUpload = () => {
 
                         {/* ================  UPLOAD========================*/}
 
-                        <HBox style={{ display: "flex", flexDirection: "row", alignItems: "center", gap: "8px", width: "65%", }}>
+                        <HBox style={{ display: "flex", flexDirection: "row", flex: "1 1 0", alignItems: "center", gap: "8px", width: "65%", minWidth: 0, }}>
 
                           <HButton
                             label={t(
@@ -2251,15 +2377,12 @@ const ApplicationDocumentUpload = () => {
                           {/* ====================================RECEIVED==================================== */}
 
                           <HButton
-                            label={t(
-                              "label.docupload.button.received",
-                              "Received"
-                            )}
+                            label={t("label.docupload.button.received", "Received")}
                             translate={false}
-                            variant={item.status === STATUS.RECEIVED ? "contained" : "outlined"}
+                            variant="outlined"
                             inline
                             onClick={() => handleStatusClick(item, STATUS.RECEIVED)}
-                            sx={{ ...documentButtonStyle }}
+                            sx={getStatusButtonSx(STATUS.RECEIVED, item.status === STATUS.RECEIVED)}
                           />
 
                           {/* ====================================DEFERRED==================================== */}
@@ -2270,10 +2393,10 @@ const ApplicationDocumentUpload = () => {
                               "Deferred"
                             )}
                             translate={false}
-                            variant={item.status === STATUS.DEFERRED ? "contained" : "outlined"}
+                            variant="outlined"
                             inline
                             onClick={() => handleStatusClick(item, STATUS.DEFERRED)}
-                            sx={{ ...documentButtonStyle }}
+                            sx={getStatusButtonSx(STATUS.DEFERRED, item.status === STATUS.DEFERRED)}
                           />
 
                           {/* ====================================WAIVED==================================== */}
@@ -2284,38 +2407,40 @@ const ApplicationDocumentUpload = () => {
                               "Waived"
                             )}
                             translate={false}
-                            variant={item.status === STATUS.WAIVED ? "contained" : "outlined"}
+                            variant="outlined"
                             inline
                             onClick={() => handleStatusClick(item, STATUS.WAIVED)}
-                            sx={{ ...documentButtonStyle }}
+                            sx={getStatusButtonSx(STATUS.WAIVED, item.status === STATUS.WAIVED)}
                           />
 
 
                           {/* ====================================STATUS==================================== */}
 
-                          <HLabel
-                            value={getDocumentStatusLabel(getDocumentStatus(item))}
-                            translate={false}
-                            align="left"
-                            colon={false}
-                          />
+                          {(() => {
+                            const status = getDocumentStatus(item);
+                            const pillStyle = getStatusPillStyle(status);
 
-
-                          {/* ====================================FILE NAME==================================== */}
-
-                          {item.fileName ? (
-                            <HLabel
-                              value={`${item.fileName} ${item.fileSize
-                                ? `(${formatFileSize(
-                                  item.fileSize
-                                )})`
-                                : ""
-                                }`}
-                              translate={false}
-                              align="left"
-                              colon={false}
-                            />
-                          ) : null}
+                            return (
+                              <span
+                                style={{
+                                  marginLeft: "auto",
+                                  flexShrink: 0,
+                                  display: "inline-flex",
+                                  alignItems: "center",
+                                  justifyContent: "center",
+                                  padding: "2px 12px",
+                                  borderRadius: "999px",
+                                  fontSize: "10px",
+                                  fontWeight: 600,
+                                  lineHeight: 1.4,
+                                  whiteSpace: "nowrap",
+                                  ...pillStyle,
+                                }}
+                              >
+                                {getDocumentStatusLabel(status)}
+                              </span>
+                            );
+                          })()}
 
 
                           {/* ====================================PREVIEW==================================== */}
@@ -2672,6 +2797,7 @@ const ApplicationDocumentUpload = () => {
                       status: STATUS.DEFERRED,
 
                       szstagedue: deferDialog.stage,
+                      deferralStage: deferDialog.stage,
 
                       deferralDate: deferDialog.date,
 
