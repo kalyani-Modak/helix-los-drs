@@ -277,7 +277,7 @@ const IndividualKyc = ({
         status={form.panStatus}
         verifying={verifying.pan}
         onVerify={handlers.onVerifyPan}
-        required
+        // required
         error={Boolean(errors.pan)}
         errorMessage={errors.pan}
         maxLength={10}

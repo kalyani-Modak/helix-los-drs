@@ -51,6 +51,18 @@ const normalizeCustomerType = (...values) => {
     ? "Existing"
     : "New";
 };
+// borrowerType: normalizeBorrowerType(p?.szBorrowerType),
+
+const normalizeBorrowerType = (value, fallback = "Individual") => {
+  const normalizedValue = String(value ?? "")
+    .trim()
+    .replace(/[\s-]+/g, "_")
+    .toUpperCase();
+
+  if (normalizedValue === "NON_INDIVIDUAL") return "Non-Individual";
+  if (normalizedValue === "INDIVIDUAL") return "Individual";
+  return fallback;
+};
 
 const normalizeLookupValue = (value, options, fallbackOptions = []) => {
   if (value == null || value === "") return "";
@@ -129,12 +141,12 @@ const validateKycFields = (obj, isNonInd, translate) => {
   } else {
     const pan = String(obj.pan ?? "").trim().toUpperCase();
 
-    if (!pan || !PAN_PATTERN.test(pan)) {
-      errors.pan = message(
-        "label.qde.validation.panInvalid",
-        "Please enter a valid PAN number."
-      );
-    }
+    // if (!pan || !PAN_PATTERN.test(pan)) {
+    //   errors.pan = message(
+    //     "label.qde.validation.panInvalid",
+    //     "Please enter a valid PAN number."
+    //   );
+    // }
 
     if (!obj.aadhaar?.trim() || !AADHAAR_PATTERN.test(obj.aadhaar.trim())) {
       errors.aadhaar = message(
@@ -233,9 +245,9 @@ if (!obj.dob) {
     if (!obj.asAadhaar?.trim() || !AADHAAR_PATTERN.test(obj.asAadhaar.trim())) {
       errors.asAadhaar = message("label.qde.validation.aadhaarInvalid", "Please enter a valid 12-digit Aadhaar number.");
     }
-    if (!obj.asPan?.trim() || !PAN_PATTERN.test(obj.asPan.trim().toUpperCase())) {
-      errors.asPan = message("label.qde.validation.panInvalid", "Please enter a valid PAN number.");
-    }
+    // if (!obj.asPan?.trim() || !PAN_PATTERN.test(obj.asPan.trim().toUpperCase())) {
+    //   errors.asPan = message("label.qde.validation.panInvalid", "Please enter a valid PAN number.");
+    // }
   }
 
   Object.assign(errors, validateKycFields(obj, isNonInd, translate));
@@ -677,6 +689,7 @@ const ApplicationQuickDataEntry = () => {
       applicationType: response.applicationType || "N",
       portfolio: response.portfolio || DEFAULT_PORTFOLIO,
       borrowerType: response.borrowerType || prev.borrowerType,
+        borrowerType: normalizeBorrowerType(response.borrowerType, prev.borrowerType),
       customerType: customerId
         ? "Existing"
         : normalizeCustomerType(response.customerType, applicant.customerType, prev.customerType),
@@ -869,7 +882,8 @@ const ApplicationQuickDataEntry = () => {
     const loan = response.loanDetails || {};
     const sourcing = response.sourcingDetails || {};
     const customerId = applicant.szCustomerId || "";
-    const isNonIndividualApplicant = control.szBorrowerType === "NON-INDIVIDUAL";
+    // const isNonIndividualApplicant = control.szBorrowerType === "NON-INDIVIDUAL";
+    const isNonIndividualApplicant = normalizeBorrowerType(control.szBorrowerType) === "Non-Individual";
 
     setForm((prev) => ({
       ...prev,
