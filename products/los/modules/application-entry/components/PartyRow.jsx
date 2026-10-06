@@ -284,10 +284,10 @@ const PartyRow = ({
                   sx={{
                     position: "absolute",
                     right: 4,
-                    top: "50%",
+                    top: "80%",
                     transform: "translateY(-50%)",
                     color: "primary.main",
-                    backgroundColor: "background.paper",
+                    backgroundColor: "transparent",
                     "&:hover": { backgroundColor: "action.hover" },
                   }}
                 >
