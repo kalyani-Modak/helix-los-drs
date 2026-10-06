@@ -606,10 +606,10 @@ const openSimulator = () => {
           />
 
           <HTextField
-            value={`{formatAmount(estimatedEmi)}/mo`}
-            type="currency"
+            value={`$${formatAmount(estimatedEmi)}/month`}
+            type="text"
             length={3}
-            align={ALIGNMENT.NUMBER}
+            align={ALIGNMENT.TEXT}
             error={Boolean(err("tenure"))}
             width="100%"
           />

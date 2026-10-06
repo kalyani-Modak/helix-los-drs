@@ -1,6 +1,7 @@
 import { HDatePicker, HLabel, HTextField, HBox } from "@helix/component-library";
 import SectionBlock from "../components/SectionBlock";
 import FieldError from "../components/FieldError";
+import VerifyLink from "../components/VerifyLink";
 import { fromPickerValue, toPickerValue } from "../dateHelpers";
 import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
@@ -123,32 +124,10 @@ const AuthSignatorySection = ({
                   <HLabel value="Verified" colon={false} />
                 </HBox>
               ) : (
-                <a
-                  href="#"
-                  onClick={(event) => {
-                    event.preventDefault();
-                    if (isValidMobile(form.asMobile)) onVerifyAsMobile();
-                  }}
-                  style={{
-                    pointerEvents: isValidMobile(form.asMobile) ? "auto" : "none",
-                    opacity: isValidMobile(form.asMobile) ? 1 : 0.7,
-                    whiteSpace: "nowrap",
-                    cursor: "pointer",
-                    textDecoration: "none",
-                    fontSize: "12px",
-                    marginTop: "4px",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (isValidMobile(form.asMobile)) {
-                      e.currentTarget.style.textDecoration = "underline";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.textDecoration = "none";
-                  }}
-                >
-                  Verify
-                </a>
+                <VerifyLink
+                  isValid={isValidMobile(form.asMobile)}
+                  onVerify={onVerifyAsMobile}
+                />
               )}
             </HBox>
             <FieldError message={mobileError}  sx={{ mt: 1 }} />
@@ -175,32 +154,10 @@ const AuthSignatorySection = ({
                   <HLabel value="Verified" colon={false} />
                 </HBox>
               ) : (
-                <a
-                  href="#"
-                  onClick={(event) => {
-                    event.preventDefault();
-                    if (isValidEmail(form.asEmail)) onVerifyAsEmail();
-                  }}
-                  style={{
-                    pointerEvents: isValidEmail(form.asEmail) ? "auto" : "none",
-                    opacity: isValidEmail(form.asEmail) ? 1 : 0.7,
-                    whiteSpace: "nowrap",
-                    cursor: "pointer",
-                    textDecoration: "none",
-                    fontSize: "12px",
-                    marginTop: "4px",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (isValidEmail(form.asEmail)) {
-                      e.currentTarget.style.textDecoration = "underline";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.textDecoration = "none";
-                  }}
-                >
-                  Verify
-                </a>
+                <VerifyLink
+                  isValid={isValidEmail(form.asEmail)}
+                  onVerify={onVerifyAsEmail}
+                />
               )}
             </HBox>
             <FieldError message={emailError}  sx={{ mt: 1 }} />

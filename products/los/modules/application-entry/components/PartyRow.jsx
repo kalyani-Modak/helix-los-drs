@@ -9,6 +9,7 @@ import AddressDetailsSection from "../sections/AddressDetailsSection";
 import KycCheckSection from "../sections/KycCheckSection";
 import SectionBlock from "./SectionBlock";
 import FieldError from "./FieldError";
+import VerifyLink from "./VerifyLink";
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
@@ -337,13 +338,9 @@ const PartyRow = ({
             {party.mobileVerified ? (
               <HLabel value="Verified" translate={false} colon={false} sx={{ color: "success.main", whiteSpace: "nowrap" }} />
             ) : (
-              <HButton
-                label="label.qde.button.verify"
-                variant="text"
-                size="small"
-                inline
-                disabled={!isValidMobile(party.mobile)}
-                onClick={() => verifyContact("mobileVerified", party.mobile, isValidMobile)}
+              <VerifyLink
+                isValid={isValidMobile(party.mobile)}
+                onVerify={() => verifyContact("mobileVerified", party.mobile, isValidMobile)}
               />
             )}
           </HBox>
@@ -364,13 +361,9 @@ const PartyRow = ({
             {party.emailVerified ? (
               <HLabel value="Verified" translate={false} colon={false} sx={{ color: "success.main", whiteSpace: "nowrap" }} />
             ) : (
-              <HButton
-                label="label.qde.button.verify"
-                variant="text"
-                size="small"
-                inline
-                disabled={!isValidEmail(party.email)}
-                onClick={() => verifyContact("emailVerified", party.email, isValidEmail)}
+              <VerifyLink
+                isValid={isValidEmail(party.email)}
+                onVerify={() => verifyContact("emailVerified", party.email, isValidEmail)}
               />
             )}
           </HBox>

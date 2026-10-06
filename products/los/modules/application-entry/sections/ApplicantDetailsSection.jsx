@@ -1,6 +1,7 @@
 import { HBox, HRadio, HCheckBox, HDatePicker, HDropdown, HLabel, HTextField } from "@helix/component-library";
 import SectionBlock from "../components/SectionBlock";
 import FieldError from "../components/FieldError";
+import VerifyLink from "../components/VerifyLink";
 import { BORROWER_CATEGORIES, ENTITY_TYPES, GENDERS } from "../constants/qdeOptions";
 import { fromPickerValue, toPickerValue } from "../dateHelpers";
 import { useIntl } from "react-intl";
@@ -322,33 +323,10 @@ const ApplicantDetailsSection = ({
                   />
                 </HBox>
               ) : (
-                <a href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-                    if (isValidMobile(form.mobile)) {
-                      onVerifyMobile();
-                    }
-                  }}
-                  style={{
-                    pointerEvents: isValidMobile(form.mobile) ? "auto" : "none",
-                    opacity: isValidMobile(form.mobile) ? 1 : 0.7,
-                    whiteSpace: "nowrap",
-                    cursor: "pointer",
-                    fontSize: "12px",
-                    textDecoration: "none",
-                    marginTop: "4px",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (isValidMobile(form.mobile)) {
-                      e.currentTarget.style.textDecoration = "underline";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.textDecoration = "none";
-                  }}
-                >
-                  Verify
-                </a>
+                <VerifyLink
+                  isValid={isValidMobile(form.mobile)}
+                  onVerify={onVerifyMobile}
+                />
               )}
             </HBox>
 
@@ -398,33 +376,10 @@ const ApplicantDetailsSection = ({
                   />
                 </HBox>
               ) : (
-                <a
-                  href="#"
-                  onClick={(e) => {
-                    e.preventDefault();
-
-                    if (isValidEmail(form.email)) {
-                      onVerifyEmail();
-                    }
-                  }}
-                  style={{
-                    pointerEvents: isValidEmail(form.email) ? "auto" : "none",
-                    opacity: isValidEmail(form.email) ? 1 : 0.7,
-                    fontSize: "12px",
-                    textDecoration: "none",
-                    marginTop: "4px",
-                  }}
-                  onMouseEnter={(e) => {
-                    if (isValidEmail(form.email)) {
-                      e.currentTarget.style.textDecoration = "underline";
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.textDecoration = "none";
-                  }}
-                >
-                  Verify
-                </a>
+                <VerifyLink
+                  isValid={isValidEmail(form.email)}
+                  onVerify={onVerifyEmail}
+                />
               )}
             </HBox>
 

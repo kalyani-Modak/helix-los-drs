@@ -125,7 +125,14 @@ const AuthSignatoryKycSection = ({
           disabled={!form.asAadhaarOtp}
           startIcon={<VerifiedUserOutlinedIcon fontSize="small" />}
           onClick={onValidateAsAadhaarOtp}
-          sx={{ width: "130px", minWidth: "130px", height: "32px", flexShrink: 0 }}
+          sx={{
+            width: "130px", minWidth: "130px", height: "32px", flexShrink: 0,
+            "&.Mui-disabled": {
+              backgroundColor: "action.disabledBackground",
+              color: "text.disabled",
+              opacity: 1,
+            },
+          }}
         />
         <AuthKycStatus status={form.asAadhaarStatus} />
       </HBox>
