@@ -5,6 +5,7 @@ import SectionBlock from "../components/SectionBlock";
 import FieldError from "../components/FieldError";
 import { useIntl } from "react-intl";
 import BusinessCenterOutlinedIcon from "@mui/icons-material/BusinessCenterOutlined";
+import { DEFAULT_PORTFOLIO } from "../constants/qdeOptions";
 
 const BusinessUnitSection = ({
   form,
@@ -67,7 +68,7 @@ const BusinessUnitSection = ({
 
           <HDropdown
             name="portfolio"
-            options={portfolioOptions?.length ? portfolioOptions : PORTFOLIOS}
+            options={ portfolioOptions }
             value={form.portfolio || DEFAULT_PORTFOLIO}
             onChange={(e) =>
               setField("portfolio", e.target.value)

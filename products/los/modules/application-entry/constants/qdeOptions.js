@@ -20,3 +20,8 @@ const STATUS_LABEL_KEYS = {
 export const statusLabelKey = (status) => STATUS_LABEL_KEYS[status] || "label.qde.status.notStarted";
 
 export const BORROWER_TYPE_NON_INDIVIDUAL = "Non-Individual";
+export const DEFAULT_PORTFOLIO = "HL";
+export const DEFAULT_LOAN_TYPE = "Term Loan";
+
+// export const LOAN_TYPES = [{ label: "Term Loan", value: "TERM" }];
+// export const OCR_DOC_TYPES = [{ label: "Application Form", value: "APPFORM" }];

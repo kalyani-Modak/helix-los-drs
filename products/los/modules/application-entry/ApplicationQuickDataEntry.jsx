@@ -5,11 +5,8 @@ import { HAxiosService, HBox, HBreadCrumb, HButtonBar, HPaper, TitleBar, useToas
 import { LosQdeAPI,LosDocumentAPI } from "./apiEndpoints";
 import { unwrapApiResponse } from "./unwrapApiResponse";
 import {
-  ADDRESS_TYPES_INDIVIDUAL,
-  ADDRESS_TYPES_NON_INDIVIDUAL,
   DEFAULT_LOAN_TYPE,
   DEFAULT_PORTFOLIO,
-  GENDERS,
   VERIFICATION_STATUS,
 } from "./constants/qdeOptions";
 import { useQdeLookups, QDE_LOOKUP_TYPES } from "./hooks/useQdeLookups";
@@ -783,7 +780,6 @@ const ApplicationQuickDataEntry = () => {
       gender: normalizeLookupValue(
         individual.szGender,
         lookups["party.gender"],
-        GENDERS
       ),
       dob: individual.dtDateOfBirth || "",
       fatherName: individual.szFatherName || "",
@@ -818,7 +814,6 @@ const ApplicationQuickDataEntry = () => {
       addressType: normalizeLookupValue(
         address.szAddressType,
         isNonInd ? lookups["los.address.type.nonindividual"] : lookups["los.address.type.individual"],
-        isNonInd ? ADDRESS_TYPES_NON_INDIVIDUAL : ADDRESS_TYPES_INDIVIDUAL
       ),
       addr1: address.szAddressLine1 || "",
       addr2: address.szAddressLine2 || "",
@@ -878,7 +873,6 @@ const ApplicationQuickDataEntry = () => {
       gender: normalizeLookupValue(
         individual.szGender,
         lookups["party.gender"],
-        GENDERS
       ),
       dob: individual.dtDateOfBirth || "",
       fatherName: individual.szFatherName || "",
