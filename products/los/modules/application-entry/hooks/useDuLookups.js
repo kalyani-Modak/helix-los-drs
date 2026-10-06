@@ -3,36 +3,19 @@ import { HAxiosService } from "@helix/component-library";
 import { LosQdeAPI } from "../apiEndpoints";
 import { unwrapApiResponse } from "../unwrapApiResponse";
 
-/** Lookup types the QDE screen's dropdowns are backed by, keyed to szLookupType in Ls_Mst_Lookup. */
-export const QDE_LOOKUP_TYPES = [
-  "los.applicationtype",
-  "los.portfolio",
-  "party.gender",
-  "los.entitytype",
-  "los.borrowercategory",
-  "los.address.type.individual",
-  "los.address.type.nonindividual",
-  "los.channel",
-  "los.loantype",
-  "los.doctype",
-  "los.product",
-  "los.scheme",
-  "los.relationship",
-  "los.branch",
-  "los.address.city",
-  "los.address.district",
-  "los.address.state",
-  "los.address.country",
+/** Lookup types owned by the DU screen. Customer Type reuses los.borrowercategory, fetched via useQdeLookups. */
+export const DU_LOOKUP_TYPES = [
+  "los.du.stage",
 ];
 
 const toHDropdownOptions = (values = []) =>
   values.map((v) => ({ label: v.szDescription, value: v.szCode }));
 
 /**
- * Fetches every QDE lookup type in one call and returns them as `{label, value}`
+ * Fetches every DU lookup type in one call and returns them as `{label, value}`
  * option arrays keyed by lookup type, ready for HDropdown.
  */
-export function useQdeLookups(orgId, types = QDE_LOOKUP_TYPES) {
+export function useDuLookups(orgId, types = DU_LOOKUP_TYPES) {
   const [lookups, setLookups] = useState({});
   const [loading, setLoading] = useState(true);
   const typesKey = types.join(",");
@@ -65,4 +48,4 @@ export function useQdeLookups(orgId, types = QDE_LOOKUP_TYPES) {
   return { lookups, loading };
 }
 
-export default useQdeLookups;
+export default useDuLookups;

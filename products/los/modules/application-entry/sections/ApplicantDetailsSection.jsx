@@ -2,7 +2,6 @@ import { HBox, HRadio, HCheckBox, HDatePicker, HDropdown, HLabel, HTextField } f
 import SectionBlock from "../components/SectionBlock";
 import FieldError from "../components/FieldError";
 import VerifyLink from "../components/VerifyLink";
-import { BORROWER_CATEGORIES, ENTITY_TYPES, GENDERS } from "../constants/qdeOptions";
 import { fromPickerValue, toPickerValue } from "../dateHelpers";
 import { useIntl } from "react-intl";
 import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
@@ -15,9 +14,9 @@ const ApplicantDetailsSection = ({
   onVerifyMobile,
   onVerifyEmail,
   errors = {},
-  genderOptions = GENDERS,
-  entityTypeOptions = ENTITY_TYPES,
-  borrowerCategoryOptions = BORROWER_CATEGORIES,
+  genderOptions = [],
+  entityTypeOptions = [],
+  borrowerCategoryOptions = [],
 }) => {
   const intl = useIntl();
   const err = (name) => errors[name];

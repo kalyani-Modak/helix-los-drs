@@ -3,7 +3,6 @@ import { IconButton } from "@mui/material";
 import { Search as SearchIcon } from "@mui/icons-material";
 import { useIntl } from "react-intl";
 import { HButton, HCheckBox, HDatePicker, HDropdown, HLabel, HTextField, HBox, useDrsTheme, HRadio } from "@helix/component-library";
-import { BORROWER_CATEGORIES, ENTITY_TYPES, GENDERS, RELATIONSHIPS } from "../constants/qdeOptions";
 import { fromPickerValue, toPickerValue } from "../dateHelpers";
 import AddressDetailsSection from "../sections/AddressDetailsSection";
 import KycCheckSection from "../sections/KycCheckSection";
@@ -41,10 +40,10 @@ const PartyRow = ({
   const { colors, text, surfaces, border, action } = useDrsTheme();
   const [applicationSearchOpen, setApplicationSearchOpen] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
-  const relationshipOptions = lookups["los.relationship"] || RELATIONSHIPS;
-  const genderOptions = lookups["party.gender"] || GENDERS;
-  const entityTypeOptions = lookups["los.entitytype"] || ENTITY_TYPES;
-  const borrowerCategoryOptions = lookups["los.borrowercategory"] || BORROWER_CATEGORIES;
+  const relationshipOptions = lookups["los.relationship"] || [];
+  const genderOptions = lookups["party.gender"] || [];
+  const entityTypeOptions = lookups["los.entitytype"] || [];
+  const borrowerCategoryOptions = lookups["los.borrowercategory"] || [];
   const [expanded, setExpanded] = useState(true);
   const isNonIndividual = party.borrowerType === "Non-Individual";
   const individualOnly = primaryBorrowerType === "Individual";
@@ -284,10 +283,10 @@ const PartyRow = ({
                   sx={{
                     position: "absolute",
                     right: 4,
-                    top: "50%",
+                    top: "80%",
                     transform: "translateY(-50%)",
                     color: "primary.main",
-                    backgroundColor: "background.paper",
+                    backgroundColor: "transparent",
                     "&:hover": { backgroundColor: "action.hover" },
                   }}
                 >
@@ -422,11 +421,15 @@ const PartyRow = ({
             form={addressForm}
             setField={setPartyField}
             isNonIndividual={isNonIndividual}
-          readOnly={Boolean(party.sameAsPrimaryAddress)}
-          noAccordion
-          errors={errors}
-          individualOptions={lookups["los.address.type.individual"]}
-          nonIndividualOptions={lookups["los.address.type.nonindividual"]}
+            readOnly={Boolean(party.sameAsPrimaryAddress)}
+            noAccordion
+            errors={errors}
+            individualOptions={lookups["los.address.type.individual"]}
+            nonIndividualOptions={lookups["los.address.type.nonindividual"]}
+            cityOptions={lookups["los.address.city"]}
+            districtOptions={lookups["los.address.district"]}
+            stateOptions={lookups["los.address.state"]}
+            countryOptions={lookups["los.address.country"]}
         />
       </HBox>
 

@@ -3,10 +3,10 @@ import { createPortal } from "react-dom";
 import { ALIGNMENT, HDropdown, HTextField, HBox, HLabel, useDrsTheme, useToast } from "@helix/component-library";
 import SectionBlock from "../components/SectionBlock";
 import FieldError from "../components/FieldError";
-import { DEFAULT_LOAN_TYPE, PRODUCTS, SCHEMES } from "../constants/qdeOptions";
+import { DEFAULT_LOAN_TYPE } from "../constants/qdeOptions";
 import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
 
-const LoanDetailsSection = ({ form, setField, errors = {}, productOptions = PRODUCTS, schemeOptions = SCHEMES }) => {
+const LoanDetailsSection = ({ form, setField, errors = {}, productOptions = [], schemeOptions = [] }) => {
   const err = (name) => errors[name];
   const toast = useToast();
   const { colors, text, border, action } = useDrsTheme();
