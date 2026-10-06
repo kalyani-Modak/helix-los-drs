@@ -1,7 +1,6 @@
 import { HDropdown, HTextField, HBox, HLabel, useToast } from "@helix/component-library";
 import SectionBlock from "../components/SectionBlock";
 import FieldError from "../components/FieldError";
-import { ADDRESS_TYPES_INDIVIDUAL, ADDRESS_TYPES_NON_INDIVIDUAL } from "../constants/qdeOptions";
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
 
 const AddressDetailsSection = ({
@@ -11,8 +10,12 @@ const AddressDetailsSection = ({
   noAccordion,
   errors = {},
   readOnly = false,
-  individualOptions = ADDRESS_TYPES_INDIVIDUAL,
-  nonIndividualOptions = ADDRESS_TYPES_NON_INDIVIDUAL,
+  individualOptions = [],
+  nonIndividualOptions = [],
+  cityOptions = [],
+  districtOptions = [],
+  stateOptions = [],
+  countryOptions = [],
 }) => {
   const addressTypes = isNonIndividual ? nonIndividualOptions : individualOptions;
   const err = (name) => errors[name];
@@ -27,7 +30,7 @@ const AddressDetailsSection = ({
       setField("city", "Pune");
       setField("district", "Pune");
       setField("state", "Maharashtra");
-      setField("country", "India");
+      setField("country", "INDIA");
 
       toast.success("PIN 560001 found. Location details populated.");
     } else if (value.length === 6) {
@@ -41,34 +44,6 @@ const AddressDetailsSection = ({
       );
     }
   };
-
-  const cityOptions = [
-    { label: "Mumbai", value: "Mumbai" },
-    { label: "Pune", value: "Pune" },
-    { label: "Nashik", value: "Nashik" },
-    { label: "Nagpur", value: "Nagpur" },
-  ];
-
-  const districtOptions = [
-    { label: "Mumbai Suburban", value: "Mumbai Suburban" },
-    { label: "Pune", value: "Pune" },
-    { label: "Thane", value: "Thane" },
-    { label: "Nashik", value: "Nashik" },
-  ];
-
-  const stateOptions = [
-    { label: "Maharashtra", value: "Maharashtra" },
-    { label: "Gujarat", value: "Gujarat" },
-    { label: "Karnataka", value: "Karnataka" },
-    { label: "Delhi", value: "Delhi" },
-  ];
-
-  const countryOptions = [
-    { label: "India", value: "India" },
-    { label: "United States", value: "United States" },
-    { label: "United Kingdom", value: "United Kingdom" },
-    { label: "Australia", value: "Australia" },
-  ];
 
   return (
     <SectionBlock sectionKey="address" titleKey="label.qde.section.address" subTitleKey="label.qde.section.address.subtitle" icon={<LocationOnOutlinedIcon fontSize="small" />} noAccordion={noAccordion} >

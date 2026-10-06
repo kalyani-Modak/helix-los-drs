@@ -3,7 +3,6 @@ import { IconButton } from "@mui/material";
 import { Search as SearchIcon } from "@mui/icons-material";
 import SectionBlock from "../components/SectionBlock";
 import FieldError from "../components/FieldError";
-import { APPLICATION_TYPES, DEFAULT_PORTFOLIO, PORTFOLIOS } from "../constants/qdeOptions";
 import { useIntl } from "react-intl";
 import BusinessCenterOutlinedIcon from "@mui/icons-material/BusinessCenterOutlined";
 
@@ -13,8 +12,8 @@ const BusinessUnitSection = ({
   errors = {},
   onOpenApplicationSearch,
   onClearApplicationNo,
-  applicationTypeOptions = APPLICATION_TYPES,
-  portfolioOptions = PORTFOLIOS,
+  applicationTypeOptions = [],
+  portfolioOptions = [],
 }) => {
   const intl = useIntl();
   const err = (name) => errors[name];

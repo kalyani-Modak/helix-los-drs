@@ -13,6 +13,8 @@ import dayjs from "dayjs";
 
 import { LosDocumentAPI, LosQdeAPI } from "./apiEndpoints";
 import { unwrapApiResponse } from "./unwrapApiResponse";
+import { useQdeLookups } from "./hooks/useQdeLookups";
+import { useDuLookups } from "./hooks/useDuLookups";
 
 /* ============================================================
    CONFIGURATION
@@ -31,45 +33,6 @@ const STATUS = {
   DEFERRED: "Deferred",
   WAIVED: "Waived",
 };
-
-/* ============================================================
-   MOCK MASTER DATA
-   ============================================================ */
-
-const MOCK_STAGE_OPTIONS = [
-  {
-    label: "Pre-Submission",
-    value: "PRE_SUBMISSION",
-  },
-  {
-    label: "Underwriting",
-    value: "UNDERWRITING",
-  },
-  {
-    label: "Pre-Approval",
-    value: "PRE_APPROVAL",
-  },
-  {
-    label: "Post-Approval",
-    value: "POST_APPROVAL",
-  },
-];
-
-const MOCK_CATEGORY_OPTIONS = [
-  {
-    label: "Salaried",
-    value: "Salaried",
-  },
-  {
-    label: "Self Employed Professional",
-    value: "Self Employed Professional",
-  },
-  {
-    label: "General",
-    value: "General",
-  }
-];
-
 
 const MOCK_WAIVE_REASON_OPTIONS = [
   {
@@ -282,15 +245,22 @@ const ApplicationDocumentUpload = () => {
 
   const [applicantsLoaded, setApplicantsLoaded] = useState(false);
 
-  const [stageOptions, setStageOptions] = useState(USE_MOCK_DATA ? MOCK_STAGE_OPTIONS : []);
+  const { lookups: duLookups } = useDuLookups(orgId);
+  const { lookups: categoryLookups } = useQdeLookups(orgId, ["los.borrowercategory"]);
+  const stageOptions = duLookups["los.du.stage"] || [];
 
   const [waiveReasonOptions, setWaiveReasonOptions,] = useState(USE_MOCK_DATA ? MOCK_WAIVE_REASON_OPTIONS : []);
 
   const [applicableFor, setApplicableFor] = useState("");
   const [applicantCategory, setApplicantCategory] = useState("");
-  const [applicantCategoryOptions, setApplicantCategoryOptions] = useState(USE_MOCK_DATA ? MOCK_CATEGORY_OPTIONS : []);
+  const applicantCategoryOptions = categoryLookups["los.borrowercategory"] || [];
 
   const [stage, setStage] = useState(USE_MOCK_DATA ? MOCK_DOCUMENT_DATA.stage : "");
+  useEffect(() => {
+    if (!stage && stageOptions.some((option) => option.value === "PRESUBMISSION")) {
+      setStage("PRESUBMISSION");
+    }
+  }, [stage, stageOptions]);
 
   const [families, setFamilies] = useState([]);
 
@@ -668,10 +638,6 @@ const ApplicationDocumentUpload = () => {
          ------------------------------------------ */
 
       if (USE_MOCK_DATA) {
-        setStageOptions(
-          MOCK_STAGE_OPTIONS
-        );
-
         setWaiveReasonOptions(
           MOCK_WAIVE_REASON_OPTIONS
         );
@@ -684,54 +650,16 @@ const ApplicationDocumentUpload = () => {
          ------------------------------------------ */
 
       try {
-        const [
-          stages,
-          types,
-          reasons,
-        ] = await Promise.all([
-          HAxiosService.GET(
-            LosDocumentAPI.stages()
-          ).then(unwrapApiResponse),
-
-          HAxiosService.GET(
-            LosDocumentAPI.customerTypes(
-              borrowerType
-            )
-          ).then(unwrapApiResponse),
-
-          HAxiosService.GET(
-            LosDocumentAPI.waiveReasons()
-          ).then(unwrapApiResponse),
-        ]);
-
-        const stageOpts =
-          toDropdownOptions(stages);
-
-        const typeOpts =
-          toDropdownOptions(types);
+        const reasons = await HAxiosService.GET(
+          LosDocumentAPI.waiveReasons()
+        ).then(unwrapApiResponse);
 
         const reasonOpts =
           toDropdownOptions(reasons);
 
-        setStageOptions(stageOpts);
-
-
         setWaiveReasonOptions(
           reasonOpts
         );
-
-        setStage(
-          (current) =>
-            current ||
-            stageOpts.find(
-              (option) =>
-                option.value ===
-                "PRE_SUBMISSION"
-            )?.value ||
-            stageOpts[0]?.value ||
-            ""
-        );
-
       } catch (error) {
         toast.error(
           error?.message ||

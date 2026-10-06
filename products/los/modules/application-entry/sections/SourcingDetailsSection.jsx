@@ -1,10 +1,9 @@
 import { HBox, HDropdown, HLabel, HTextField } from "@helix/component-library";
 import SectionBlock from "../components/SectionBlock";
 import FieldError from "../components/FieldError";
-import { BRANCHES, CHANNELS } from "../constants/qdeOptions";
 import AccountTreeOutlinedIcon from "@mui/icons-material/AccountTreeOutlined";
 
-const SourcingDetailsSection = ({ form, setField, errors = {}, channelOptions = CHANNELS, branchOptions = BRANCHES }) => {
+const SourcingDetailsSection = ({ form, setField, errors = {}, channelOptions = [], branchOptions = [] }) => {
   const isDsa = form.channel === "DSA";
   const isRm = form.channel === "RM";
   const isDealer = form.channel === "Dealer";

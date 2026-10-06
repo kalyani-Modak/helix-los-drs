@@ -3,36 +3,37 @@ import { HAxiosService } from "@helix/component-library";
 import { LosQdeAPI } from "../apiEndpoints";
 import { unwrapApiResponse } from "../unwrapApiResponse";
 
-/** Lookup types the QDE screen's dropdowns are backed by, keyed to szLookupType in Ls_Mst_Lookup. */
-export const QDE_LOOKUP_TYPES = [
-  "los.applicationtype",
-  "los.portfolio",
-  "party.gender",
-  "los.entitytype",
-  "los.borrowercategory",
-  "los.address.type.individual",
-  "los.address.type.nonindividual",
-  "los.channel",
-  "los.loantype",
-  "los.doctype",
-  "los.product",
-  "los.scheme",
-  "los.relationship",
-  "los.branch",
-  "los.address.city",
-  "los.address.district",
-  "los.address.state",
-  "los.address.country",
+/** Lookup types owned by the DD screen. QDE types it also uses (gender, entity type, address types, etc.) come from useQdeLookups. */
+export const DD_LOOKUP_TYPES = [
+  "party.title",
+  "party.maritalstatus",
+  "party.nationality",
+  "party.religion",
+  "party.education",
+  "party.residencestatus",
+  "party.address.state",
+  "los.pensionertype",
+  "los.pensioncreditmode",
+  "los.bankname",
+  "los.bankaccounttype",
+  "los.repaymentmode",
+  "los.loanpurpose",
+  "los.repaymentfrequency",
+  "los.ratetype",
+  "los.repaymentscheduletype",
+  "los.coapplicanttype",
+  "los.coapplicant.relationship",
+  "los.guarantor.relationship",
 ];
 
 const toHDropdownOptions = (values = []) =>
   values.map((v) => ({ label: v.szDescription, value: v.szCode }));
 
 /**
- * Fetches every QDE lookup type in one call and returns them as `{label, value}`
+ * Fetches every DD lookup type in one call and returns them as `{label, value}`
  * option arrays keyed by lookup type, ready for HDropdown.
  */
-export function useQdeLookups(orgId, types = QDE_LOOKUP_TYPES) {
+export function useDdLookups(orgId, types = DD_LOOKUP_TYPES) {
   const [lookups, setLookups] = useState({});
   const [loading, setLoading] = useState(true);
   const typesKey = types.join(",");
@@ -65,4 +66,4 @@ export function useQdeLookups(orgId, types = QDE_LOOKUP_TYPES) {
   return { lookups, loading };
 }
 
-export default useQdeLookups;
+export default useDdLookups;
