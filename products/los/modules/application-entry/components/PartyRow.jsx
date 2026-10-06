@@ -16,7 +16,7 @@ import SearchApplicationDialog from "./SearchApplicationDialog";
 
 const PartyField = ({ label, children, required = false, error, errorSx, sx }) => (
   <HBox sx={{ width: "100%", display: "flex", flexDirection: "column", gap: 0.5, ...sx }}>
-    <HLabel value={label} required={required} align="left" colon={false} />
+    <HLabel sx={{color: "text.primary" }} value={label} required={required} align="left" colon={false} />
     {children && typeof children === "object" && !Array.isArray(children)
       ? cloneElement(children, { error: Boolean(error) })
       : children}
@@ -141,7 +141,7 @@ const PartyRow = ({
             sx={{ width: "auto", minWidth: "auto", px: 0, flexShrink: 0 }}
           />
 
-          <HLabel
+          <HLabel sx={{color: "text.primary" }}
             value={`${titleKey} ${index + 1}`}
             translate={false}
             align="left"
@@ -153,7 +153,7 @@ const PartyRow = ({
             translate={false}
             align="left"
             colon={false}
-            sx={{ fontWeight: 600 }}
+            sx={{ fontWeight: 600, color: "text.primary"  }}
           />
 
           <HLabel
@@ -253,8 +253,8 @@ const PartyRow = ({
                   placeholder="CUST-XXXXXX"
                   width="100%"
                 />
-                <HButton label="label.qde.button.search" variant="outlined" size="small" inline sx={{mt:1}} onClick={() => setCustomerSearchOpen(true)} />
-                <HButton label="label.qde.button.clear" variant="outlined" size="small" inline sx={{mt:1}} onClick={clearParty} />
+                {/* <HButton label="label.qde.button.search" variant="outlined" size="small" inline sx={{mt:1}} onClick={() => setCustomerSearchOpen(true)} />
+                <HButton label="label.qde.button.clear" variant="outlined" size="small" inline sx={{mt:1}} onClick={clearParty} /> */}
               </HBox>
             </PartyField>
 
@@ -303,24 +303,24 @@ const PartyRow = ({
 
         {isNonIndividual ? (
           <>
-            <PartyField label="label.qde.field.entityName" required error={err("entityName")} errorSx={{ mt: 1.5 }}><HTextField value={party.entityName || ""} onChange={(e) => field("entityName", e.target.value)} editable required width="100%" /></PartyField>
-            <PartyField label="label.qde.field.entityType" required error={err("entityType")}><HDropdown name="entityType" options={entityTypeOptions} value={party.entityType || ""} onChange={(e) => field("entityType", e.target.value)} required width="100%" /></PartyField>
-            <PartyField label="label.qde.field.doi"><HDatePicker value={toPickerValue(party.doi)} onChange={(value) => field("doi", fromPickerValue(value))} width="100%" /></PartyField>
+            <PartyField label="label.qde.field.entityName" required error={err("entityName")} sx={{ mt: 1 }} errorSx={{ mt: 1.5 }}><HTextField value={party.entityName || ""} onChange={(e) => field("entityName", e.target.value)} editable required width="100%" /></PartyField>
+            <PartyField label="label.qde.field.entityType" required error={err("entityType")} sx={{ mt: 1 }}><HDropdown name="entityType" options={entityTypeOptions} value={party.entityType || ""} onChange={(e) => field("entityType", e.target.value)} required width="100%" /></PartyField>
+            <PartyField label="label.qde.field.doi" sx={{ mt: 1 }}><HDatePicker value={toPickerValue(party.doi)} onChange={(value) => field("doi", fromPickerValue(value))} width="100%" /></PartyField>
             <PartyField label="GSTIN"><HTextField value={party.gstin || ""} onChange={(e) => field("gstin", e.target.value)} editable width="100%" /></PartyField>
           </>
         ) : (
           <>
-            <PartyField label="label.qde.field.firstName" required error={err("firstName")} errorSx={{ mt: 1 }}><HTextField value={party.firstName || ""} onChange={(e) => field("firstName", e.target.value)} editable required type="name" width="100%" sx={{ mb: 0.5 }} /></PartyField>
-            <PartyField label="label.qde.field.middleName"><HTextField value={party.middleName || ""} onChange={(e) => field("middleName", e.target.value)} editable type="name" width="100%" /></PartyField>
-            <PartyField label="label.qde.field.lastName" required error={err("lastName")} errorSx={{ mt: 1.5 }}><HTextField value={party.lastName || ""} onChange={(e) => field("lastName", e.target.value)} editable required type="name" width="100%" /></PartyField>
-            <PartyField label="label.qde.field.gender" required error={err("gender")}><HDropdown name="gender" options={genderOptions} value={party.gender || ""} onChange={(e) => field("gender", e.target.value)} required width="100%" /></PartyField>
-            <PartyField label="label.qde.field.dob" required error={err("dob")}><HDatePicker value={toPickerValue(party.dob)} onChange={(value) => field("dob", fromPickerValue(value))} required width="100%" /></PartyField>
-            <PartyField label="label.qde.field.customerProfile"><HDropdown name="category" options={borrowerCategoryOptions} value={party.category || ""} onChange={(e) => field("category", e.target.value)} width="100%" /></PartyField>
+            <PartyField label="label.qde.field.firstName" required error={err("firstName")} sx={{ mt: 1.5 }} errorSx={{ mt: 1 }}><HTextField value={party.firstName || ""} onChange={(e) => field("firstName", e.target.value)} editable required type="name" width="100%" sx={{ mb: 0.5 }} /></PartyField>
+            <PartyField label="label.qde.field.middleName" sx={{ mt: 1.5 }}><HTextField value={party.middleName || ""} onChange={(e) => field("middleName", e.target.value)} editable type="name" width="100%" /></PartyField>
+            <PartyField label="label.qde.field.lastName" required error={err("lastName")} sx={{ mt: 1.5 }} errorSx={{ mt: 1.5 }}><HTextField value={party.lastName || ""} onChange={(e) => field("lastName", e.target.value)} editable required type="name" width="100%" /></PartyField>
+            <PartyField label="label.qde.field.gender" required error={err("gender")} sx={{ mt: 1 }}><HDropdown name="gender" options={genderOptions} value={party.gender || ""} onChange={(e) => field("gender", e.target.value)} required width="100%" /></PartyField>
+            <PartyField label="label.qde.field.dob" required error={err("dob")} sx={{ mt: 1 }}><HDatePicker value={toPickerValue(party.dob)} onChange={(value) => field("dob", fromPickerValue(value))} required width="100%" /></PartyField>
+            <PartyField label="label.qde.field.customerProfile" sx={{ mt: 1 }} ><HDropdown name="category" options={borrowerCategoryOptions} value={party.category || ""} onChange={(e) => field("category", e.target.value)} width="100%" /></PartyField>
           </>
         )}
 
-        <PartyField label="label.qde.field.mobile" required error={err("mobile")} errorSx={{ mt: 1 }}>
-          <HBox sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+        <PartyField label="label.qde.field.mobile" required error={err("mobile")} >
+          <HBox sx={{ display: "flex", alignItems: "flex-start", gap: 0.5 }}>
             <HTextField
               value={party.mobile || ""}
               onChange={(e) => {
@@ -348,8 +348,8 @@ const PartyRow = ({
             )}
           </HBox>
         </PartyField>
-        <PartyField label="label.qde.field.email" required error={err("email")} errorSx={{ mt: 1 }}>
-          <HBox sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+        <PartyField label="label.qde.field.email" required error={err("email")} >
+          <HBox sx={{ display: "flex", alignItems: "flex-start", gap: 0.5 }}>
             <HTextField
               value={party.email || ""}
               onChange={(e) => {
@@ -402,17 +402,7 @@ const PartyRow = ({
       </HBox>
 
       <HBox sx={{ position: "relative", width: "100%" }}>
-        <HBox
-  sx={{
-    position: "absolute",
-    top: 10,
-    right: 16,
-    zIndex: 1,
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-  }}
->
+        <HBox sx={{ position: "absolute", top: 10, right: 16, zIndex: 1, display: "flex", alignItems: "center", gap: "8px" }}>
             <HCheckBox
               checked={Boolean(party.sameAsPrimaryAddress)}
               onChange={(event) => {

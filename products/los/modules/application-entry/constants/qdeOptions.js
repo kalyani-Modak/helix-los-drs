@@ -1,12 +1,3 @@
-/**
- * Static option sets for the quick data entry screen.
- *
- * HDropdown renders `{ label, value }` objects and does not translate the label,
- * so these carry display text (they are master data placeholders until the
- * corresponding master APIs are wired). HRadioGroup, on the other hand, passes
- * `label` through react-intl, so radio options carry i18n keys.
- */
-
 /** Turns a plain string list into the `{ label, value }` shape HDropdown expects. */
 export const toOptions = (values = []) => values.map((v) => ({ label: v, value: v }));
 
@@ -129,22 +120,6 @@ export const LOAN_TYPES = [{ label: "Term Loan", value: "TERM" }];
 
 export const OCR_DOC_TYPES = [{ label: "Application Form", value: "APPFORM" }];
 
-/** Radio option sets — `label` is resolved through react-intl by HRadio. */
-// export const BORROWER_TYPE_OPTIONS = [
-//   { value: "Individual", label: "label.qde.option.individual" },
-//   { value: "Non-Individual", label: "label.qde.option.nonIndividual" },
-// ];
-
-// export const CUSTOMER_TYPE_OPTIONS = [
-//   { value: "New", label: "label.qde.option.new" },
-//   { value: "Existing", label: "label.qde.option.existing" },
-// ];
-
-// export const YES_NO_OPTIONS = [
-//   { value: "Y", label: "label.qde.option.yes" },
-//   { value: "N", label: "label.qde.option.no" },
-// ];
-
 /** Verification lifecycle values persisted on the form. */
 export const VERIFICATION_STATUS = {
   PENDING: "Pending",
@@ -158,7 +133,4 @@ const STATUS_LABEL_KEYS = {
   Failed: "label.qde.status.failed",
 };
 
-/** Maps a persisted verification status to its i18n key for HLabel. */
 export const statusLabelKey = (status) => STATUS_LABEL_KEYS[status] || "label.qde.status.notStarted";
-
-export const BORROWER_TYPE_NON_INDIVIDUAL = "Non-Individual";

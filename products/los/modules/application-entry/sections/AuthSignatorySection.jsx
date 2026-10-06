@@ -25,9 +25,17 @@ const AuthSignatorySection = ({
 
   return (
     <SectionBlock sectionKey="authSignatory" titleKey="label.qde.section.authSignatory" noAccordion={noAccordion} icon={<PersonOutlineOutlinedIcon fontSize="small" />} >
-      <HBox sx={{ width: "100%", display: "flex", flexDirection: "row", flexWrap: "wrap",gap:0.5 }}>
+      <HBox sx={{ width: "100%", display: "flex", flexDirection: "row", flexWrap: "wrap", gap:0.5 }}>
+        <HBox sx={{ width: "100%", minWidth: 0 }}>
+          <HLabel
+            value="One Authorised Signatory per Non-Individual application."
+            align="left"
+            colon={false}
+            sx={{ fontStyle: "italic", fontSize: "10px", color: "text.secondary", mb: 1.5 }}
+          />
+        </HBox>
         <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
-          <HLabel value="label.qde.field.firstName" required align="left" colon={false} />
+          <HLabel sx={{color: "text.primary" }} value="label.qde.field.firstName" required align="left" colon={false} />
           <HTextField
             value={form.asFirstName}
             onChange={(e) => setField("asFirstName", e.target.value)}
@@ -41,7 +49,7 @@ const AuthSignatorySection = ({
         </HBox>
 
         <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
-          <HLabel value="label.qde.field.middleName" align="left" colon={false} />
+          <HLabel sx={{color: "text.primary" }} value="label.qde.field.middleName" align="left" colon={false} />
           <HTextField
             value={form.asMiddleName}
             onChange={(e) => setField("asMiddleName", e.target.value)}
@@ -52,7 +60,7 @@ const AuthSignatorySection = ({
         </HBox>
 
         <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
-          <HLabel value="label.qde.field.lastName" required align="left" colon={false} />
+          <HLabel sx={{color: "text.primary" }} value="label.qde.field.lastName" required align="left" colon={false} />
           <HTextField
             value={form.asLastName}
             onChange={(e) => setField("asLastName", e.target.value)}
@@ -66,7 +74,7 @@ const AuthSignatorySection = ({
         </HBox>
 
         <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px", mt: 1 }}>
-          <HLabel value="label.qde.field.dob" required align="left" colon={false} />
+          <HLabel sx={{color: "text.primary" }} value="label.qde.field.dob" required align="left" colon={false} />
           <HDatePicker
             value={toPickerValue(form.asDob)}
             onChange={(value) => setField("asDob", fromPickerValue(value))}
@@ -78,7 +86,7 @@ const AuthSignatorySection = ({
         </HBox>
 
         <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap:0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px", mt: 1 }}>
-          <HLabel value="label.qde.field.designation" required align="left" colon={false} />
+          <HLabel sx={{color: "text.primary" }}value="label.qde.field.designation" required align="left" colon={false} />
           <HTextField
             value={form.asDesignation}
             onChange={(e) => setField("asDesignation", e.target.value)}
@@ -91,9 +99,9 @@ const AuthSignatorySection = ({
           <FieldError message={err("asDesignation")}  sx={{ mt: 1.5 }}/>
         </HBox>
 
-        <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column",  minWidth: 0, boxSizing: "border-box", gap: 0, paddingRight: "8px", marginBottom: "8px", mt: 1 }}>
-          <HLabel value="label.qde.field.mobile" required align="left" colon={false} />
-            <HBox sx={{ display: "flex", alignItems: "flex-start", flexWrap: "wrap",flexDirection: "row", }}>
+        <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column",  minWidth: 0, boxSizing: "border-box", gap: 0.5, paddingRight: "8px", marginBottom: "8px", mt: 1 }}>
+          <HLabel sx={{color: "text.primary" }} value="label.qde.field.mobile" required align="left" colon={false} />
+            <HBox sx={{ display: "flex", alignItems: "flex-start", flexWrap: "wrap",flexDirection: "row", gap: 0.5 }}>
               <HTextField
                 value={form.asMobile || ""}
                 onChange={(e) => {
@@ -110,7 +118,7 @@ const AuthSignatorySection = ({
                 width="80%"
               />
               {form.asMobileVerified ? (
-                <HBox sx={{ display: "flex", alignItems: "center", whiteSpace: "nowrap",mt:1 }}>
+                <HBox sx={{ display: "flex", alignItems: "center", whiteSpace: "nowrap",mt: 1 }}>
                   <CheckCircleOutlineIcon fontSize="small" sx={{ color: "success.main" }} />
                   <HLabel value="Verified" colon={false} />
                 </HBox>
@@ -123,9 +131,20 @@ const AuthSignatorySection = ({
                   }}
                   style={{
                     pointerEvents: isValidMobile(form.asMobile) ? "auto" : "none",
-                    opacity: isValidMobile(form.asMobile) ? 1 : 0.5,
+                    opacity: isValidMobile(form.asMobile) ? 1 : 0.7,
                     whiteSpace: "nowrap",
                     cursor: "pointer",
+                    textDecoration: "none",
+                    fontSize: "12px",
+                    marginTop: "4px",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (isValidMobile(form.asMobile)) {
+                      e.currentTarget.style.textDecoration = "underline";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.textDecoration = "none";
                   }}
                 >
                   Verify
@@ -136,7 +155,7 @@ const AuthSignatorySection = ({
         </HBox>
 
         <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", minWidth: 0,gap:0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
-          <HLabel value="label.qde.field.email"  align="left" colon={false} required />
+          <HLabel sx={{ color: "text.primary" }} value="label.qde.field.email"  align="left" colon={false} required />
             <HBox sx={{ display: "flex", alignItems: "flex-start", gap: 0.5, flexWrap: "wrap" }}>
               <HTextField
                 value={form.asEmail || ""}
@@ -164,9 +183,20 @@ const AuthSignatorySection = ({
                   }}
                   style={{
                     pointerEvents: isValidEmail(form.asEmail) ? "auto" : "none",
-                    opacity: isValidEmail(form.asEmail) ? 1 : 0.5,
+                    opacity: isValidEmail(form.asEmail) ? 1 : 0.7,
                     whiteSpace: "nowrap",
                     cursor: "pointer",
+                    textDecoration: "none",
+                    fontSize: "12px",
+                    marginTop: "4px",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (isValidEmail(form.asEmail)) {
+                      e.currentTarget.style.textDecoration = "underline";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.textDecoration = "none";
                   }}
                 >
                   Verify

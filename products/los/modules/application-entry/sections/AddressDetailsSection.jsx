@@ -74,7 +74,7 @@ const AddressDetailsSection = ({
     <SectionBlock sectionKey="address" titleKey="label.qde.section.address" subTitleKey="label.qde.section.address.subtitle" icon={<LocationOnOutlinedIcon fontSize="small" />} noAccordion={noAccordion} >
       <HBox sx={{ width: "100%", display: "flex", flexDirection: "row", flexWrap: "wrap" }}>
         <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
-          <HLabel value="label.qde.field.addressType" required align="left" colon={false} />
+          <HLabel sx={{color: "text.primary" }} value="label.qde.field.addressType" required align="left" colon={false} />
           <HDropdown
             name="addressType"
             options={addressTypes}
@@ -89,7 +89,7 @@ const AddressDetailsSection = ({
         </HBox>
 
         <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", alignItems: "flex-start", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
-          <HLabel value="label.qde.field.addr1" required align="left" colon={false} />
+          <HLabel sx={{color: "text.primary" }} value="label.qde.field.addr1" required align="left" colon={false} />
           <HTextField
             value={form.addr1}
             onChange={(e) => setField("addr1", e.target.value)}
@@ -103,7 +103,7 @@ const AddressDetailsSection = ({
         </HBox>
 
         <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
-          <HLabel value="label.qde.field.addr2" align="left" colon={false} />
+          <HLabel sx={{color: "text.primary" }} value="label.qde.field.addr2" align="left" colon={false} />
           <HTextField
             value={form.addr2}
             onChange={(e) => setField("addr2", e.target.value)}
@@ -114,7 +114,7 @@ const AddressDetailsSection = ({
         </HBox>
 
         <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
-          <HLabel value="label.qde.field.addr3" align="left" colon={false} />
+          <HLabel sx={{color: "text.primary" }} value="label.qde.field.addr3" align="left" colon={false} />
           <HTextField
             value={form.addr3}
             onChange={(e) => setField("addr3", e.target.value)}
@@ -126,7 +126,7 @@ const AddressDetailsSection = ({
 
         {/* Landmark — mandatory only for Individual applicants, matching PartyRow's rule */}
         <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", alignItems: "flex-start", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
-          <HLabel value="label.qde.field.landmark" required={!isNonIndividual} align="left" colon={false} />
+          <HLabel sx={{color: "text.primary" }} value="label.qde.field.landmark" required={!isNonIndividual} align="left" colon={false} />
           <HTextField
             value={form.landmark}
             onChange={(e) => setField("landmark", e.target.value)}
@@ -140,7 +140,7 @@ const AddressDetailsSection = ({
         </HBox>
 
         <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
-          <HLabel
+          <HLabel sx={{color: "text.primary" }}
             value="label.qde.field.pincode"
             required
             align="left"
@@ -171,13 +171,13 @@ const AddressDetailsSection = ({
               value="Indian 6-digit PIN — auto-populates City, District, State, Country."
               align="left"
               colon={false}
-              sx={{ mt: 1 }}
+              sx={{ mt: 1, fontSize: "10px" }}
             />
           )}
         </HBox>
 
         <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
-          <HLabel value="label.qde.field.city" align="left" colon={false} sx={{ mt: 1 }} />
+          <HLabel value="label.qde.field.city" align="left" colon={false} sx={{ mt: 1, color: "text.primary" }} />
           <HDropdown
             name="city"
             options={cityOptions}
@@ -190,7 +190,7 @@ const AddressDetailsSection = ({
         </HBox>
 
         <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
-          <HLabel value="label.qde.field.district" align="left" colon={false} sx={{ mt: 1 }} />
+          <HLabel value="label.qde.field.district" align="left" colon={false} sx={{ mt: 1, color: "text.primary" }} />
           <HDropdown
             name="district"
             options={districtOptions}
@@ -203,7 +203,7 @@ const AddressDetailsSection = ({
         </HBox>
 
         <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
-          <HLabel value="label.qde.field.state" align="left" colon={false} sx={{ mt: 1 }} />
+          <HLabel value="label.qde.field.state" align="left" colon={false} sx={{ mt: 1, color: "text.primary" }} />
           <HDropdown
             name="state"
             options={stateOptions}
@@ -216,7 +216,7 @@ const AddressDetailsSection = ({
         </HBox>
 
         <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
-          <HLabel value="label.qde.field.country" align="left" colon={false} sx={{ mt: 1 }} />
+          <HLabel value="label.qde.field.country" align="left" colon={false} sx={{ mt: 1, color: "text.primary" }} />
           <HDropdown
             name="country"
             options={countryOptions}

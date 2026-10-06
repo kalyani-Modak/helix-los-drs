@@ -19,10 +19,6 @@ const LoanDetailsSection = ({ form, setField, errors = {}, productOptions = PROD
     months: form.tenure || "",
   });
 
-  const [showEstimatedEmi, setShowEstimatedEmi] = useState(
-    Boolean(form.estimatedEmi)
-  );
-
   const simulatorAnchorRef = useRef(null);
   const closeTimerRef = useRef(null);
   const [simulatorPosition, setSimulatorPosition] = useState({
@@ -99,10 +95,10 @@ const openSimulator = () => {
     }
   }, []);
 
-  const calculateEmi = () => {
-    const amount = Number(simulator.amount);
-    const rate = Number(simulator.rate);
-    const months = Number(simulator.months);
+  const calculateEmi = (amountValue = simulator.amount, rateValue = simulator.rate, monthsValue = simulator.months) => {
+    const amount = Number(amountValue);
+    const rate = Number(rateValue);
+    const months = Number(monthsValue);
 
     if (!amount || !months) return 0;
 
@@ -121,6 +117,19 @@ const openSimulator = () => {
   };
 
   const emi = calculateEmi();
+  const hasCompleteLoanTerms =
+    String(form.loanAmount ?? "").trim() !== "" &&
+    String(form.tenure ?? "").trim() !== "" &&
+    String(form.rate ?? "").trim() !== "" &&
+    Number.isFinite(Number(form.loanAmount)) &&
+    Number(form.loanAmount) > 0 &&
+    Number.isFinite(Number(form.tenure)) &&
+    Number(form.tenure) > 0 &&
+    Number.isFinite(Number(form.rate)) &&
+    Number(form.rate) >= 0;
+  const estimatedEmi = hasCompleteLoanTerms
+    ? calculateEmi(form.loanAmount, form.rate, form.tenure)
+    : 0;
   const totalPayable = emi * Number(simulator.months || 0);
   const totalInterest =
     totalPayable - Number(simulator.amount || 0);
@@ -134,9 +143,6 @@ const openSimulator = () => {
     setField("loanAmount", simulator.amount);
     setField("rate", simulator.rate);
     setField("tenure", simulator.months);
-    setField("estimatedEmi", emi);
-
-    setShowEstimatedEmi(true);
     setShowSimulator(false);
   };
 
@@ -160,7 +166,7 @@ const openSimulator = () => {
               md: "calc(33.333% - 10.67px)",
             }, flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0
           }}>
-          <HLabel
+          <HLabel sx={{color: "text.primary" }}
             value="label.qde.field.loanType"
             required
             align="left"
@@ -185,7 +191,7 @@ const openSimulator = () => {
               md: "calc(33.333% - 10.67px)",
             }, flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0
           }}>
-          <HLabel
+          <HLabel sx={{color: "text.primary" }}
             value="label.qde.field.product"
             required
             align="left"
@@ -214,7 +220,7 @@ const openSimulator = () => {
               md: "calc(33.333% - 10.67px)",
             },flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0
           }}>
-          <HLabel
+          <HLabel sx={{color: "text.primary" }}
             value="label.qde.field.scheme"
             align="left"
             colon={false}
@@ -234,7 +240,7 @@ const openSimulator = () => {
           {err("scheme") ? (
             <FieldError message={err("scheme")} />
           ) : (
-            <HLabel value="label.qde.field.schemeSubtitle" align="left" colon={false} />
+            <HLabel value="label.qde.field.schemeSubtitle" align="left" colon={false} sx={{ fontSize: "10px"}} />
           )}
         </HBox>
 
@@ -245,7 +251,7 @@ const openSimulator = () => {
               md: "calc(33.333% - 10.67px)",
             },flexShrink: 0, display: "flex", alignItems: "flex-start", flexDirection: "column", gap: 0.5, minWidth: 0
           }}>
-          <HLabel
+          <HLabel sx={{color: "text.primary" }}
             value="label.qde.field.loanAmount"
             required
             align="left"
@@ -276,7 +282,7 @@ const openSimulator = () => {
               md: "calc(33.333% - 10.67px)",
             },flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, position: "relative"
           }}>
-          <HLabel
+          <HLabel sx={{color: "text.primary" }}
             value="label.qde.field.tenure"
             required
             align="left"
@@ -303,7 +309,7 @@ const openSimulator = () => {
               value="label.qde.field.tenureSubtitle"
               align="left"
               colon={false}
-              sx={{ mt: 1 }}
+              sx={{ mt: 1, fontSize: "10px"}}
             />
           )}
         </HBox>
@@ -321,7 +327,7 @@ const openSimulator = () => {
           gap: 0.5,
           minWidth: 0,
         }}>
-          <HLabel
+          <HLabel sx={{color: "text.primary" }}
             value="label.qde.field.rate"
             align="left"
             colon={false}
@@ -334,7 +340,8 @@ const openSimulator = () => {
                 setField("rate", e.target.value);
                 handleSimulatorChange("rate", e.target.value);
               }}
-              editable={!rateFetched}
+              // editable={!rateFetched}
+              disable
               type="number"
               length={5}
               align={ALIGNMENT.NUMBER}
@@ -531,7 +538,7 @@ const openSimulator = () => {
                     >
                       <span>EMI</span>
                       <strong>
-                        ₹{formatAmount(emi)}/mo
+                        {formatAmount(emi)}/mo
                       </strong>
                     </HBox>
 
@@ -543,7 +550,7 @@ const openSimulator = () => {
                     >
                       <span>Total Interest</span>
                       <span>
-                        ₹{formatAmount(totalInterest)}
+                        {formatAmount(totalInterest)}
                       </span>
                     </HBox>
 
@@ -555,7 +562,7 @@ const openSimulator = () => {
                     >
                       <span>Total Payable</span>
                       <span>
-                        ₹{formatAmount(totalPayable)}
+                        {formatAmount(totalPayable)}
                       </span>
                     </HBox>
                   </HBox>
@@ -583,9 +590,9 @@ const openSimulator = () => {
               ), document.body)}
             </HBox>
           </HBox>
-          <HLabel value="label.qde.field.intSubtitle" align="left" colon={false} />
+          <HLabel value="label.qde.field.intSubtitle" align="left" colon={false} sx={{ fontSize: "10px"}} />
         </HBox>
-        {showEstimatedEmi && (
+        {hasCompleteLoanTerms && (
         <HBox sx={{ width: {
               xs: "100%",
               sm: "calc(50% - 8px)",
@@ -594,14 +601,13 @@ const openSimulator = () => {
           }}>
           <HLabel
             value="label.qde.field.EstimatedEmi"
-            required
             align="left"
             colon={false}
           />
 
           <HTextField
-            value={`₹${formatAmount(emi)}/mo`}
-            type="number"
+            value={`{formatAmount(estimatedEmi)}/mo`}
+            type="currency"
             length={3}
             align={ALIGNMENT.NUMBER}
             error={Boolean(err("tenure"))}

@@ -46,7 +46,7 @@ const ApplicantDetailsSection = ({
           <>
             {/* ---- Non-Individual fields ---- */}
             <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1 }}>
-              <HLabel
+              <HLabel sx={{color: "text.primary" }}
                 value={intl.formatMessage({
                   id: "label.qde.field.entityName",
                   defaultMessage: "Entity Name"
@@ -68,7 +68,7 @@ const ApplicantDetailsSection = ({
             </HBox>
 
             <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1 }}>
-              <HLabel
+              <HLabel sx={{color: "text.primary" }}
                 value={intl.formatMessage({
                   id: "label.qde.field.entityType",
                   defaultMessage: "Entity Type"
@@ -91,7 +91,7 @@ const ApplicantDetailsSection = ({
             </HBox>
 
             <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1 }}>
-              <HLabel
+              <HLabel sx={{color: "text.primary" }}
                 value={intl.formatMessage({
                   id: "label.qde.field.doi",
                   defaultMessage: "Date of Incorporation"
@@ -110,7 +110,7 @@ const ApplicantDetailsSection = ({
           <>
             {/* ---- Individual fields ---- */}
             <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", alignItems: "flex-start", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 2.5 }}>
-              <HLabel
+              <HLabel sx={{color: "text.primary" }}
                 value={intl.formatMessage({
                   id: "label.qde.field.firstName",
                   defaultMessage: "First Name"
@@ -132,7 +132,7 @@ const ApplicantDetailsSection = ({
             </HBox>
 
             <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1 }}>
-              <HLabel
+              <HLabel sx={{color: "text.primary" }}
                 value={intl.formatMessage({
                   id: "label.qde.field.middleName",
                   defaultMessage: "Middle Name"
@@ -150,7 +150,7 @@ const ApplicantDetailsSection = ({
             </HBox>
 
             <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1 }}>
-              <HLabel
+              <HLabel sx={{color: "text.primary" }}
                 value={intl.formatMessage({
                   id: "label.qde.field.lastName",
                   defaultMessage: "Last Name"
@@ -172,7 +172,7 @@ const ApplicantDetailsSection = ({
             </HBox>
 
             <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1 }}>
-              <HLabel
+              <HLabel sx={{color: "text.primary" }}
                 value={intl.formatMessage({
                   id: "label.qde.field.gender",
                   defaultMessage: "Gender"
@@ -194,7 +194,7 @@ const ApplicantDetailsSection = ({
             </HBox>
 
               <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1 }}>
-                <HLabel
+                <HLabel sx={{color: "text.primary" }}
                   value={intl.formatMessage({
                     id: "label.qde.field.dob",
                     defaultMessage: "Date of Birth"
@@ -215,7 +215,7 @@ const ApplicantDetailsSection = ({
               </HBox>
 
               <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1 }}>
-                <HLabel
+                <HLabel sx={{color: "text.primary" }}
                   value={intl.formatMessage({
                     id: "label.qde.field.borrowerCategory",
                     defaultMessage: "Borrower Category"
@@ -233,7 +233,7 @@ const ApplicantDetailsSection = ({
             </HBox>
 
             <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1 }}>
-              <HLabel
+              <HLabel sx={{color: "text.primary" }}
                 value={intl.formatMessage({
                   id: "label.qde.field.fatherName",
                   defaultMessage: "Father's Name"
@@ -252,7 +252,7 @@ const ApplicantDetailsSection = ({
 
             {/* Mother's Name — required by IndividualDetailsDto, now validated */}
             <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1 }}>
-              <HLabel
+              <HLabel sx={{color: "text.primary" }}
                 value={intl.formatMessage({
                   id: "label.qde.field.motherName",
                   defaultMessage: "Mother's Name"
@@ -278,10 +278,10 @@ const ApplicantDetailsSection = ({
         {/* ---- Common fields (both Individual & Non-Individual) ---- */}
 
         <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1, }}>
-          <HLabel
+          <HLabel sx={{color: "text.primary" }}
             value={intl.formatMessage({
               id: "label.qde.field.mobile",
-              defaultMessage: "Mobile Number",
+              defaultMessage: "Mobile",
             })}
             required
             align="left"
@@ -322,20 +322,29 @@ const ApplicantDetailsSection = ({
                   />
                 </HBox>
               ) : (
-                <a
-                  href="#"
+                <a href="#"
                   onClick={(e) => {
                     e.preventDefault();
-
                     if (isValidMobile(form.mobile)) {
                       onVerifyMobile();
                     }
                   }}
                   style={{
                     pointerEvents: isValidMobile(form.mobile) ? "auto" : "none",
-                    opacity: isValidMobile(form.mobile) ? 1 : 0.5,
+                    opacity: isValidMobile(form.mobile) ? 1 : 0.7,
                     whiteSpace: "nowrap",
                     cursor: "pointer",
+                    fontSize: "12px",
+                    textDecoration: "none",
+                    marginTop: "4px",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (isValidMobile(form.mobile)) {
+                      e.currentTarget.style.textDecoration = "underline";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.textDecoration = "none";
                   }}
                 >
                   Verify
@@ -343,12 +352,12 @@ const ApplicantDetailsSection = ({
               )}
             </HBox>
 
-            <FieldError message={mobileError} sx={{ mt: 0.5 }} />
+            <FieldError message={mobileError} sx={{ mt: 1.5 }} />
           </HBox>
         </HBox>
 
-        <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1, }}>
-          <HLabel
+        <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", pr: 1, mb: 1, mt: isNonIndividual ? 0 : 1 }}>
+          <HLabel sx={{color: "text.primary" }}
             value={intl.formatMessage({
               id: "label.qde.field.email",
               defaultMessage: "Email",
@@ -359,14 +368,7 @@ const ApplicantDetailsSection = ({
           />
 
           <HBox sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-            <HBox
-              sx={{
-                display: "flex",
-                alignItems: "flex-start",
-                gap: 1,
-                flexWrap: "nowrap",
-              }}
-            >
+            <HBox sx={{ display: "flex", alignItems: "flex-start", gap: 1, flexWrap: "nowrap" }} >
               <HTextField
                 value={form.email || ""}
                 onChange={(e) => {
@@ -407,9 +409,18 @@ const ApplicantDetailsSection = ({
                   }}
                   style={{
                     pointerEvents: isValidEmail(form.email) ? "auto" : "none",
-                    opacity: isValidEmail(form.email) ? 1 : 0.5,
-                    whiteSpace: "nowrap",
-                    cursor: "pointer",
+                    opacity: isValidEmail(form.email) ? 1 : 0.7,
+                    fontSize: "12px",
+                    textDecoration: "none",
+                    marginTop: "4px",
+                  }}
+                  onMouseEnter={(e) => {
+                    if (isValidEmail(form.email)) {
+                      e.currentTarget.style.textDecoration = "underline";
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.textDecoration = "none";
                   }}
                 >
                   Verify
@@ -421,13 +432,13 @@ const ApplicantDetailsSection = ({
           </HBox>
         </HBox>
 
-        {!isNonIndividual ? (<HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "row", alignItems: "center", gap: 2, boxSizing: "border-box", pr: 1, mt: 1 }}>
+        {!isNonIndividual ? (<HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "row", alignItems: "center", gap: 2, boxSizing: "border-box", pr: 1, mt: 2 }}>
           <HCheckBox
             sx={{ width: "3%" }}
             checked={form.staff}
             onChange={(e) => setField("staff", e.target.checked)}
           />
-          <HLabel
+          <HLabel sx={{color: "text.primary" }}
             value={intl.formatMessage({
               id: "label.qde.field.staff",
               defaultMessage: "Staff"
@@ -440,7 +451,7 @@ const ApplicantDetailsSection = ({
             checked={form.preApproved}
             onChange={(e) => setField("preApproved", e.target.checked)}
           />
-          <HLabel
+          <HLabel sx={{color: "text.primary" }}
             value={intl.formatMessage({
               id: "label.qde.field.preApproved",
               defaultMessage: "Pre Approved"
@@ -449,8 +460,8 @@ const ApplicantDetailsSection = ({
           />
         </HBox>) :
           <>
-            <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", minWidth: 0, boxSizing: "border-box", pr: 1, mt: 1 }}>
-              <HLabel
+            <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", minWidth: 0, boxSizing: "border-box", pr: 1 }}>
+              <HLabel sx={{color: "text.primary" }}
                 value={intl.formatMessage({
                   id: "label.qde.field.GSTRegistered",
                   defaultMessage: "GST Registered"
@@ -476,7 +487,7 @@ const ApplicantDetailsSection = ({
             </HBox>
             
             <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", minWidth: 0, boxSizing: "border-box" }}>
-              <HLabel sx={{ ml: 2 }}
+              <HLabel sx={{ ml: 2, color: "text.primary"  }}
                 value={intl.formatMessage({
                   id: "label.qde.field.MSMERegistered",
                   defaultMessage: "MSME Registered"
