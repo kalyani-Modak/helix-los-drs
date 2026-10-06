@@ -37,6 +37,7 @@ const AuthKycStatus = ({ status }) => {
           color: style.color,
           backgroundColor: style.background,
           border: `1px solid ${style.border}`,
+          color: "text.primary",
         }}
       />
     </HBox>
@@ -70,7 +71,7 @@ const AuthSignatoryKycSection = ({
     >
       <HBox sx={{ display: "flex", alignItems: "flex-start", gap: 1, width: "100%", mb: 1 }}>
         <HBox sx={{ width: "280px", minWidth: "280px", flexShrink: 0 }}>
-          <HLabel value="Auth. Signatory Aadhaar" required align="left" colon={false} />
+          <HLabel sx={{ color: "text.primary" }} value="Auth. Signatory Aadhaar" required align="left" colon={false} />
         </HBox>
         <HBox sx={{ display: "flex", alignItems: "flex-start", flexDirection:"row", gap: 5, width: "100%", }}>
         <HBox sx={{ minWidth: 0, display: "flex", flexDirection: "column" }}>
@@ -124,14 +125,21 @@ const AuthSignatoryKycSection = ({
           disabled={!form.asAadhaarOtp}
           startIcon={<VerifiedUserOutlinedIcon fontSize="small" />}
           onClick={onValidateAsAadhaarOtp}
-          sx={{ width: "130px", minWidth: "130px", height: "32px", flexShrink: 0 }}
+          sx={{
+            width: "130px", minWidth: "130px", height: "32px", flexShrink: 0,
+            "&.Mui-disabled": {
+              backgroundColor: "action.disabledBackground",
+              color: "text.disabled",
+              opacity: 1,
+            },
+          }}
         />
         <AuthKycStatus status={form.asAadhaarStatus} />
       </HBox>
 
       <HBox sx={{ display: "flex", alignItems: "flex-start", gap: 1, width: "100%", mb: 1 }}>
         <HBox sx={{ width: "280px", minWidth: "280px", flexShrink: 0 }}>
-          <HLabel value="Auth. Signatory PAN" align="left" colon={false} />
+          <HLabel sx={{ color: "text.primary" }} value="Auth. Signatory PAN" align="left" colon={false} />
         </HBox>
         <HBox sx={{ minWidth: 0, display: "flex", flexDirection: "column" }}>
         <HTextField
@@ -162,7 +170,7 @@ const AuthSignatoryKycSection = ({
 
       <HBox sx={{ display: "flex", alignItems: "center", gap: 1, width: "100%", mb: 0.2 }}>
         <HBox sx={{ width: "280px", minWidth: "280px", flexShrink: 0 }}>
-          <HLabel value="label.qde.field.panAadhaarLink" align="left" colon={false} />
+          <HLabel sx={{ color: "text.primary" }} value="label.qde.field.panAadhaarLink" align="left" colon={false} />
         </HBox>
         <HBox sx={{ flex: 1, minWidth: 0 }} />
         <HButton

@@ -39,7 +39,7 @@ const KycVerifyRow = ({
   >
     {/* Label */}
     <HBox sx={{ minWidth: 0 }}>
-      <HLabel
+      <HLabel sx={{color: "text.primary" }}
         value={labelKey}
         required={required}
         align="left"

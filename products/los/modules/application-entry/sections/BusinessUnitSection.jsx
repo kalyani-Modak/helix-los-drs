@@ -36,6 +36,7 @@ const BusinessUnitSection = ({
             required
             align="left"
             colon={false}
+            sx={{color: "text.primary" }}
           />
 
           <HDropdown
@@ -62,6 +63,7 @@ const BusinessUnitSection = ({
             required
             align="left"
             colon={false}
+            sx={{color: "text.primary" }}
           />
 
           <HDropdown
@@ -77,12 +79,12 @@ const BusinessUnitSection = ({
             disabled
           />
           <FieldError message={err("portfolio")} />
-          <HLabel value="label.qde.field.portfolioSubtitle" align="left" colon={false} />
+          <HLabel value="label.qde.field.portfolioSubtitle" align="left" colon={false} sx={{ fontSize: "10px"}} />
         </HBox>
 
         {/* Borrower Type */}
         <HBox sx={{ width: "40%", flexShrink: 0, display: "flex", flexDirection: "column", minWidth: 0 }}>
-          <HLabel sx={{ ml: 2 }}
+          <HLabel sx={{ ml: 2, color: "text.primary" }}
             value={intl.formatMessage({
               id: "label.qde.field.borrowerType",
               defaultMessage: "Borrower Type"
@@ -126,6 +128,7 @@ const BusinessUnitSection = ({
               defaultMessage: "Customer Type"
             })}
             required
+            sx={{color: "text.primary" }}
           />
 
           <HRadio
@@ -209,10 +212,10 @@ const BusinessUnitSection = ({
                   sx={{
                     position: "absolute",
                     right: 4,
-                    top: "50%",
+                    top: "80%",
                     transform: "translateY(-50%)",
                     color: "primary.main",
-                    backgroundColor: "background.paper",
+                    backgroundColor: "transparent",
                     "&:hover": { backgroundColor: "action.hover" },
                   }}
                 >

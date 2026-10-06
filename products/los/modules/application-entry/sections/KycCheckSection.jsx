@@ -102,7 +102,7 @@ const KycOtpRow = ({
     "@media (max-width: 600px)": { gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)" },
   }}>
     <HBox sx={{ minWidth: 0, display: "flex", alignItems: "center", justifyContent: "space-between", gap: 1, flexWrap: "wrap" }}>
-      <HLabel
+      <HLabel sx={{color: "text.primary" }}
         value={labelKey}
         required={required}
         align="left"
@@ -181,10 +181,18 @@ const KycOtpRow = ({
           !otpValue ||
           otpExpired
         }
-        startIcon={<VerifiedUserOutlinedIcon fontSize="small" />}
-        onClick={onValidateOtp}
-        sx={{ height: "32px", minHeight: "32px", whiteSpace: "nowrap", width: "120px", minWidth: "120px", maxWidth: "120px", justifySelf: "center" }}
-      />
+      startIcon={<VerifiedUserOutlinedIcon fontSize="small" />}
+      onClick={onValidateOtp}
+      sx={{
+        height: "32px", minHeight: "32px", whiteSpace: "nowrap", width: "120px", minWidth: "120px",
+        maxWidth: "120px", justifySelf: "center",
+        "&.Mui-disabled": {
+          backgroundColor: "action.disabledBackground",
+          color: "text.disabled",
+          opacity: 1,
+        },
+      }}
+    />
     {/* Status */}
     <HBox sx={{ justifySelf: "end", mr: 1 }}>
       <KycStatusLabel status={status} />
@@ -354,6 +362,7 @@ const IndividualKyc = ({
               fontSize: "11px",
               color: "text.secondary",
               whiteSpace: "normal",
+              fontSize: "10px",
             }}
           />
         </HBox>
@@ -444,7 +453,7 @@ const IndividualKyc = ({
       {/* PAN - Aadhaar Link */}
       <HBox sx={{ display: "grid", gridTemplateColumns: "minmax(0, 24%) minmax(0, 29%) minmax(0, 13%) minmax(0, 12%) auto auto", alignItems: "center", width: "100%", minWidth: 0, gap: 1, mb: 0.2 }}>
         <HBox sx={{ minWidth: 0 }}>
-          <HLabel value="label.qde.field.panAadhaarLink" align="left" colon={false} />
+          <HLabel sx={{color: "text.primary" }} value="label.qde.field.panAadhaarLink" align="left" colon={false} />
         </HBox>
         <HBox sx={{ minWidth: 0 }} />
         <HBox sx={{ minWidth: 0 }} />
@@ -495,7 +504,7 @@ const IndividualKyc = ({
       {/* DigiLocker */}
       <HBox sx={{ display: "grid", gridTemplateColumns: "minmax(0, 24%) minmax(0, 29%) minmax(0, 13%) minmax(0, 12%) auto auto", alignItems: "center", width: "100%", minWidth: 0, gap: 1, mb: 0.2 }}>
         <HBox sx={{ minWidth: 0 }}>
-          <HLabel value="label.qde.field.digilocker" align="left" colon={false} />
+          <HLabel sx={{color: "text.primary" }} value="label.qde.field.digilocker" align="left" colon={false} />
         </HBox>
 
         <HBox sx={{ display: "flex", alignItems: "center", }}>
@@ -596,12 +605,12 @@ const NonIndividualKyc = ({
       width: "100%",
       minWidth: 0,
       gap: 1,
-      mb: 0.2,
+      mb: 2,
       "@media (max-width: 900px)": { gridTemplateColumns: "minmax(0, 24%) minmax(0, 29%) minmax(0, 13%) minmax(0, 12%) auto auto" },
       "@media (max-width: 600px)": { gridTemplateColumns: "minmax(0, 1fr) minmax(0, 1fr)" },
     }}>
       <HBox sx={{ minWidth: 0 }}>
-        <HLabel value="label.qde.field.cin" align="left" colon={false} />
+        <HLabel sx={{color: "text.primary" }} value="label.qde.field.cin" align="left" colon={false} />
       </HBox>
       <HBox sx={{ minWidth: 0, display: "flex", flexDirection: "column" }}>
         <HTextField
