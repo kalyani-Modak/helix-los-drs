@@ -1,4 +1,5 @@
 import { DDE_FIELDS } from "../constants/ddeFieldMetadata";
+import { DDE_INCOME_SOURCES } from "../constants/ddeIncomeSources";
 
 export const createEmptyDdeForm = () => {
   const form = {
@@ -6,6 +7,7 @@ export const createEmptyDdeForm = () => {
     coApplicants: [],
     guarantors: [],
     perfiosFileName: "",
+    ddeMeta: { applicationDetails: {}, loanDetailsRow: {}, primaryApplicantId: null },
   };
   DDE_FIELDS.forEach((f) => {
     if (form[f.name] !== undefined) return;
@@ -14,6 +16,11 @@ export const createEmptyDdeForm = () => {
     } else {
       form[f.name] = "";
     }
+  });
+  DDE_INCOME_SOURCES.forEach((source) => {
+    source.months.forEach((monthField) => {
+      form[monthField] = "";
+    });
   });
   return form;
 };

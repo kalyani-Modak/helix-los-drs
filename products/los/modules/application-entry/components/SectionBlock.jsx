@@ -3,7 +3,7 @@ import { Grid } from "@mui/material";
 import { HAccordion, HBox, useDrsTheme, HLabel } from "@helix/component-library";
 import { useIntl } from "react-intl";
 
-const SectionBlock = ({ sectionKey, titleKey, subTitleKey, count, defaultExpanded = true, expanded: expandedProp, onExpandedChange, icon, noAccordion = false, showHeaderMeta = false, sx, headerStatusLabel, headerStatus, children }) => {
+const SectionBlock = ({ sectionKey, titleKey, title, subTitleKey, count, defaultExpanded = true, expanded: expandedProp, onExpandedChange, icon, headerAction, headerActionWidth = 52, noAccordion = false, showHeaderMeta = false, sx, headerStatusLabel, headerStatus, children }) => {
   const [expanded, setExpanded] = useState({ [sectionKey]: defaultExpanded });
   const { colors, text, border, action } = useDrsTheme();
   const intl = useIntl();
@@ -97,6 +97,12 @@ const SectionBlock = ({ sectionKey, titleKey, subTitleKey, count, defaultExpande
               color: colors.primary,
               fontSize: "18px",
             },
+          },
+        }),
+
+        ...(headerAction && {
+          "& .MuiAccordionSummary-content": {
+            paddingRight: `${headerActionWidth}px`,
           },
         }),
 
@@ -200,10 +206,24 @@ const SectionBlock = ({ sectionKey, titleKey, subTitleKey, count, defaultExpande
           />
         </HBox>
       )}
+      {headerAction && (
+        <HBox
+          sx={{
+            position: "absolute",
+            right: "8px",
+            top: "4px",
+            display: "flex",
+            alignItems: "center",
+            zIndex: 3,
+          }}
+        >
+          {headerAction}
+        </HBox>
+      )}
 
       <HAccordion
         id={`qde-section-${sectionKey}`}
-        title={titleKey}
+        title={title ?? titleKey}
         childKeyProp={sectionKey}
         isExpandedChildrenProp={{ [sectionKey]: isExpanded }}
         onChangeEvent={() => {

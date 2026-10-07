@@ -65,7 +65,6 @@ export const DDE_SECTION_CONFIG = [
     sectionFilter: "Bank Details",
     titleKey: "label.dde.section.bank",
     subTitleKey: "label.dde.section.bank.subtitle",
-    excludeFieldNames: ["perfiosUploaded"],
   },
   {
     key: "tax",

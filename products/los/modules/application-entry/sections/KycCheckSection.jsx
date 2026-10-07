@@ -1,67 +1,39 @@
 import { useEffect, useRef, useState } from "react";
-import { HButton, HLabel, HTextField, HBox, useToast } from "@helix/component-library";
+import { HButton, HLabel, HTextField, HBox } from "@helix/component-library";
 import KycVerifyRow from "../components/KycVerifyRow";
-import FieldError from "../components/FieldError";
 import SectionBlock from "../components/SectionBlock";
-import VerifiedUserOutlinedIcon from '@mui/icons-material/VerifiedUserOutlined';
-import VisibilityOutlinedIcon from "@mui/icons-material/VisibilityOutlined";
-import DeleteOutlineOutlinedIcon from "@mui/icons-material/DeleteOutlineOutlined";
-import FileUploadOutlinedIcon from "@mui/icons-material/FileUploadOutlined";
+import VerifiedUserOutlinedIcon from "@mui/icons-material/VerifiedUserOutlined";
+import SecurityOutlinedIcon from "@mui/icons-material/SecurityOutlined";
+import UploadFileOutlinedIcon from "@mui/icons-material/UploadFileOutlined";
 
 const KycStatusLabel = ({ status }) => {
   const statusConfig = {
     PENDING: {
       label: "Pending",
-      color: "#757575",
-      background: "#f5f5f5",
-      border: "#d6d6d6",
+      color: "text.secondary",
     },
     VERIFIED: {
       label: "Verified",
-      color: "#2e7d32",
-      background: "#e8f5e9",
-      border: "#a5d6a7",
+      color: "success.main",
     },
     FAILED: {
       label: "Failed",
-      color: "#d32f2f",
-      background: "#ffebee",
-      border: "#ef9a9a",
+      color: "error.main",
     },
   };
 
-  const normalizedStatus = String(status || "PENDING").toUpperCase();
-  const currentStatus =
-    statusConfig[normalizedStatus] || statusConfig.PENDING;
+  const currentStatus = statusConfig[status] || statusConfig.PENDING;
 
   return (
-    <HBox
+    <HLabel
+      value={currentStatus.label}
+      align="left"
+      colon={false}
       sx={{
-        display: "flex",
-        alignItems: "center",
-        justifyContent: "center",
-        height: "32px",
-        flexShrink: 0,
+        color: currentStatus.color,
+        fontWeight: 600,
       }}
-    >
-      <HLabel
-        value={currentStatus.label}
-        align="center"
-        colon={false}
-        sx={{
-          color: currentStatus.color,
-          backgroundColor: currentStatus.background,
-          border: `1px solid ${currentStatus.border}`,
-          borderRadius: "12px",
-          padding: "3px 10px",
-          fontSize: "11px",
-          fontWeight: 600,
-          lineHeight: 1.2,
-          whiteSpace: "nowrap",
-          boxSizing: "border-box",
-        }}
-      />
-    </HBox>
+    />
   );
 };
 
@@ -82,7 +54,6 @@ const KycOtpRow = ({
   maxLength,
   disabled = false,
   error = false,
-  errorMessage,
   otpTimer = 0,
   otpExpired = false,
   isTriggerButton = false,
@@ -108,64 +79,73 @@ const KycOtpRow = ({
         align="left"
         colon={false}
       />
-
-      {/* Trigger button */}
-      {isTriggerButton && (
-        <HButton
-          label="label.qde.button.trigger"
-          variant="outlined"
-          size="small"
-          inline
-          loading={verifying}
-          onClick={onVerify}
-          sx={{ height: "30px", minHeight: "30px", whiteSpace: "nowrap" }}
-        />)}
     </HBox>
-      <HBox sx={{ minWidth: 0, display: "flex", flexDirection: "column" }}>
-        <HTextField
-          value={value ?? ""}
-          onChange={onChange}
-          editable={!disabled}
-          disabled={disabled}
-          required={required}
-          error={error}
-          placeholder={placeholder}
-          length={maxLength}
-          width="100%"
-        />
-        <FieldError message={errorMessage} sx={{ mt: 2 }} />
-      </HBox>
 
+    <HTextField
+      value={value ?? ""}
+      onChange={onChange}
+      editable={!disabled}
+      disabled={disabled}
+      required={required}
+      error={error}
+      placeholder={placeholder}
+      length={maxLength}
+      width="330px"
+    />
 
-      {/* OTP */}
-      <HTextField
-        value={otpValue ?? ""}
-        onChange={onOtpChange}
-        editable={otpSent && !disabled && !otpExpired}
-        disabled={!otpSent || disabled || otpExpired}
-        type="number"
-        length={6}
-        placeholder="Enter OTP"
-        width="100%"
-      />
-
-      {/* Get OTP */}
+    {/* Keep the field aligned with the other KYC rows before its action. */}
+    {isTriggerButton && (
       <HButton
-        label={
-          otpTimer > 0
-            ? `Resend (${otpTimer}s)`
-            : otpSent
-              ? "Resend OTP"
-              : "Get OTP"
-        }
+        label="label.qde.button.trigger"
         variant="outlined"
         size="small"
         inline
-        loading={sending}
-        disabled={disabled || otpTimer > 0}
-        onClick={onSendOtp}
-        sx={{ height: "32px", minHeight: "32px", whiteSpace: "nowrap", width: "100%" }}
+        loading={verifying}
+        onClick={onVerify}
       />
+    )}
+
+    {/* OTP */}
+    <HTextField
+      value={otpValue ?? ""}
+      onChange={onOtpChange}
+      editable={otpSent && !disabled && !otpExpired}
+      disabled={!otpSent || disabled || otpExpired}
+      type="number"
+      length={6}
+      placeholder="Enter OTP"
+      width="140px"
+    />
+
+    {/* Get OTP */}
+    <HButton
+      label={
+        otpTimer > 0
+          ? `Resend (${otpTimer}s)`
+          : otpSent
+            ? "Resend OTP"
+            : "Get OTP"
+      }
+      variant="outlined"
+      size="small"
+      inline
+      loading={sending}
+      disabled={disabled || !value || otpTimer > 0}
+      startIcon={<SecurityOutlinedIcon fontSize="small" />}
+      onClick={onSendOtp}
+    />
+
+    {otpExpired && (
+      <HLabel
+        value="Aadhaar OTP expired. Please resend."
+        align="left"
+        colon={false}
+        sx={{
+          color: "error.main",
+          fontWeight: 600,
+        }}
+      />
+    )}
 
       {/* Validate OTP */}
       <HButton
@@ -194,9 +174,7 @@ const KycOtpRow = ({
       }}
     />
     {/* Status */}
-    <HBox sx={{ justifySelf: "end", mr: 1 }}>
-      <KycStatusLabel status={status} />
-    </HBox>
+    <KycStatusLabel status={status} />
   </HBox>
 );
 
@@ -206,29 +184,59 @@ const IndividualKyc = ({
   verifying,
   handlers,
   errors = {},
-  aadhaarOtpTimer = 0,
-  showAadhaarImageUpload = true,
 }) => {
+  const [aadhaarOtpTimer, setAadhaarOtpTimer] = useState(0);
   const [aadhaarOtpExpired, setAadhaarOtpExpired] = useState(false);
   const aadhaarImageInputRef = useRef(null);
-  const aadhaarOtpTimerWasRunning = useRef(false);
-  const toast = useToast();
 
   useEffect(() => {
-    if (aadhaarOtpExpired) {
-      toast.error("Aadhaar OTP expired. Please resend.");
+    if (aadhaarOtpTimer <= 0) {
+      return undefined;
     }
-  }, [aadhaarOtpExpired, toast]);
+    const timer = setInterval(() => {
+      setAadhaarOtpTimer((prev) => {
+        if (prev <= 1) {
+          setAadhaarOtpExpired(true);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
 
-  useEffect(() => {
-    if (aadhaarOtpTimer > 0) {
-      aadhaarOtpTimerWasRunning.current = true;
+    return () => clearInterval(timer);
+  }, [aadhaarOtpTimer]);
+
+  const handleSendAadhaarOtp = async () => {
+    setAadhaarOtpExpired(false);
+    setField("aadhaarOtp", "");
+
+    try {
+      const result = await handlers.onSendAadhaarOtp();
+
+      if (result !== false) {
+        setAadhaarOtpTimer(30);
+      }
+    } catch (error) {
+      setAadhaarOtpTimer(0);
       setAadhaarOtpExpired(false);
-    } else if (aadhaarOtpTimerWasRunning.current) {
-      aadhaarOtpTimerWasRunning.current = false;
-      if (form.aadhaarOtpSent) setAadhaarOtpExpired(true);
     }
-  }, [aadhaarOtpTimer, form.aadhaarOtpSent]);
+  };
+
+  const handleValidateAadhaarOtp = async () => {
+    const result = await handlers.onValidateAadhaarOtp();
+
+    if (result === true) {
+      // Stop timer
+      setAadhaarOtpTimer(0);
+
+      // Reset OTP state
+      setAadhaarOtpExpired(false);
+      setField("aadhaarOtpSent", false);
+      setField("aadhaarOtp", "");
+      setField("aadhaarStatus", "VERIFIED");
+    }
+    return result;
+  };
 
   const handleAadhaarImageUpload = (event) => {
     const file = event.target.files?.[0];
@@ -245,34 +253,6 @@ const IndividualKyc = ({
     }
   };
 
-  const handleReplaceAadhaarImage = () => {
-    aadhaarImageInputRef.current?.click();
-  };
-
-  const handleViewAadhaarImage = () => {
-    if (!form.aadhaarImage) {
-      return;
-    }
-
-    const imageUrl = URL.createObjectURL(form.aadhaarImage);
-    window.open(imageUrl, "_blank", "noopener,noreferrer");
-
-    // Release URL after a short delay
-    setTimeout(() => {
-      URL.revokeObjectURL(imageUrl);
-    }, 1000);
-  };
-
-  const handleClearAadhaarImage = () => {
-    setField("aadhaarImage", null);
-    setField("aadhaarImageName", "");
-
-    // Allow selecting the same file again after clearing
-    if (aadhaarImageInputRef.current) {
-      aadhaarImageInputRef.current.value = "";
-    }
-  };
-
   return (
     <>
       {/* PAN */}
@@ -285,13 +265,11 @@ const IndividualKyc = ({
         status={form.panStatus}
         verifying={verifying.pan}
         onVerify={handlers.onVerifyPan}
-        // required
+        required
         error={Boolean(errors.pan)}
-        errorMessage={errors.pan}
         maxLength={10}
         placeholder="ABCDE1234F"
         KycStatusLabel={KycStatusLabel}
-        disableVerifyWhenEmpty={false}
       />
 
       {/* Aadhaar + OTP - SAME ROW */}
@@ -306,52 +284,26 @@ const IndividualKyc = ({
           setField("aadhaarOtp", e.target.value)
         }
         otpSent={form.aadhaarOtpSent}
-        onSendOtp={handlers.onSendAadhaarOtp}
-        onValidateOtp={handlers.onValidateAadhaarOtp}
+        onSendOtp={handleSendAadhaarOtp}
+        onValidateOtp={handleValidateAadhaarOtp}
         sending={verifying.aadhaarSend}
         validating={verifying.aadhaarValidate}
         status={form.aadhaarStatus}
         required
         error={Boolean(errors.aadhaar)}
-        errorMessage={errors.aadhaar}
         maxLength={12}
         placeholder="12-digit Aadhaar number"
         otpTimer={aadhaarOtpTimer}
         otpExpired={aadhaarOtpExpired}
       />
 
-      {showAadhaarImageUpload && (
-      <>
       {/* Upload Aadhaar Image */}
-      <HBox
-        sx={{
-          display: "flex",
-          alignItems: "center",
-          width: "100%",
-          gap: 1,
-          mb: 0.2,
-          border: "1px solid",
-          borderColor: "divider",
-          borderRadius: 1,
-          p: 1,
-        }}
-      >
-        {/* Label section */}
-        <HBox
-          sx={{
-            minWidth: 0,
-            flex: "1 1 auto",
-            flexDirection: "column",
-            alignItems: "flex-start",
-          }}
-        >
+      <HBox sx={{ display: "flex", alignItems: "center", width: "100%", gap: 1, mb: 0.2, border: "1px solid", borderColor: "divider", borderRadius: 1, p: 1 }}>
+        <HBox sx={{ width: "280px", minWidth: "280px", flexShrink: 0, flexDirection: "column", alignItems: "flex-start" }}>
           <HLabel
             value="Upload Aadhaar Image"
             align="left"
             colon={false}
-            sx={{
-              color: "text.primary",
-            }}
           />
 
           <HLabel
@@ -367,98 +319,43 @@ const IndividualKyc = ({
           />
         </HBox>
 
-        {/* Hidden file input */}
-        <input
-          ref={aadhaarImageInputRef}
-          type="file"
-          accept=".jpg,.jpeg,.png"
-          onChange={handleAadhaarImageUpload}
-          style={{ display: "none" }}
-        />
+        <HBox sx={{ display: "flex", alignItems: "center", gap: 1 }}>
+          <input
+            ref={aadhaarImageInputRef}
+            type="file"
+            accept=".jpg,.jpeg,.png"
+            onChange={handleAadhaarImageUpload}
+            style={{ display: "none" }}
+          />
 
-        {/* Actions */}
-        <HBox
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            gap: 1,
-            marginLeft: "auto",
-          }}
-        >
-          {/* Upload / Replace */}
-          {!form.aadhaarImage ? (
-            <HButton
-              label="Upload image"
-              variant="outlined"
-              size="small"
-              inline
-              startIcon={<FileUploadOutlinedIcon fontSize="small" />}
-              onClick={() => aadhaarImageInputRef.current?.click()}
+          <HButton
+            label="Upload image"
+            variant="outlined"
+            size="small"
+            inline
+            startIcon={<UploadFileOutlinedIcon fontSize="small" />}
+            onClick={() => aadhaarImageInputRef.current?.click()}
+          />
+
+          {form.aadhaarImageName && (
+            <HLabel
+              value={form.aadhaarImageName}
+              align="left"
+              colon={false}
+              sx={{ fontSize: "12px", color: "text.secondary" }}
             />
-          ) : (
-            <>
-              <HButton
-                label="Replace image"
-                variant="outlined"
-                size="small"
-                inline
-                startIcon={<FileUploadOutlinedIcon fontSize="small" />}
-                onClick={handleReplaceAadhaarImage}
-              />
-
-              {/* File name */}
-              <HLabel
-                value={form.aadhaarImageName}
-                align="left"
-                colon={false}
-                sx={{
-                  fontSize: "12px",
-                  color: "text.secondary",
-                  maxWidth: "100%",
-                  overflow: "hidden",
-                  textOverflow: "ellipsis",
-                  whiteSpace: "nowrap",
-                }}
-              />
-
-              {/* View */}
-              <HButton
-                label="View"
-                variant="outlined"
-                size="small"
-                inline
-                startIcon={<VisibilityOutlinedIcon fontSize="small" />}
-                onClick={handleViewAadhaarImage}
-              />
-
-              {/* Clear */}
-              <HButton
-                label="Clear"
-                variant="text"
-                size="small"
-                inline
-                startIcon={<DeleteOutlineOutlinedIcon fontSize="small" />}
-                onClick={handleClearAadhaarImage}
-                sx={{
-                  color: "error.main",
-                }}
-              />
-            </>
           )}
         </HBox>
       </HBox>
-      </>
-      )}
 
       {/* PAN - Aadhaar Link */}
       <HBox sx={{ display: "grid", gridTemplateColumns: "minmax(0, 24%) minmax(0, 29%) minmax(0, 13%) minmax(0, 12%) auto auto", alignItems: "center", width: "100%", minWidth: 0, gap: 1, mb: 0.2 }}>
         <HBox sx={{ minWidth: 0 }}>
           <HLabel sx={{color: "text.primary" }} value="label.qde.field.panAadhaarLink" align="left" colon={false} />
         </HBox>
-        <HBox sx={{ minWidth: 0 }} />
-        <HBox sx={{ minWidth: 0 }} />
-        <HBox sx={{ minWidth: 0 }} />
-        <HButton
+
+        <HBox sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
+          <HButton
             label="label.qde.button.verify"
             variant="outlined"
             size="small"
@@ -466,11 +363,9 @@ const IndividualKyc = ({
             loading={verifying.panAadhaar}
             disabled={!form.pan || !form.aadhaar}
             onClick={handlers.onCheckPanAadhaarLink}
-            startIcon={<VerifiedUserOutlinedIcon fontSize="small" />}
-            sx={{ height: "32px", minHeight: "32px", whiteSpace: "nowrap", width: "120px", minWidth: "120px", maxWidth: "120px" }}
           />
-        <HBox sx={{ justifySelf: "end", gridColumn: 6, mr: 1 }}>
-          <KycStatusLabel status={form.panAadhaarLinked} />
+
+          <KycStatusLabel status={status} />
         </HBox>
       </HBox>
 
@@ -478,16 +373,13 @@ const IndividualKyc = ({
       <KycOtpRow
         labelKey="label.qde.field.ckyc"
         value={form.ckycNumber}
-        onChange={(e) => {
-          if (!form.ckycTriggered) {
-            setField("ckycNumber", e.target.value);
-          }
-        }}
+        onChange={(e) =>
+          setField("ckycNumber", e.target.value)
+        }
         otpValue={form.ckycOtp}
         onOtpChange={(e) =>
           setField("ckycOtp", e.target.value)
         }
-        disabled={form.ckycStatus === "VERIFIED"}
         otpSent={form.ckycOtpSent}
         onSendOtp={handlers.onSendCkycOtp}
         onValidateOtp={handlers.onValidateCkycOtp}
@@ -496,6 +388,7 @@ const IndividualKyc = ({
         status={form.ckycStatus}
         maxLength={14}
         placeholder="CKYC Number"
+        disabled={!form.ckycNumber}
         isTriggerButton
         onVerify={handlers.onTriggerCkyc}
 
@@ -507,32 +400,28 @@ const IndividualKyc = ({
           <HLabel sx={{color: "text.primary" }} value="label.qde.field.digilocker" align="left" colon={false} />
         </HBox>
 
-        <HBox sx={{ display: "flex", alignItems: "center", }}>
+        <HBox sx={{ display: "flex", alignItems: "center", gap: 1, flexWrap: "wrap" }}>
           <HTextField
             value={form.digiRef}
-            onChange={(e) => setField("digiRef", e.target.value)}
+            onChange={(e) =>
+              setField("digiRef", e.target.value)
+            }
             editable
-            width="100%"
+            width="330px"
             placeholder="Import documents via DigiLocker"
           />
-        </HBox>
-        <HBox sx={{ minWidth: 0 }} />
-        <HBox sx={{ minWidth: 0 }} />
-        <HButton
-          label="label.qde.button.verify"
-          variant="outlined"
-          size="small"
-          inline
-          loading={verifying.digilocker}
-          onClick={handlers.onDigilocker}
-          startIcon={<VerifiedUserOutlinedIcon fontSize="small" />}
-          sx={{ height: "32px", minHeight: "32px", whiteSpace: "nowrap", width: "120px", minWidth: "120px", maxWidth: "120px" }}
-        />
 
-        <HBox sx={{ justifySelf: "end", gridColumn: 6, mr: 1 }}>
-          <KycStatusLabel status={form.digiStatus} />
-        </HBox>
+          <HButton
+            label="label.qde.button.fetch"
+            variant="outlined"
+            size="small"
+            inline
+            loading={verifying.digilocker}
+            onClick={handlers.onDigilocker}
+          />
 
+          <KycStatusLabel status={status} />
+        </HBox>
       </HBox>
     </>
   );
@@ -546,38 +435,20 @@ const NonIndividualKyc = ({
   errors = {},
 }) => (
   <>
-      <KycVerifyRow
-      labelKey="URN No."
-      value={form.urn}
-      onChange={(e) =>
-        setField("urn", e.target.value.toUpperCase())
-      }
-      status={form.urnStatus}
-      verifying={verifying.urn}
-      onVerify={handlers.onVerifyUrn}
-      error={Boolean(errors.urn)}
-      errorMessage={errors.urn}
-      disableVerifyWhenEmpty={false}
-      placeholder="Unique Reference Number"
-      KycStatusLabel={KycStatusLabel}
-      maxLength={16}
-    />
-    { /*Business pan */}
+    { }
     <KycVerifyRow
       labelKey="label.qde.field.businessPan"
-      value={form.bizPan}
+      value={form.pan}
       onChange={(e) =>
-        setField("bizPan", e.target.value.toUpperCase())
+        setField("pan", e.target.value.toUpperCase())
       }
       status={form.bizPanStatus}
       verifying={verifying.bizPan}
       onVerify={handlers.onVerifyBusinessPan}
       required
-      error={Boolean(errors.bizPan)}
-      errorMessage={errors.bizPan}
+      error={Boolean(errors.pan)}
       maxLength={10}
       placeholder="AAACX1234K"
-      disableVerifyWhenEmpty={false}
       KycStatusLabel={KycStatusLabel}
     />
 
@@ -591,10 +462,8 @@ const NonIndividualKyc = ({
       status={form.gstinStatus}
       verifying={verifying.gstin}
       onVerify={handlers.onVerifyGstin}
+      disabled={form.gstRegistered !== "Y"}
       maxLength={15}
-      placeholder="22AAAAA0000A1Z5"
-      disableVerifyWhenEmpty={false}
-      KycStatusLabel={KycStatusLabel}
     />
 
     {/* CIN */}
@@ -612,49 +481,58 @@ const NonIndividualKyc = ({
       <HBox sx={{ minWidth: 0 }}>
         <HLabel sx={{color: "text.primary" }} value="label.qde.field.cin" align="left" colon={false} />
       </HBox>
-      <HBox sx={{ minWidth: 0, display: "flex", flexDirection: "column" }}>
-        <HTextField
-          value={form.cin}
-          onChange={(e) => setField("cin", e.target.value.toUpperCase())}
-          editable
-          placeholder="L000000XX0000XXX000000"
-          length={21}
-          width="100%"
-          error={Boolean(errors.cin)}
-        />
-        <FieldError message={errors.cin} sx={{ mt: 2 }} />
-      </HBox>
-      <HBox sx={{ minWidth: 0 }} />
-      <HBox sx={{ minWidth: 0 }} />
-      <HBox sx={{ minWidth: 0 }}>
-        <HLabel
-          value="For reference only"
-          align="left"
-          colon={false}
-          sx={{ fontStyle: "italic", fontSize: "11px", color: "text.secondary", mt: 0.3 }}
-        />
-      </HBox>
-      <HBox sx={{ minWidth: 0 }} />
+
+      <HTextField
+        value={form.cin}
+        onChange={(e) =>
+          setField("cin", e.target.value.toUpperCase())
+        }
+        editable
+        required
+        placeholder="CIN"
+        status={form.cinStatus}
+        verifying={verifying.cin}
+        onVerify={handlers.onVerifyCin}
+        length={21}
+        width="330px"
+        error={Boolean(errors.cin)}
+      />
+
+      <HLabel value="For reference only" align="left" colon={false} />
     </HBox>
 
-      {/* Shop Act */}
-      <KycVerifyRow
-        labelKey="label.qde.field.shopAct"
-        value={form.shopAct}
-        onChange={(e) =>
-          setField("shopAct", e.target.value)
-        }
-        placeholder="Shop Act & Establishment Registration No."
-        status={form.shopActStatus}
-        verifying={verifying.shopAct}
-        onVerify={handlers.onVerifyShopAct}
-        maxLength={30}
-        error={Boolean(errors.shopAct)}
-        errorMessage={errors.shopAct}
-        KycStatusLabel={KycStatusLabel}
-      />
-    </>
-    );
+    {/* Shop Act */}
+    <KycVerifyRow
+      labelKey="label.qde.field.shopAct"
+      value={form.shopAct}
+      onChange={(e) =>
+        setField("shopAct", e.target.value)
+      }
+      required
+      placeholder="Shop Act"
+      status={form.shopActStatus}
+      verifying={verifying.shopAct}
+      onVerify={handlers.onVerifyShopAct}
+      maxLength={30}
+      error={Boolean(errors.shopAct)}
+    />
+
+    {/* CKYC */}
+    <KycVerifyRow
+      labelKey="label.qde.field.ckyc"
+      value={form.ckycNumber}
+      onChange={(e) =>
+        setField("ckycNumber", e.target.value)
+      }
+      status={form.ckycStatus}
+      verifying={verifying.ckycTrigger}
+      onVerify={handlers.onTriggerCkyc}
+      maxLength={14}
+      buttonLabelKey="label.qde.button.verify"
+      isTriggerButton
+    />
+  </>
+);
 
 const KycCheckSection = ({
   form,
@@ -664,9 +542,6 @@ const KycCheckSection = ({
   compact = false,
   sectionKey = "kycCheck",
   errors = {},
-  footerNote,
-  aadhaarOtpTimer = 0,
-  showAadhaarImageUpload = true,
   ...handlers
 }) => (
   <SectionBlock
@@ -675,30 +550,26 @@ const KycCheckSection = ({
     subTitleKey={isNonIndividual ? "label.qde.section.kyc.nonIndividual.subtitle" : "label.qde.section.kyc.individual.subtitle"}
     icon={<VerifiedUserOutlinedIcon fontSize="small" />}
     noAccordion={compact}
-    showHeaderMeta={compact}
-    headerStatusLabel={!isNonIndividual ? "PAN-Aadhaar Linkage:" : false}
-    headerStatus={!isNonIndividual ? form.panAadhaarLinked : false}
   >
-    {isNonIndividual ? (
-      <NonIndividualKyc
-        form={form}
-        setField={setField}
-        verifying={verifying}
-        handlers={handlers}
-        errors={errors}
-      />
-    ) : (
-      <IndividualKyc
-        form={form}
-        setField={setField}
-        verifying={verifying}
-        handlers={handlers}
-        errors={errors}
-        aadhaarOtpTimer={aadhaarOtpTimer}
-        showAadhaarImageUpload={showAadhaarImageUpload}
-      />
-    )}
-    {footerNote}
+    <HBox sx={{ width: "100%", maxWidth: "1200px", mx: "auto", display: "flex", flexDirection: "column" }}>
+      {isNonIndividual ? (
+        <NonIndividualKyc
+          form={form}
+          setField={setField}
+          verifying={verifying}
+          handlers={handlers}
+          errors={errors}
+        />
+      ) : (
+        <IndividualKyc
+          form={form}
+          setField={setField}
+          verifying={verifying}
+          handlers={handlers}
+          errors={errors}
+        />
+      )}
+    </HBox>
   </SectionBlock>
 );
 

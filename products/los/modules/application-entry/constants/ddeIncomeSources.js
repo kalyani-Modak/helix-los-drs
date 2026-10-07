@@ -1,0 +1,53 @@
+export const DDE_INCOME_SOURCES = [
+  {
+    id: "basic",
+    labelKey: "label.dde.field.incIncludeBasic",
+    include: "incIncludeBasic",
+    amount: "basicSalary",
+    consideration: "basicSalaryConsideration",
+    apiType: "Basic Salary",
+  },
+  {
+    id: "allowance",
+    labelKey: "label.dde.field.incIncludeAllowance",
+    include: "incIncludeAllowance",
+    amount: "allowances",
+    consideration: "fixedAllowanceConsideration",
+    apiType: "Fixed Allowance",
+  },
+  {
+    id: "bonus",
+    labelKey: "label.dde.field.incIncludeBonus",
+    include: "incIncludeBonus",
+    amount: "bonusAmount",
+    consideration: "bonusConsideration",
+    apiType: "Bonus",
+  },
+  {
+    id: "variable",
+    labelKey: "label.dde.field.incIncludeVariable",
+    include: "incIncludeVariable",
+    amount: "variableIncome",
+    consideration: "variableConsideration",
+    apiType: "Variable Income",
+  },
+  {
+    id: "incentive",
+    labelKey: "label.dde.field.incIncludeIncentive",
+    include: "incIncludeIncentive",
+    amount: "incentiveAmount",
+    consideration: "incentiveConsideration",
+    apiType: "Incentive",
+  },
+  {
+    id: "other",
+    labelKey: "label.dde.field.otherIncome",
+    include: null,
+    amount: "otherIncome",
+    consideration: null,
+    apiType: "Other Income",
+  },
+].map((source) => ({
+  ...source,
+  months: [1, 2, 3].map((month) => `${source.amount}Month${month}`),
+}));

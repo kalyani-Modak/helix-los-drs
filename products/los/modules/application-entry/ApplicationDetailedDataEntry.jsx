@@ -25,7 +25,10 @@ import { unwrapApiResponse } from "./unwrapApiResponse";
 import { DDE_SECTION_CONFIG } from "./constants/ddeSections";
 import { DDE_FIELDS } from "./constants/ddeFieldMetadata";
 import { isDdeSectionVisible } from "./utils/ddeFieldVisibility";
-import { applyDdeIncomePatch } from "./utils/ddeIncomeCalculations";
+import {
+  applyDdeIncomePatch,
+  getDdeIncomeAveragePatch,
+} from "./utils/ddeIncomeCalculations";
 import { syncPermanentFromCurrent } from "./utils/ddeAddressSync";
 import { validateDdeForm } from "./utils/ddeValidation";
 import { mapQdeToDdePrefill, mapQdePartiesToDde } from "./utils/mapQdeToDdePrefill";
@@ -41,15 +44,12 @@ import DdeFormSection from "./components/DdeFormSection";
 import PerfiosSection from "./sections/PerfiosSection";
 import DdeOcrUploadSection from "./sections/DdeOcrUploadSection";
 import DdePartyListSection from "./sections/DdePartyListSection";
+import DdeIncomeSection from "./sections/DdeIncomeSection";
+import DdeTaxSection from "./sections/DdeTaxSection";
+import { partySubsections } from "./utils/ddePartyFields";
 
 const ORG_ID = "001";
 const BORROWER_CATEGORY_FIELDS = DDE_FIELDS.filter((field) => field.name === "customerType");
-const EXPANDABLE_SECTION_KEYS = [
-  ...DDE_SECTION_CONFIG.map((sectionConfig) => sectionConfig.key),
-  "ddeCoApplicants",
-  "ddeGuarantors",
-];
-
 const SECTION_ICONS = {
   personal: <PersonOutlineOutlinedIcon fontSize="small" />,
   currentAddress: <LocationOnOutlinedIcon fontSize="small" />,
@@ -72,7 +72,6 @@ const ApplicationDetailedDataEntry = () => {
   const location = useLocation();
   const screenMenuId = location.state?.menuId;
   const incomingApplicationNo = location.state?.applicationNo;
-
   const [form, setForm] = useState(createEmptyDdeForm);
   const [formErrors, setFormErrors] = useState({});
   const [savedApplicationNo, setSavedApplicationNo] = useState("");
@@ -92,6 +91,10 @@ const ApplicationDetailedDataEntry = () => {
       if (name === "dob") {
         next.age = computeAgeFromDob(value);
       }
+      const incomeAveragePatch = getDdeIncomeAveragePatch(name, value, prev);
+      if (incomeAveragePatch) {
+        Object.assign(next, incomeAveragePatch);
+      }
       const incomePatch = applyDdeIncomePatch(next);
       if (incomePatch) {
         Object.assign(next, incomePatch);
@@ -105,10 +108,26 @@ const ApplicationDetailedDataEntry = () => {
   }, []);
 
   const setAllSectionsExpanded = useCallback((expanded) => {
-    setExpandedSections(
-      Object.fromEntries(EXPANDABLE_SECTION_KEYS.map((key) => [key, expanded]))
-    );
-  }, []);
+    const partySectionKeys = [
+      ...(form.coApplicants || []).flatMap((party) =>
+        partySubsections("co", party.type === "Non-Earning").map(
+          (subsection) => `co-${party.id}-${subsection.key}`
+        )
+      ),
+      ...(form.guarantors || []).flatMap((party) =>
+        partySubsections("guarantor", false).map(
+          (subsection) => `guarantor-${party.id}-${subsection.key}`
+        )
+      ),
+    ];
+    setExpandedSections((prev) => ({
+      ...prev,
+      ...Object.fromEntries(
+        DDE_SECTION_CONFIG.map((sectionConfig) => [sectionConfig.key, expanded])
+      ),
+      ...Object.fromEntries(partySectionKeys.map((key) => [key, expanded])),
+    }));
+  }, [form.coApplicants, form.guarantors]);
 
   const setSectionExpanded = useCallback(
     (sectionKey, expanded) =>
@@ -143,36 +162,61 @@ const ApplicationDetailedDataEntry = () => {
       state: address.szState,
       pincode: address.iPincode,
       country: address.szCountry,
-      loanAmount: loan.requestedAmount,
-      tenure: loan.tenureMonths,
+      loanAmount: loan.fAppliedAmount != null ? String(loan.fAppliedAmount) : "",
+      tenure: loan.iAppliedTenor != null ? String(loan.iAppliedTenor) : "",
       coApplicants: payload?.coApplicants,
       guarantors: payload?.guarantors,
     };
     const prefill = mapQdeToDdePrefill(qdeShape);
-    setForm((prev) => ({
-      ...prev,
-      ...prefill,
-      applicationNo: appNo,
-      coApplicants:
-        prev.coApplicants?.length > 0
-          ? prev.coApplicants
-          : mapQdePartiesToDde(qdeShape.coApplicants || [], "co"),
-      guarantors:
-        prev.guarantors?.length > 0
-          ? prev.guarantors
-          : mapQdePartiesToDde(qdeShape.guarantors || [], "guarantor"),
-    }));
+    setForm((prev) => {
+      const borrowerSnapshot = { ...prev, ...prefill };
+      return {
+        ...prev,
+        ...prefill,
+        applicationNo: appNo,
+        coApplicants:
+          prev.coApplicants?.length > 0
+            ? prev.coApplicants
+            : mapQdePartiesToDde(qdeShape.coApplicants || [], "co", borrowerSnapshot),
+        guarantors:
+          prev.guarantors?.length > 0
+            ? prev.guarantors
+            : mapQdePartiesToDde(qdeShape.guarantors || [], "guarantor", borrowerSnapshot),
+        ddeMeta: {
+          ...(prev.ddeMeta || {}),
+          primaryApplicantId: applicant.szApplicantId || prev.ddeMeta?.primaryApplicantId || null,
+          applicationDetails: {
+            szAppType: payload?.applicationControl?.szApplicationType,
+            szBorrType: payload?.applicationControl?.szBorrowerType,
+            szCustType: payload?.applicationControl?.szCustomerType,
+            szPortfolioCode: payload?.applicationControl?.szPortfolioCode,
+            szSourceChannel: payload?.sourcingDetails?.szSourcingChannel,
+            szSourceLocation: payload?.sourcingDetails?.szSourcingBranch,
+            szServiceLocation: payload?.sourcingDetails?.szServicingBranch,
+          },
+          loanDetailsRow: {
+            szProductCode: loan.szProductCode,
+            fInterestRate: loan.fInterestRate,
+            szSchemeCode: loan.szSchemeCode,
+            szLoanType: loan.szLoanType,
+            szTenorUnit: loan.szTenorUnit || "MONTH",
+            cPrimaryAccountYn: "Y",
+            szCurrencyCode: loan.szCurrencyCode || "INR",
+          },
+        },
+      };
+    });
   }, []);
 
   const loadDde = useCallback(
     async (appNo) => {
       setLoading(true);
       try {
-        const response = await HAxiosService.GET(LosDdeAPI.fetchDde(ORG_ID, appNo)).then(
-          unwrapApiResponse
-        );
+        const response =null; //await HAxiosService.GET(LosDdeAPI.fetchDdeSections(appNo)).then(
+        //   unwrapApiResponse
+        // );
         const data = unwrapDdePayload(response);
-        if (data && Object.keys(data).length > 0) {
+        if (data?.parties?.length || data?.szApplicationNo) {
           setForm((prev) => ({ ...prev, ...hydrateDdeFormFromApi(data) }));
         } else {
           await loadFromQde(appNo);
@@ -189,25 +233,26 @@ const ApplicationDetailedDataEntry = () => {
   );
 
   useEffect(() => {
-    if (incomingApplicationNo) {
-      loadDde(String(incomingApplicationNo));
-    }
-  }, [incomingApplicationNo, loadDde]);
+      loadDde("APP-HL2600273");
+  },[]);
 
   const persistDde = useCallback(async () => {
-    const payload = buildDdeSavePayload(ORG_ID, form.applicationNo || savedApplicationNo, form);
     const appNo = form.applicationNo || savedApplicationNo;
-    const url = appNo ? LosDdeAPI.updateDde(appNo) : LosDdeAPI.saveDde();
-    const response = await HAxiosService.POST(url, payload).then(unwrapApiResponse);
+    if (!appNo) {
+      throw new Error("Application number is required to save detailed data entry.");
+    }
+    const payload = buildDdeSavePayload(ORG_ID, appNo, form);
+    const response = await HAxiosService.POST(LosDdeAPI.saveDdeSections(appNo), payload).then(
+      unwrapApiResponse
+    );
     const data = unwrapDdePayload(response);
-    const newAppNo =
-      data?.szApplicationNo ||
-      data?.applicationNo ||
-      response?.responseJson?.szApplicationNo ||
-      appNo;
+    const newAppNo = data?.szApplicationNo || appNo;
     if (newAppNo) {
       setSavedApplicationNo(String(newAppNo));
       setField("applicationNo", String(newAppNo));
+    }
+    if (data?.parties?.length) {
+      setForm((prev) => ({ ...prev, ...hydrateDdeFormFromApi(data) }));
     }
     return newAppNo;
   }, [form, savedApplicationNo, setField]);
@@ -239,7 +284,7 @@ const ApplicationDetailedDataEntry = () => {
 
   return (
     <HBox>
-      <HBox>
+      <HBox sx={{p:"0rem 1rem 0rem 1rem",  borderBottom: "1px solid #8c8d8f",}}>
         <HBreadCrumb />
         <TitleBar title={t("label.dde.title", "Detailed data entry")} />
         <HLabel value="label.dde.subtitle" align="left" colon={false} />
@@ -252,7 +297,7 @@ const ApplicationDetailedDataEntry = () => {
         ) : null}
       </HBox>
 
-      <HPaper>
+      <HPaper sx={{p:"1rem 2rem 0rem 2rem"}}>
         <HBox data-menu-id={screenMenuId}>
           {loading ? (
             <HLabel value="label.dde.msg.loading" align="left" colon={false} />
@@ -323,6 +368,32 @@ const ApplicationDetailedDataEntry = () => {
                       key={sectionConfig.key}
                       form={form}
                       setField={setField}
+                    />
+                  );
+                }
+                if (sectionConfig.key === "income") {
+                  return (
+                    <DdeIncomeSection
+                      key={sectionConfig.key}
+                      form={form}
+                      setField={setField}
+                      errors={formErrors}
+                      lookups={lookups}
+                      expanded={expandedSections[sectionConfig.key]}
+                      onExpandedChange={(expanded) =>
+                        setSectionExpanded(sectionConfig.key, expanded)
+                      }
+                    />
+                  );
+                }
+                if (sectionConfig.key === "tax") {
+                  return (
+                    <DdeTaxSection
+                      key={sectionConfig.key}
+                      form={form}
+                      setField={setField}
+                      errors={formErrors}
+                      icon={SECTION_ICONS[sectionConfig.key]}
                       expanded={expandedSections[sectionConfig.key]}
                       onExpandedChange={(expanded) =>
                         setSectionExpanded(sectionConfig.key, expanded)
@@ -350,6 +421,7 @@ const ApplicationDetailedDataEntry = () => {
                 variant="co"
                 titleKey="label.dde.section.coApplicant"
                 subTitleKey="label.dde.section.coApplicant.subtitle"
+                borrower={form}
                 items={form.coApplicants || []}
                 onAdd={(party) =>
                   setForm((prev) => ({
@@ -365,15 +437,14 @@ const ApplicationDetailedDataEntry = () => {
                 }
                 onChange={(rows) => setForm((prev) => ({ ...prev, coApplicants: rows }))}
                 lookups={lookups}
-                expanded={expandedSections.ddeCoApplicants}
-                onExpandedChange={(expanded) =>
-                  setSectionExpanded("ddeCoApplicants", expanded)
-                }
+                expandedSections={expandedSections}
+                onSectionExpandedChange={setSectionExpanded}
               />
               <DdePartyListSection
                 variant="guarantor"
                 titleKey="label.dde.section.guarantor"
                 subTitleKey="label.dde.section.guarantor.subtitle"
+                borrower={form}
                 items={form.guarantors || []}
                 onAdd={(party) =>
                   setForm((prev) => ({
@@ -389,10 +460,8 @@ const ApplicationDetailedDataEntry = () => {
                 }
                 onChange={(rows) => setForm((prev) => ({ ...prev, guarantors: rows }))}
                 lookups={lookups}
-                expanded={expandedSections.ddeGuarantors}
-                onExpandedChange={(expanded) =>
-                  setSectionExpanded("ddeGuarantors", expanded)
-                }
+                expandedSections={expandedSections}
+                onSectionExpandedChange={setSectionExpanded}
               />
             </>
           )}

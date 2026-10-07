@@ -9,27 +9,27 @@
     <meta
       http-equiv="Content-Security-Policy"
       content="
-      default-src 'self' http://10.141.51.105:8000 http://localhost:8767 http://10.165.187.150:8085 http://10.141.51.105:8007 http://localhost:8015 http://localhost:8012 http://10.141.51.105:8082 http://localhost:8888 http://localhost:8016 http://localhost:18082 http://localhost:8008 http://localhost:4080 https://aiassistant.yutrix.io http://10.165.100.49:3090 http://localhost:8071 http://localhost:8072 http://localhost:8073/;
-      connect-src 'self' http://10.141.51.105:8000 http://localhost:8767 http://10.165.187.150:8085 http://10.141.51.105:8007 http://localhost:8015 http://localhost:8012 http://10.141.51.105:8082 http://localhost:8888 http://localhost:8016 http://localhost:18082 http://localhost:8008 http://localhost:4080 https://aiassistant.yutrix.io http://10.165.100.49:3090 http://localhost:8071 http://localhost:8072 http://localhost:8073/;
-      script-src 'self' http://10.141.51.105:8000 http://localhost:8767 http://10.165.187.150:8085 http://10.141.51.105:8007 http://localhost:8015 http://localhost:8012 http://10.141.51.105:8082 http://localhost:8888 http://localhost:8016 http://localhost:18082 http://localhost:8008 http://localhost:4080 https://aiassistant.yutrix.io http://10.165.100.49:3090 http://localhost:8071 http://localhost:8072 http://localhost:8073/;
-      script-src-elem 'self' http://10.141.51.105:8000 http://localhost:8767 http://10.165.187.150:8085 http://10.141.51.105:8007 http://localhost:8015 http://localhost:8012 http://10.141.51.105:8082 http://localhost:8888 http://localhost:8016 http://localhost:18082 http://localhost:8008 http://localhost:4080 https://aiassistant.yutrix.io http://10.165.100.49:3090 http://localhost:8071 http://localhost:8072 http://localhost:8073/;
+      default-src 'self' %VITE_CSP_CONNECT_ORIGIN%;
+      connect-src 'self' %VITE_CSP_CONNECT_ORIGIN%;
+      script-src 'self' %VITE_CSP_CONNECT_ORIGIN%;
+      script-src-elem 'self' %VITE_CSP_CONNECT_ORIGIN%;
       img-src 'self' data: blob:;
-      style-src 'self' 'nonce-BsT98AeP+X4U24UKWVOEBQ==';
-      style-src-elem 'self' 'nonce-BsT98AeP+X4U24UKWVOEBQ==';
-      font-src 'self' data: 'nonce-BsT98AeP+X4U24UKWVOEBQ==';
+      style-src 'self' 'nonce-Hvbi2sCiiwyxQYsZHOxn2A==';
+      style-src-elem 'self' 'nonce-Hvbi2sCiiwyxQYsZHOxn2A==';
+      font-src 'self' data: 'nonce-Hvbi2sCiiwyxQYsZHOxn2A==';
       object-src 'none';
       base-uri 'self';
       form-action 'self';
-      frame-src 'self' blob: http://10.141.51.105:8000 http://localhost:8767 http://10.165.187.150:8085 http://10.141.51.105:8007 http://localhost:8015 http://localhost:8012 http://10.141.51.105:8082 http://localhost:8888 http://localhost:8016 http://localhost:18082 http://localhost:8008 http://localhost:4080 https://aiassistant.yutrix.io http://10.165.100.49:3090 http://localhost:8071 http://localhost:8072 http://localhost:8073/;
+      frame-src 'self' blob: %VITE_CSP_CONNECT_ORIGIN%;
       media-src 'none';
       worker-src 'self';
       manifest-src 'self';
       block-all-mixed-content;
       "
     />
-    <meta property="csp-nonce" nonce="BsT98AeP+X4U24UKWVOEBQ==" />
+    <meta property="csp-nonce" nonce="Hvbi2sCiiwyxQYsZHOxn2A==" />
 
-    <script type="module" crossorigin src="/drs/assets/index-D93-QYu9.js"></script>
+    <script type="module" crossorigin src="/drs/assets/index-C1sL9gFQ.js"></script>
     <link rel="stylesheet" crossorigin href="/drs/assets/index-BY45ySmb.css">
   </head>
   <body>

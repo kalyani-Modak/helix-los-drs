@@ -726,7 +726,7 @@ export const DDE_FIELDS = [
       "field": "customerType",
       "equals": "Salaried"
     },
-    "help": "Auto-calculated: Sum of (Amount × Consideration %) for each selected source + Other Income"
+    "help": "Auto-calculated: Sum of the average income for each selected source + Other Income"
   },
   {
     "name": "finalConsideredIncome",
@@ -741,7 +741,7 @@ export const DDE_FIELDS = [
       "field": "customerType",
       "equals": "Salaried"
     },
-    "help": "Auto-calculated: same as Net Monthly Income (eligible components after consideration %)"
+    "help": "Auto-calculated: same as Net Monthly Income"
   },
   {
     "name": "salaryCreditMode",

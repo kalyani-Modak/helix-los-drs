@@ -1,29 +1,42 @@
+import { DDE_INCOME_SOURCES } from "../constants/ddeIncomeSources";
+
 const num = (v) => {
   const n = Number(v);
   return Number.isFinite(n) ? n : 0;
 };
 
-const SOURCES = [
-  { inc: "incIncludeBasic", amt: "basicSalary", con: "basicSalaryConsideration" },
-  { inc: "incIncludeAllowance", amt: "allowances", con: "fixedAllowanceConsideration" },
-  { inc: "incIncludeBonus", amt: "bonusAmount", con: "bonusConsideration" },
-  { inc: "incIncludeVariable", amt: "variableIncome", con: "variableConsideration" },
-  { inc: "incIncludeIncentive", amt: "incentiveAmount", con: "incentiveConsideration" },
-];
+export const calculateDdeIncomeAverage = (source, values) =>
+  Math.round(
+    (source.months.reduce((sum, monthField) => sum + num(values[monthField]), 0) / 3) * 100
+  ) / 100;
 
 export const computeDdeIncomeTotals = (values) => {
-  const otherInc = num(values.otherIncome);
   const gross =
-    SOURCES.reduce((s, r) => s + (values[r.inc] ? num(values[r.amt]) : 0), 0) + otherInc;
+    DDE_INCOME_SOURCES.reduce(
+      (sum, source) =>
+        sum +
+        (!source.include || values[source.include]
+          ? calculateDdeIncomeAverage(source, values)
+          : 0),
+      0
+    );
   const net =
-    SOURCES.reduce((s, r) => {
-      if (!values[r.inc]) return s;
-      const c = values[r.con] === "" || values[r.con] === undefined ? 100 : num(values[r.con]);
-      return s + num(values[r.amt]) * (c / 100);
-    }, 0) + otherInc;
+    DDE_INCOME_SOURCES.reduce((sum, source) => {
+      if (source.include && !values[source.include]) return sum;
+      return sum + calculateDdeIncomeAverage(source, values);
+    }, 0);
   const gR = Math.round(gross * 100) / 100;
   const nR = Math.round(net * 100) / 100;
   return { grossMonthlyIncome: gR, netMonthlyIncome: nR, finalConsideredIncome: nR };
+};
+
+export const getDdeIncomeAveragePatch = (fieldName, fieldValue, values) => {
+  const source = DDE_INCOME_SOURCES.find((item) => item.months.includes(fieldName));
+  if (!source) return null;
+
+  const nextValues = { ...values, [fieldName]: fieldValue };
+  const average = calculateDdeIncomeAverage(source, nextValues);
+  return { [source.amount]: String(average) };
 };
 
 export const applyDdeIncomePatch = (values) => {

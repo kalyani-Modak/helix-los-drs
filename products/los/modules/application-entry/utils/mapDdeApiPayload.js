@@ -1,30 +1,17 @@
 import { unwrapApiResponse } from "../unwrapApiResponse";
+import {
+  buildDdeSectionsSavePayload,
+  hydrateFormFromDdeGet,
+} from "./mapDdeSectionsApi";
 
 export const unwrapDdePayload = (response) => {
   const unwrapped = unwrapApiResponse(response);
-  return (
-    unwrapped?.responseJson ||
-    unwrapped?.data ||
-    unwrapped?.ddeDetails ||
-    unwrapped ||
-    {}
-  );
+  return unwrapped?.responseJson || unwrapped?.data || unwrapped || {};
 };
 
-export const buildDdeSavePayload = (orgId, applicationNo, form) => ({
-  szOrgId: orgId,
-  szApplicationNo: applicationNo || form.applicationNo || null,
-  ddeDetails: { ...form },
-  coApplicants: form.coApplicants || [],
-  guarantors: form.guarantors || [],
-});
+/** POST body for DDE sections save. */
+export const buildDdeSavePayload = (orgId, applicationNo, form) =>
+  buildDdeSectionsSavePayload(orgId, applicationNo, form);
 
-export const hydrateDdeFormFromApi = (apiPayload = {}) => {
-  const details = apiPayload.ddeDetails || apiPayload;
-  return {
-    ...details,
-    applicationNo: apiPayload.szApplicationNo || details.applicationNo || "",
-    coApplicants: apiPayload.coApplicants || details.coApplicants || [],
-    guarantors: apiPayload.guarantors || details.guarantors || [],
-  };
-};
+/** Maps GET `/dde/application/{appNo}/sections` into flat form state. */
+export const hydrateDdeFormFromApi = (apiPayload = {}) => hydrateFormFromDdeGet(apiPayload);

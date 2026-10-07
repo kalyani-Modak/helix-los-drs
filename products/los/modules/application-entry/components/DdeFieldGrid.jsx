@@ -3,6 +3,7 @@ import {
   HCheckBox,
   HDatePicker,
   HDropdown,
+  HBox,
   HLabel,
   HTextField,
   HTextarea,
@@ -44,13 +45,57 @@ const DdeFieldGrid = ({ fields, form, setField, errors = {}, lookups = {} }) => 
         const readOnly = disabled;
 
         return (
-          <Grid key={field.name} size={width}>
-            <HLabel
-              value={labelId}
-              required={Boolean(field.required)}
-              align="left"
-              colon={false}
-            />
+          <Grid
+            key={field.name}
+            size={width}
+            sx={
+              field.type === "checkbox"
+                ? { display: "flex", alignItems: "flex-start", minHeight: 40, pt: 0.25 }
+                : undefined
+            }
+          >
+            {field.type === "checkbox" ? (
+              <HBox
+                sx={{
+                  display: "flex",
+                  flexDirection: "row",
+                  alignItems: "flex-start",
+                  gap: 0.5,
+                  width: "100%",
+                }}
+              >
+                <HCheckBox
+                  sx={{ width: 20, flexShrink: 0, mt: -0.5 }}
+                  checked={Boolean(form[field.name])}
+                  onChange={(e) => setField(field.name, e.target.checked)}
+                  disabled={readOnly}
+                />
+                <HBox sx={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
+                  <HLabel
+                    value={labelId}
+                    required={Boolean(field.required)}
+                    align="left"
+                    colon={false}
+                  />
+                  {field.help ? (
+                    <HLabel
+                      value={`label.dde.help.${field.name}`}
+                      align="left"
+                      colon={false}
+                      sx={{ color: "text.secondary", fontSize: 11 }}
+                    />
+                  ) : null}
+                </HBox>
+              </HBox>
+            ) : (
+              <HLabel
+                value={labelId}
+                required={Boolean(field.required)}
+                align="left"
+                colon={false}
+                sx={field.name === "totalIncome" ? { whiteSpace: "nowrap" } : undefined}
+              />
+            )}
             {field.type === "select" ? (
               <HDropdown
                 name={field.name}
@@ -61,13 +106,6 @@ const DdeFieldGrid = ({ fields, form, setField, errors = {}, lookups = {} }) => 
                 required={Boolean(field.required)}
                 error={Boolean(err(field.name))}
                 width="100%"
-              />
-            ) : null}
-            {field.type === "checkbox" ? (
-              <HCheckBox
-                checked={Boolean(form[field.name])}
-                onChange={(e) => setField(field.name, e.target.checked)}
-                disabled={readOnly}
               />
             ) : null}
             {field.type === "date" ? (
@@ -96,8 +134,9 @@ const DdeFieldGrid = ({ fields, form, setField, errors = {}, lookups = {} }) => 
                 disabled={readOnly}
                 required={Boolean(field.required)}
                 error={Boolean(err(field.name))}
-                width="100%"
+                width={field.type === "number" ? "370px" : "100%"}
                 type={field.type === "number" ? "number" : "text"}
+                fullWidth={field.name === "totalIncome"}
               />
             ) : null}
             {field.name === "customerType" && field.help ? (

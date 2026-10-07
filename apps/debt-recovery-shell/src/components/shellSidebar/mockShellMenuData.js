@@ -84,7 +84,7 @@ export const MOCK_SEC_MENUS = {
         parentMenu: "Application Entry",
         menuId: "los-dde-detailed-data-entry",
         name: "Detailed data entry",
-        uris: ["/api/los/saveDde", "/api/los/updateDde", "/api/los/fetchDde"],
+        uris: ["/applicationEntry/api/dde/application"],
         path: "/homelayout/application-entry/detailed-data-entry",
       },
       {

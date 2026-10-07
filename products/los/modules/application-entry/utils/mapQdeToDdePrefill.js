@@ -1,3 +1,5 @@
+import { mapQdePartyRecordToDde } from "./ddePartyState";
+
 /** Maps QDE form/API shape into Detailed Data Entry borrower fields. */
 export const mapQdeToDdePrefill = (qde = {}) => {
   const profile = qde.profile || qde.borrowerCategory || "";
@@ -33,23 +35,5 @@ export const mapQdeToDdePrefill = (qde = {}) => {
   };
 };
 
-export const mapQdePartiesToDde = (parties = [], kind = "co") =>
-  parties.map((p) => ({
-    id: p.id || `${Date.now()}-${Math.random().toString(16).slice(2, 8)}`,
-    relationship: p.relationship || "",
-    type: kind === "co" ? "Earning" : undefined,
-    title: "",
-    firstName: p.firstName || "",
-    middleName: p.middleName || "",
-    lastName: p.lastName || "",
-    aadhaar: p.aadhaar || "",
-    pan: p.pan || "",
-    mobile: p.mobile || "",
-    email: p.email || "",
-    currentAddressLine1: p.addr1 || "",
-    currentCity: p.city || "",
-    currentDistrict: p.district || "",
-    currentProvince: p.state || "",
-    currentPostalCode: p.pincode != null ? String(p.pincode) : "",
-    currentCountry: p.country || "India",
-  }));
+export const mapQdePartiesToDde = (parties = [], kind = "co", borrower = {}) =>
+  (parties || []).map((p) => mapQdePartyRecordToDde(p, borrower, kind));

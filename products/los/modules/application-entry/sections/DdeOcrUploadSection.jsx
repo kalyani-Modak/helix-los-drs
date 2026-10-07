@@ -24,7 +24,7 @@ const DdeOcrUploadSection = () => {
         mb: 2,
         border: "1px solid #c7d2fe",
         borderRadius: 2,
-        backgroundColor: "#f5f7ff",
+        backgroundColor: "transparent",
         boxSizing: "border-box",
       }}
     >

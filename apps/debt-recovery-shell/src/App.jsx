@@ -336,7 +336,7 @@ const AppContent = ({ language, setLanguage }) => {
             <Route path="application-entry/retail" element={<ApplicationQuickDataEntry />} />
             <Route path="application-entry/detailed-data-entry" element={<ApplicationDetailedDataEntry />} />
             <Route path="application-entry/uploadDocument" element={<ApplicationDocumentUpload />} />
-            <Route path="application-entry/detailedDataEntry" element={<DetailedDataEntry />} />
+            {/* <Route path="application-entry/detailedDataEntry" element={<DetailedDataEntry />} /> */}
         
 
             {/* Account list: no persistent AccountHeader / FunctionGroupsBar */}
