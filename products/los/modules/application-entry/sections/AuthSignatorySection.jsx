@@ -2,9 +2,18 @@ import { HDatePicker, HLabel, HTextField, HBox } from "@helix/component-library"
 import SectionBlock from "../components/SectionBlock";
 import FieldError from "../components/FieldError";
 import VerifyLink from "../components/VerifyLink";
-import { fromPickerValue, toPickerValue } from "../dateHelpers";
 import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import dayjs from "dayjs";
+
+const getDateValue = (value) => {
+  if (!value) return null;
+  const date = dayjs(value);
+  return date.isValid() ? date : null;
+};
+
+const formatDateValue = (value) =>
+  value?.isValid() ? value.format("YYYY-MM-DD") : "";
 
 const AuthSignatorySection = ({
   form,
@@ -77,8 +86,8 @@ const AuthSignatorySection = ({
         <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px", mt: 1 }}>
           <HLabel sx={{color: "text.primary" }} value="label.qde.field.dob" required align="left" colon={false} />
           <HDatePicker
-            value={toPickerValue(form.asDob)}
-            onChange={(value) => setField("asDob", fromPickerValue(value))}
+            value={getDateValue(form.asDob)}
+            onChange={(value) => setField("asDob", formatDateValue(value))}
             required
             error={Boolean(err("asDob"))}
             width="100%"
