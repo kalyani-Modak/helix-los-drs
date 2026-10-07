@@ -73,7 +73,7 @@ const DdeIncomeSection = ({
     const headerStyle = {
       backgroundColor: action.hover,
       color: colors.primary,
-      fontWeight: 600,
+      fontWeight: 700,
       whiteSpace: "normal",
       textAlign: "center",
     };
@@ -110,7 +110,7 @@ const DdeIncomeSection = ({
       {
         headerName: text({ id: "label.dde.income.include" }),
         field: "include",
-        width: 76,
+        width: 85,
         cellDataType: "boolean",
         editable: (params) => !params.data?.total && Boolean(params.data?.source.include),
         cellStyle: { display: "flex", justifyContent: "center" },
@@ -274,6 +274,10 @@ const DdeIncomeSection = ({
                 borderRight: "1px solid",
                 borderColor: border.control,
               },
+              "& .ag-theme-alpine .ag-header-cell .ag-header-cell-text, & .ag-theme-alpine-dark .ag-header-cell .ag-header-cell-text, & .ag-theme-alpine .ag-header-group-text, & .ag-theme-alpine-dark .ag-header-group-text": {
+                fontWeight: "650 !important",
+                fontSize: "14px !important",
+              },
               "& .ag-cell": {
                 borderRight: "1px solid",
                 borderColor: border.control,
@@ -288,7 +292,7 @@ const DdeIncomeSection = ({
               columnDefs={columnDefs}
               gridStyle={{
                 width: "100%",
-                height: 312,
+                height: 290,
                 "--ag-header-background-color": action.hover,
                 "--ag-header-foreground-color": colors.primary,
                 "--ag-foreground-color": themeText.primary,
@@ -296,7 +300,6 @@ const DdeIncomeSection = ({
                 "--ag-row-border-color": border.control,
               }}
               pagination={false}
-              suppressPaginationPanel
               sort={false}
               hideInternalSaveButton
               embeddedInSection
@@ -309,7 +312,6 @@ const DdeIncomeSection = ({
           <HBox
             sx={{
               width: "100%",
-              mt: 1,
               px: 1,
               py: 0.5,
               minHeight: 28,
@@ -367,6 +369,12 @@ const DdeIncomeSection = ({
                     required={Boolean(field.required)}
                     align="left"
                     colon={false}
+                    sx={{
+                      color: "text.primary",
+                      fontSize: 14,
+                      fontWeight: 600,
+                      lineHeight: 1.35,
+                    }}
                   />
                 </HBox>
                 <HBox
@@ -386,15 +394,15 @@ const DdeIncomeSection = ({
                           display: "flex",
                           alignItems: "center",
                           minHeight: 18,
-                          mb: 0.5,
                         }}
                       >
                         <HLabel
-                          value={`label.dde.field.${field.name}`}
+                          value={field.name}
+                          translate={false}
                           required={Boolean(field.required)}
                           align="left"
                           colon={false}
-                          sx={{ fontSize: 10, lineHeight: 1.2 }}
+                          sx={{ fontSize: 12, fontWeight: "800 !important" }}
                         />
                       </HBox>
                     ) : null}
@@ -404,7 +412,7 @@ const DdeIncomeSection = ({
                         alignItems: "center",
                         width: "100%",
                         minWidth: 0,
-                        minHeight: 36,
+                        minHeight: 20,
                         flex: "0 0 auto",
                         "& > *": { width: "100%", minWidth: 0 },
                       }}
@@ -419,10 +427,10 @@ const DdeIncomeSection = ({
                         sx={{
                           display: "block",
                           color: "text.secondary",
-                          fontSize: 10,
+                          fontSize: 9,
                           lineHeight: 1.4,
                           whiteSpace: "normal",
-                          mt: 0.75,
+                          mt: 1,
                         }}
                       />
                     ) : null}

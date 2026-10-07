@@ -12,6 +12,7 @@ export const DD_LOOKUP_TYPES = [
   "party.education",
   "party.residencestatus",
   "party.address.state",
+  "party.address.district",
   "los.pensionertype",
   "los.pensioncreditmode",
   "los.bankname",
@@ -24,13 +25,14 @@ export const DD_LOOKUP_TYPES = [
   "los.coapplicanttype",
   "los.coapplicant.relationship",
   "los.guarantor.relationship",
+  "los.income.type.salaried",
 ];
 
 const toHDropdownOptions = (values = []) =>
   values.map((v) => ({ label: v.szDescription, value: v.szCode }));
 
 /**
- * Fetches every DD lookup type in one call and returns them as `{label, value}`
+ * Fetches every DD lookup type in one call and returns them as {label, value}
  * option arrays keyed by lookup type, ready for HDropdown.
  */
 export function useDdLookups(orgId, types = DD_LOOKUP_TYPES) {

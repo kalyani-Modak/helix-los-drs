@@ -130,6 +130,7 @@ export const DDE_FIELDS = [
     "name": "countryOfBirth",
     "type": "text",
     "label": "Country of Birth",
+    
     "section": "Personal Details",
     "maxLength": 80
   },

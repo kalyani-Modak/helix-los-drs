@@ -235,7 +235,7 @@
   "label.docupload.validation.customerType": "Seleccione un tipo de cliente",
   "label.docupload.validation.mandatoryDocuments": "Reciba y cargue todos los documentos obligatorios antes de enviar",
   "label.dde.title": "Detailed data entry",
-  "label.dde.subtitle": "Capture full applicant, employment, income and product data after quick data entry.",
+  "label.dde.subtitle": "Capture full applicant, employment, income and product data.",
   "label.dde.ocr.title": "OCR — Application Form",
   "label.dde.ocr.description": "Upload a scanned/printed application form (image or PDF). Review the extracted values and map each one to a specific form field below before applying.",
   "label.dde.ocr.uploadExtract": "Upload & Extract",

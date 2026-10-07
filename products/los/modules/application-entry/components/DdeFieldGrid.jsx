@@ -37,7 +37,12 @@ const DdeFieldGrid = ({ fields, form, setField, errors = {}, lookups = {} }) => 
   const err = (name) => errors[name];
 
   return (
-    <Grid container spacing={1.4} alignItems="flex-start">
+    <Grid
+      container
+      spacing={1.4}
+      alignItems="flex-start"
+      sx={{ width: "100%", minWidth: 0 }}
+    >
       {visible.map((field) => {
         const width = field.fullWidth ? 12 : 4;
         const labelId = fieldLabelId(field.name);
@@ -50,7 +55,13 @@ const DdeFieldGrid = ({ fields, form, setField, errors = {}, lookups = {} }) => 
             size={width}
             sx={
               field.type === "checkbox"
-                ? { display: "flex", alignItems: "flex-start", minHeight: 40, pt: 0.25 }
+                ? {
+                    display: "flex",
+                    flexDirection: field.help ? "column" : "row",
+                    alignItems: "flex-start",
+                    minHeight: 40,
+                    pt: 0.25,
+                  }
                 : undefined
             }
           >
@@ -71,20 +82,13 @@ const DdeFieldGrid = ({ fields, form, setField, errors = {}, lookups = {} }) => 
                   disabled={readOnly}
                 />
                 <HBox sx={{ display: "flex", flexDirection: "column", minWidth: 0 }}>
-                  <HLabel
+                  <HLabel 
+                    sx={{color: "text.primary" }}
                     value={labelId}
                     required={Boolean(field.required)}
                     align="left"
                     colon={false}
                   />
-                  {field.help ? (
-                    <HLabel
-                      value={`label.dde.help.${field.name}`}
-                      align="left"
-                      colon={false}
-                      sx={{ color: "text.secondary", fontSize: 11 }}
-                    />
-                  ) : null}
                 </HBox>
               </HBox>
             ) : (
@@ -93,7 +97,7 @@ const DdeFieldGrid = ({ fields, form, setField, errors = {}, lookups = {} }) => 
                 required={Boolean(field.required)}
                 align="left"
                 colon={false}
-                sx={field.name === "totalIncome" ? { whiteSpace: "nowrap" } : undefined}
+                sx={{color: "text.primary",whiteSpace: field.name === "totalIncome" ? "nowrap" : "normal"}}
               />
             )}
             {field.type === "select" ? (
@@ -134,17 +138,17 @@ const DdeFieldGrid = ({ fields, form, setField, errors = {}, lookups = {} }) => 
                 disabled={readOnly}
                 required={Boolean(field.required)}
                 error={Boolean(err(field.name))}
-                width={field.type === "number" ? "370px" : "100%"}
+                width={field.type === "number" ? "100%" : "100%"}
                 type={field.type === "number" ? "number" : "text"}
                 fullWidth={field.name === "totalIncome"}
               />
             ) : null}
-            {field.name === "customerType" && field.help ? (
+            {field.help ? (
               <HLabel
                 value={`label.dde.help.${field.name}`}
                 align="left"
                 colon={false}
-                sx={{ color: "text.secondary", fontSize: 11, mt: 0.5 }}
+                sx={{ color: "text.secondary", fontSize: 11, mt: 0.25 }}
               />
             ) : null}
           </Grid>

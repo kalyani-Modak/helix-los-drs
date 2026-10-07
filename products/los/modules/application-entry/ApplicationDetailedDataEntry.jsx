@@ -286,15 +286,8 @@ const ApplicationDetailedDataEntry = () => {
     <HBox>
       <HBox sx={{p:"0rem 1rem 0rem 1rem",  borderBottom: "1px solid #8c8d8f",}}>
         <HBreadCrumb />
-        <TitleBar title={t("label.dde.title", "Detailed data entry")} />
+        <TitleBar title={t("label.dde.title", "Detailed Data Entry")} />
         <HLabel value="label.dde.subtitle" align="left" colon={false} />
-        {savedApplicationNo ? (
-          <HLabel
-            value={`${t("label.dde.field.applicationNo", "Application number")}: ${savedApplicationNo}`}
-            align="left"
-            colon={false}
-          />
-        ) : null}
       </HBox>
 
       <HPaper sx={{p:"1rem 2rem 0rem 2rem"}}>

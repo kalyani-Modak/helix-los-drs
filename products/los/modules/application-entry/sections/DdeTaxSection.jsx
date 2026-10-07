@@ -65,20 +65,14 @@ const DdeTaxSection = ({
         onChange={(event) => setField(field.name, event.target.checked)}
       />
       <HBox sx={{ minWidth: 0, "& > *": { whiteSpace: "normal" } }}>
-        <HLabel value={`label.dde.field.${field.name}`} align="left" colon={false} />
+        <HLabel sx={{color: "text.primary" }} value={`label.dde.field.${field.name}`} align="left" colon={false} />
       </HBox>
     </HBox>
   );
 
   const rowData = useMemo(
     () => [
-      {
-        id: "assessment-year",
-        particular: text({ id: "label.dde.tax.assessmentYear" }),
-        ...Object.fromEntries(
-          YEAR_FIELDS.map(({ year }) => [`taxYear${year}`, form[`taxYear${year}`] ?? ""])
-        ),
-      },
+     
       {
         id: "statutory-income",
         particular: text({ id: "label.dde.tax.statutoryIncome" }),
@@ -141,9 +135,7 @@ const DdeTaxSection = ({
         const field = YEAR_FIELDS.find((item) => `taxYear${item.year}` === params.colDef.field);
         if (!field) return;
         const formField =
-          params.data.id === "assessment-year"
-            ? field.assessment.name
-            : params.data.id === "statutory-income"
+         params.data.id === "statutory-income"
               ? field.statutory.name
               : params.data.id === "assessable-income"
                 ? field.assessable.name
@@ -209,6 +201,7 @@ const DdeTaxSection = ({
                 >
                   <HBox sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
                     <HLabel
+                    sx={{color: "text.primary"}}
                       value={`label.dde.field.${name}`}
                       required={Boolean(field.required)}
                       align="left"
@@ -251,9 +244,6 @@ const DdeTaxSection = ({
           <HBox
             sx={{
               width: "100%",
-              border: "1px solid",
-              borderColor: border.control,
-              borderRadius: 1,
               overflow: "hidden",
               "& .ag-header": {
                 backgroundColor: action.hover,
@@ -284,7 +274,7 @@ const DdeTaxSection = ({
               columnDefs={columnDefs}
               gridStyle={{
                 width: "100%",
-                height: 182,
+                height: 150,
                 "--ag-header-background-color": action.hover,
                 "--ag-header-foreground-color": colors.primary,
                 "--ag-foreground-color": themeText.primary,
@@ -307,7 +297,7 @@ const DdeTaxSection = ({
               gridTemplateColumns: { xs: "minmax(0, 1fr)", md: "repeat(3, minmax(0, 1fr))" },
               columnGap: 1.5,
               rowGap: 0.5,
-              mt: 0.75,
+              mb : 1,
               alignItems: "center",
             }}
           >
@@ -320,6 +310,7 @@ const DdeTaxSection = ({
             <HBox sx={{ minWidth: 0 }}>
               <HBox sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
                 <HLabel
+                  sx={{color: "text.primary" }}
                   value="label.dde.field.taxOutstandingAmount"
                   align="left"
                   colon={false}

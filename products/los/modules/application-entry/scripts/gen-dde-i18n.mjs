@@ -15,7 +15,7 @@ const fields = eval(metaText.replace("export const DDE_FIELDS = ", ""));
 const base = {
   "label.dde.title": "Detailed data entry",
   "label.dde.subtitle":
-    "Capture full applicant, employment, income and product data after quick data entry.",
+    "Capture full applicant, employment, income and product data.",
   "label.dde.ocr.title": "OCR — Application Form",
   "label.dde.ocr.description":
     "Upload a scanned/printed application form (image or PDF). Review the extracted values and map each one to a specific form field below before applying.",
@@ -24,7 +24,7 @@ const base = {
     "Fields entered during Quick Data Entry have been auto-populated. Complete the remaining details to create a comprehensive customer profile.",
   "label.dde.button.expandAll": "Expand all",
   "label.dde.button.collapseAll": "Collapse all",
-  "label.dde.section.personal": "Personal details",
+  "label.dde.section.personal": "Personal Details",
   "label.dde.section.personal.subtitle":
     "Identity and demographics; pre-filled from quick data entry where available.",
   "label.dde.section.currentAddress": "Current address",
