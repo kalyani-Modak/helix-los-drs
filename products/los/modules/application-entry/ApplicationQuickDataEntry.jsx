@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { useIntl } from "react-intl";
 import { useLocation, useNavigate } from "react-router-dom";
-import { HAxiosService, HBox, HBreadCrumb, HButtonBar, HPaper, TitleBar, useToast, HLabel, HButton,useDrsTheme } from "@helix/component-library";
+import { HAxiosService, HBox, HBreadCrumb, HButtonBar, HPaper, TitleBar, useToast, HLabel } from "@helix/component-library";
 import { LosQdeAPI,LosDocumentAPI } from "./apiEndpoints";
 import { unwrapApiResponse } from "./unwrapApiResponse";
 import {
@@ -51,7 +51,6 @@ const normalizeCustomerType = (...values) => {
     ? "Existing"
     : "New";
 };
-// borrowerType: normalizeBorrowerType(p?.szBorrowerType),
 
 const normalizeBorrowerType = (value, fallback = "Individual") => {
   const normalizedValue = String(value ?? "")
@@ -127,9 +126,6 @@ const validateKycFields = (obj, isNonInd, translate) => {
   const message = (id, fallback) => translate(id, fallback);
 
   if (isNonInd) {
-    // Non-Individual KYC uses Business PAN (bizPan).
-    // Do not validate obj.pan because that field is not used by the
-    // Non-Individual KYC section.
     const businessPan = String(obj.bizPan ?? "").trim().toUpperCase();
 
     if (!businessPan || !PAN_PATTERN.test(businessPan)) {
@@ -140,14 +136,6 @@ const validateKycFields = (obj, isNonInd, translate) => {
     }
   } else {
     const pan = String(obj.pan ?? "").trim().toUpperCase();
-
-    // if (!pan || !PAN_PATTERN.test(pan)) {
-    //   errors.pan = message(
-    //     "label.qde.validation.panInvalid",
-    //     "Please enter a valid PAN number."
-    //   );
-    // }
-
     if (!obj.aadhaar?.trim() || !AADHAAR_PATTERN.test(obj.aadhaar.trim())) {
       errors.aadhaar = message(
         "label.qde.validation.aadhaarInvalid",
@@ -245,9 +233,6 @@ if (!obj.dob) {
     if (!obj.asAadhaar?.trim() || !AADHAAR_PATTERN.test(obj.asAadhaar.trim())) {
       errors.asAadhaar = message("label.qde.validation.aadhaarInvalid", "Please enter a valid 12-digit Aadhaar number.");
     }
-    // if (!obj.asPan?.trim() || !PAN_PATTERN.test(obj.asPan.trim().toUpperCase())) {
-    //   errors.asPan = message("label.qde.validation.panInvalid", "Please enter a valid PAN number.");
-    // }
   }
 
   Object.assign(errors, validateKycFields(obj, isNonInd, translate));
@@ -268,7 +253,6 @@ const ApplicationQuickDataEntry = () => {
   const [otpTimer, setOtpTimer] = useState(30);
   const [enteredOtp, setEnteredOtp] = useState("");
   const [savedApplicationNo, setSavedApplicationNo] = useState("");
-  const otpRefs = useRef([]);
 
   // Default: New + Individual, so only the Individual field set is visible on first render.
   const [form, setForm] = useState({
@@ -310,13 +294,6 @@ const ApplicationQuickDataEntry = () => {
   const saveInProgressRef = useRef(false);
 
   const isNonIndividual = form.borrowerType === "Non-Individual";
-
-  // NOTE:
-  // Chrome messages such as "[Violation] 'message' handler took 400ms"
-  // are performance warnings, not JavaScript exceptions. The save guard
-  // below prevents duplicate save events while React is rendering the
-  // Non-Individual sections.
-
   const { lookups } = useQdeLookups(ORG_ID, QDE_LOOKUP_TYPES);
 
   useEffect(() => {
@@ -342,8 +319,7 @@ const ApplicationQuickDataEntry = () => {
       applicationType: "N",
       addressType: "CURR",
       portfolio: DEFAULT_PORTFOLIO,
-      loanType: DEFAULT_LOAN_TYPE,
-    });
+      loanType: DEFAULT_LOAN_TYPE,    });
   }, []);
 
   const addCoApplicant = useCallback(() => {
@@ -688,8 +664,7 @@ const ApplicationQuickDataEntry = () => {
       applicationNo: response.applicationNumber || response.applicationNo || prev.applicationNo,
       applicationType: response.applicationType || "N",
       portfolio: response.portfolio || DEFAULT_PORTFOLIO,
-      borrowerType: response.borrowerType || prev.borrowerType,
-        borrowerType: normalizeBorrowerType(response.borrowerType, prev.borrowerType),
+      borrowerType: normalizeBorrowerType(response.borrowerType, prev.borrowerType),
       customerType: customerId
         ? "Existing"
         : normalizeCustomerType(response.customerType, applicant.customerType, prev.customerType),
@@ -882,7 +857,6 @@ const ApplicationQuickDataEntry = () => {
     const loan = response.loanDetails || {};
     const sourcing = response.sourcingDetails || {};
     const customerId = applicant.szCustomerId || "";
-    // const isNonIndividualApplicant = control.szBorrowerType === "NON-INDIVIDUAL";
     const isNonIndividualApplicant = normalizeBorrowerType(control.szBorrowerType) === "Non-Individual";
 
     setForm((prev) => ({
@@ -1417,7 +1391,7 @@ const ApplicationQuickDataEntry = () => {
       }
       updatePartyField(party, "shopAct", shopAct);
       updatePartyField(party, "shopActStatus", VERIFIED);
-      toast.success(t("label.qde.msg.shopactVerify", "Shop Act verified"));
+      toast.success(t("label.qde.msg.shopactVerify", "Shop Act Verified"));
       return true;
     },
     onVerifyMobile: (party) => openPartyOtp("mobile", party.mobile, party.id),
@@ -1577,7 +1551,6 @@ const ApplicationQuickDataEntry = () => {
     setField("ckycStatus", "PENDING");
 
     toast.success(`CKYC registry hit. Number fetched.`);
-
     return true;
   };
 
@@ -1594,12 +1567,8 @@ const ApplicationQuickDataEntry = () => {
   setField("ckycOtp", "");
   setField("ckycOtpSent", true);
   setField("ckycStatus", "PENDING");
-
   toast.success("OTP sent successfully. (Demo OTP: 123456)");
-
   return true;
-
- // return sendOtp("ckycSend",LosQdeAPI.ckycOtpSend(),{ckycNumber: form.ckycNumber},"ckycOtpSent");
 };
 
 
@@ -1624,8 +1593,6 @@ const ApplicationQuickDataEntry = () => {
     setField("ckycStatus", "FAILED");
     toast.error("Invalid CKYC OTP");
     return false;
-    // runVerification("ckycValidate",LosQdeAPI.ckycOtpValidate(),{ ckycNumber: form.ckycNumber, otp: form.ckycOtp },"ckycStatus");
-
   };
    
 
@@ -1638,30 +1605,12 @@ const ApplicationQuickDataEntry = () => {
 
         setField("digiRef", digiRef); setField("digiStatus", "VERIFIED");
          toast.success( t( "label.qde.msg.digiLockerVerified", "DigiLocker verified successfully" ) );
-         return true;
-
-    // if (!requireValue(form.digiRef || form.mobile, "label.qde.msg.enterDigiRef", "Enter DigiLocker reference or mobile first")) {
-    //   return undefined;
-    // }
-    // return runVerification(
-    //   "digilocker",
-    //   LosQdeAPI.digilocker(),
-    //   {
-    //     mobileNumber: form.mobile || null,
-    //     referenceNumber: form.digiRef || null,
-    //     aadhaarNumber: form.aadhaar || null,
-    //   },
-    //   "digiStatus",
-    //   (data) => {
-    //     if (data?.referenceNumber) setField("digiRef", data.referenceNumber);
-    //   }
-    // );
+         return true;;
   };
 
   // ---- KYC handlers (non-individual) ---------------------------------------
 
   const handleVerifyBusinessPan = () =>{
-    //runVerification("bizPan", LosQdeAPI.verifyPan(), { panNumber: form.pan, entityPan: true }, "bizPanStatus");
     if (!requireValue(form.bizPan, "label.qde.msg.enterBussPan", "Enter a Business PAN number first")) {
       setField("bizPanStatus", "FAILED");
       return false;
@@ -1683,7 +1632,6 @@ const ApplicationQuickDataEntry = () => {
   }
 
   const handleVerifyGstin = () => {
-    //runVerification("gstin", LosQdeAPI.verifyPan(), { gstin: form.gstin, panNumber: form.pan }, "gstinStatus");
     const gstin = form.gstin?.trim().toUpperCase() || "";
     if (!gstin) {
       setField("gstinStatus", "FAILED");
@@ -1716,7 +1664,6 @@ const ApplicationQuickDataEntry = () => {
   };
 
   const handleVerifyShopAct = () =>{
-  //  runVerification("shopAct", LosQdeAPI.verifyPan(), { shopAct: form.shopAct, panNumber: form.pan }, "shopActStatus");
    const shopAct = form.shopAct?.trim().toUpperCase() || "";
     if (!shopAct) {
       setField("shopActStatus", "FAILED");
@@ -1730,7 +1677,7 @@ const ApplicationQuickDataEntry = () => {
       return;
     }
     setField("shopActStatus", "VERIFIED");
-    toast.success(t("label.qde.msg.shopactVerify", "shop act Verified"));
+    toast.success(t("label.qde.msg.shopactVerify", "Shop Act Verified"));
   }
   // ---- Authorised signatory KYC --------------------------------------------
 
@@ -1896,19 +1843,19 @@ const ApplicationQuickDataEntry = () => {
           true
         );
         if (otpDialog.field === "mobile") {
-          toast.success("Mobile verified", "success");
+          toast.success("Mobile Verified", "success");
         }
       } else if (otpDialog.field === "mobile") {
         setField("mobileVerified", true);
-        toast.success("Mobile verified", "success");
+        toast.success("Mobile Verified", "success");
       } else if (otpDialog.field === "asMobile") {
         setField("asMobileVerified", true);
-        toast.success("Mobile verified", "success");
+        toast.success("Mobile Verified", "success");
       }
 
       if (otpDialog.field === "email" || otpDialog.field === "asEmail") {
         setField(otpDialog.field === "asEmail" ? "asEmailVerified" : "emailVerified", true);
-        toast.success("Email verified", "success");
+        toast.success("Email Verified", "success");
       }
 
       setOtpDialog({
@@ -1936,7 +1883,6 @@ const persistDraft = useCallback(async () => {
   const payload = buildPayload();
 
   // 2. Reuse previously saved IDs when the current form
-  //    does not contain them yet.
   const previous = savedQdeRef.current;
 
   if (previous) {
@@ -1979,7 +1925,6 @@ const persistDraft = useCallback(async () => {
   }
 
   // 4. Resolve the application number.
-  //    Existing application number is retained on subsequent saves.
   const appNo =
     data.szApplicationNo ||
     data.applicationNumber ||
@@ -1998,8 +1943,7 @@ const persistDraft = useCallback(async () => {
     form.szOrgId ||
     "001";
 
-  // // Applicant ID may be omitted from a successful save response. Resolve it
-  // // from the saved QDE only when document upload requires it.
+  // Applicant ID may be omitted from a successful save response. Resolve it from the saved QDE only when document upload requires it.
   let savedData = data;
   let applicantId =
     savedData?.applicantDetails?.szApplicantId ||
@@ -2008,14 +1952,6 @@ const persistDraft = useCallback(async () => {
     payload?.applicantDetails?.szApplicantId ||
     previous?.applicantDetails?.szApplicantId ||
     null;
-  //   || getPrimaryApplicantId(payload);
-
-  // if (form.aadhaarImage && !applicantId) {
-  //   savedData = unwrapQdePayload(
-  //     await HAxiosService.GET(LosQdeAPI.fetchQde(orgId, appNo))
-  //   );
-  //   applicantId = getPrimaryApplicantId(savedData);
-  // }
 
   if (form.aadhaarImage && !applicantId) {
     throw new Error(
@@ -2024,7 +1960,6 @@ const persistDraft = useCallback(async () => {
   }
 
   // 6. Keep all returned IDs for the next save.
-  //    The returned DTO is the source of truth for generated IDs.
   const savedQde = {
     ...payload,
     ...savedData,
@@ -2152,9 +2087,6 @@ const persistDraft = useCallback(async () => {
         {},
         false
       );
-
-      // Mark as uploaded only after the request succeeds.
-      // If upload fails, the next save can retry it.
       aadhaarUploadedRef.current = uploadKey;
     }
   }
@@ -2347,68 +2279,6 @@ const handleSave = useCallback(async () => {
     return { success: true };
   }, [resetForm, t, toast]);
 
-  const { primary, text, background } = useDrsTheme();
-
-  // const loadApplicationOptions = useCallback(async () => {
-  //   try {
-  //     const response = await HAxiosService.GET(
-  //       LosQdeAPI.listApplications(orgId)
-  //     ).then(unwrapApiResponse);
-
-  //     const rows = Array.isArray(response)
-  //       ? response
-  //       : response?.content || response?.applications || response?.data || [];
-
-  //     const options = rows
-  //       .map((row) => {
-  //         const value =
-  //           row.applicationNo ||
-  //           row.applicationNumber ||
-  //           row.szApplicationNo ||
-  //           row.szapplicationno;
-
-  //         return value
-  //           ? {
-  //             label: String(value),
-  //             value: String(value),
-  //           }
-  //           : null;
-  //       })
-  //       .filter(Boolean);
-
-  //     if (
-  //       incomingApplicationNo &&
-  //       !options.some((option) => option.value === String(incomingApplicationNo))
-  //     ) {
-  //       options.unshift({
-  //         label: String(incomingApplicationNo),
-  //         value: String(incomingApplicationNo),
-  //       });
-  //     }
-
-  //     setApplicationOptions(options);
-
-  //     if (incomingApplicationNo) {
-  //       setApplicationNo(String(incomingApplicationNo));
-  //     } else if (options.length > 0) {
-  //       setApplicationNo(options[0].value);
-  //     }
-  //   } catch (error) {
-  //     toast.error(
-  //       error?.message ||
-  //       t(
-  //         "label.docupload.msg.loadApplicationsFailed",
-  //         "Unable to load applications"
-  //       )
-  //     );
-  //     setApplicationOptions([]);
-  //   }
-  // }, [incomingApplicationNo, orgId, t, toast]);
-
-  // useEffect(() => {
-  //   loadApplicationOptions();
-  // }, [loadApplicationOptions]);
-  
   return (
     <HBox sx={{ mt: 2, width: "100%", minWidth: 0, maxWidth: "100%" }}>
       <HBox sx={{ width: "100%", padding: "0.5rem 1rem 0 1rem", flexDirection: "column", borderBottom: "1px solid var(--drs-border-divider, hsl(215 14% 90%))" }}>

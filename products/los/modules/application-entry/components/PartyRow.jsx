@@ -3,12 +3,12 @@ import { IconButton } from "@mui/material";
 import { Search as SearchIcon } from "@mui/icons-material";
 import { useIntl } from "react-intl";
 import { HButton, HCheckBox, HDatePicker, HDropdown, HLabel, HTextField, HBox, useDrsTheme, HRadio } from "@helix/component-library";
-import { BORROWER_CATEGORIES, ENTITY_TYPES, GENDERS, RELATIONSHIPS } from "../constants/qdeOptions";
 import { fromPickerValue, toPickerValue } from "../dateHelpers";
 import AddressDetailsSection from "../sections/AddressDetailsSection";
 import KycCheckSection from "../sections/KycCheckSection";
 import SectionBlock from "./SectionBlock";
 import FieldError from "./FieldError";
+import VerifyLink from "./VerifyLink";
 import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined';
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
@@ -16,7 +16,7 @@ import SearchApplicationDialog from "./SearchApplicationDialog";
 
 const PartyField = ({ label, children, required = false, error, errorSx, sx }) => (
   <HBox sx={{ width: "100%", display: "flex", flexDirection: "column", gap: 0.5, ...sx }}>
-    <HLabel value={label} required={required} align="left" colon={false} />
+    <HLabel sx={{color: "text.primary" }} value={label} required={required} align="left" colon={false} />
     {children && typeof children === "object" && !Array.isArray(children)
       ? cloneElement(children, { error: Boolean(error) })
       : children}
@@ -40,10 +40,10 @@ const PartyRow = ({
   const { colors, text, surfaces, border, action } = useDrsTheme();
   const [applicationSearchOpen, setApplicationSearchOpen] = useState(false);
   const [searchLoading, setSearchLoading] = useState(false);
-  const relationshipOptions = lookups["los.relationship"] || RELATIONSHIPS;
-  const genderOptions = lookups["party.gender"] || GENDERS;
-  const entityTypeOptions = lookups["los.entitytype"] || ENTITY_TYPES;
-  const borrowerCategoryOptions = lookups["los.borrowercategory"] || BORROWER_CATEGORIES;
+  const relationshipOptions = lookups["los.relationship"] || [];
+  const genderOptions = lookups["party.gender"] || [];
+  const entityTypeOptions = lookups["los.entitytype"] || [];
+  const borrowerCategoryOptions = lookups["los.borrowercategory"] || [];
   const [expanded, setExpanded] = useState(true);
   const isNonIndividual = party.borrowerType === "Non-Individual";
   const individualOnly = primaryBorrowerType === "Individual";
@@ -141,7 +141,7 @@ const PartyRow = ({
             sx={{ width: "auto", minWidth: "auto", px: 0, flexShrink: 0 }}
           />
 
-          <HLabel
+          <HLabel sx={{color: "text.primary" }}
             value={`${titleKey} ${index + 1}`}
             translate={false}
             align="left"
@@ -153,7 +153,7 @@ const PartyRow = ({
             translate={false}
             align="left"
             colon={false}
-            sx={{ fontWeight: 600 }}
+            sx={{ fontWeight: 600, color: "text.primary"  }}
           />
 
           <HLabel
@@ -253,8 +253,8 @@ const PartyRow = ({
                   placeholder="CUST-XXXXXX"
                   width="100%"
                 />
-                <HButton label="label.qde.button.search" variant="outlined" size="small" inline sx={{mt:1}} onClick={() => setCustomerSearchOpen(true)} />
-                <HButton label="label.qde.button.clear" variant="outlined" size="small" inline sx={{mt:1}} onClick={clearParty} />
+                {/* <HButton label="label.qde.button.search" variant="outlined" size="small" inline sx={{mt:1}} onClick={() => setCustomerSearchOpen(true)} />
+                <HButton label="label.qde.button.clear" variant="outlined" size="small" inline sx={{mt:1}} onClick={clearParty} /> */}
               </HBox>
             </PartyField>
 
@@ -283,10 +283,10 @@ const PartyRow = ({
                   sx={{
                     position: "absolute",
                     right: 4,
-                    top: "50%",
+                    top: "80%",
                     transform: "translateY(-50%)",
                     color: "primary.main",
-                    backgroundColor: "background.paper",
+                    backgroundColor: "transparent",
                     "&:hover": { backgroundColor: "action.hover" },
                   }}
                 >
@@ -303,24 +303,24 @@ const PartyRow = ({
 
         {isNonIndividual ? (
           <>
-            <PartyField label="label.qde.field.entityName" required error={err("entityName")} errorSx={{ mt: 1.5 }}><HTextField value={party.entityName || ""} onChange={(e) => field("entityName", e.target.value)} editable required width="100%" /></PartyField>
-            <PartyField label="label.qde.field.entityType" required error={err("entityType")}><HDropdown name="entityType" options={entityTypeOptions} value={party.entityType || ""} onChange={(e) => field("entityType", e.target.value)} required width="100%" /></PartyField>
-            <PartyField label="label.qde.field.doi"><HDatePicker value={toPickerValue(party.doi)} onChange={(value) => field("doi", fromPickerValue(value))} width="100%" /></PartyField>
+            <PartyField label="label.qde.field.entityName" required error={err("entityName")} sx={{ mt: 1 }} errorSx={{ mt: 1.5 }}><HTextField value={party.entityName || ""} onChange={(e) => field("entityName", e.target.value)} editable required width="100%" /></PartyField>
+            <PartyField label="label.qde.field.entityType" required error={err("entityType")} sx={{ mt: 1 }}><HDropdown name="entityType" options={entityTypeOptions} value={party.entityType || ""} onChange={(e) => field("entityType", e.target.value)} required width="100%" /></PartyField>
+            <PartyField label="label.qde.field.doi" sx={{ mt: 1 }}><HDatePicker value={toPickerValue(party.doi)} onChange={(value) => field("doi", fromPickerValue(value))} width="100%" /></PartyField>
             <PartyField label="GSTIN"><HTextField value={party.gstin || ""} onChange={(e) => field("gstin", e.target.value)} editable width="100%" /></PartyField>
           </>
         ) : (
           <>
-            <PartyField label="label.qde.field.firstName" required error={err("firstName")} errorSx={{ mt: 1 }}><HTextField value={party.firstName || ""} onChange={(e) => field("firstName", e.target.value)} editable required type="name" width="100%" sx={{ mb: 0.5 }} /></PartyField>
-            <PartyField label="label.qde.field.middleName"><HTextField value={party.middleName || ""} onChange={(e) => field("middleName", e.target.value)} editable type="name" width="100%" /></PartyField>
-            <PartyField label="label.qde.field.lastName" required error={err("lastName")} errorSx={{ mt: 1.5 }}><HTextField value={party.lastName || ""} onChange={(e) => field("lastName", e.target.value)} editable required type="name" width="100%" /></PartyField>
-            <PartyField label="label.qde.field.gender" required error={err("gender")}><HDropdown name="gender" options={genderOptions} value={party.gender || ""} onChange={(e) => field("gender", e.target.value)} required width="100%" /></PartyField>
-            <PartyField label="label.qde.field.dob" required error={err("dob")}><HDatePicker value={toPickerValue(party.dob)} onChange={(value) => field("dob", fromPickerValue(value))} required width="100%" /></PartyField>
-            <PartyField label="label.qde.field.customerProfile"><HDropdown name="category" options={borrowerCategoryOptions} value={party.category || ""} onChange={(e) => field("category", e.target.value)} width="100%" /></PartyField>
+            <PartyField label="label.qde.field.firstName" required error={err("firstName")} sx={{ mt: 1.5 }} errorSx={{ mt: 1 }}><HTextField value={party.firstName || ""} onChange={(e) => field("firstName", e.target.value)} editable required type="name" width="100%" sx={{ mb: 0.5 }} /></PartyField>
+            <PartyField label="label.qde.field.middleName" sx={{ mt: 1.5 }}><HTextField value={party.middleName || ""} onChange={(e) => field("middleName", e.target.value)} editable type="name" width="100%" /></PartyField>
+            <PartyField label="label.qde.field.lastName" required error={err("lastName")} sx={{ mt: 1.5 }} errorSx={{ mt: 1.5 }}><HTextField value={party.lastName || ""} onChange={(e) => field("lastName", e.target.value)} editable required type="name" width="100%" /></PartyField>
+            <PartyField label="label.qde.field.gender" required error={err("gender")} sx={{ mt: 1 }}><HDropdown name="gender" options={genderOptions} value={party.gender || ""} onChange={(e) => field("gender", e.target.value)} required width="100%" /></PartyField>
+            <PartyField label="label.qde.field.dob" required error={err("dob")} sx={{ mt: 1 }}><HDatePicker value={toPickerValue(party.dob)} onChange={(value) => field("dob", fromPickerValue(value))} required width="100%" /></PartyField>
+            <PartyField label="label.qde.field.customerProfile" sx={{ mt: 1 }} ><HDropdown name="category" options={borrowerCategoryOptions} value={party.category || ""} onChange={(e) => field("category", e.target.value)} width="100%" /></PartyField>
           </>
         )}
 
-        <PartyField label="label.qde.field.mobile" required error={err("mobile")} errorSx={{ mt: 1 }}>
-          <HBox sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+        <PartyField label="label.qde.field.mobile" required error={err("mobile")} >
+          <HBox sx={{ display: "flex", alignItems: "flex-start", gap: 0.5 }}>
             <HTextField
               value={party.mobile || ""}
               onChange={(e) => {
@@ -337,19 +337,15 @@ const PartyRow = ({
             {party.mobileVerified ? (
               <HLabel value="Verified" translate={false} colon={false} sx={{ color: "success.main", whiteSpace: "nowrap" }} />
             ) : (
-              <HButton
-                label="label.qde.button.verify"
-                variant="text"
-                size="small"
-                inline
-                disabled={!isValidMobile(party.mobile)}
-                onClick={() => verifyContact("mobileVerified", party.mobile, isValidMobile)}
+              <VerifyLink
+                isValid={isValidMobile(party.mobile)}
+                onVerify={() => verifyContact("mobileVerified", party.mobile, isValidMobile)}
               />
             )}
           </HBox>
         </PartyField>
-        <PartyField label="label.qde.field.email" required error={err("email")} errorSx={{ mt: 1 }}>
-          <HBox sx={{ display: "flex", alignItems: "center", gap: 0.5 }}>
+        <PartyField label="label.qde.field.email" required error={err("email")} >
+          <HBox sx={{ display: "flex", alignItems: "flex-start", gap: 0.5 }}>
             <HTextField
               value={party.email || ""}
               onChange={(e) => {
@@ -364,13 +360,9 @@ const PartyRow = ({
             {party.emailVerified ? (
               <HLabel value="Verified" translate={false} colon={false} sx={{ color: "success.main", whiteSpace: "nowrap" }} />
             ) : (
-              <HButton
-                label="label.qde.button.verify"
-                variant="text"
-                size="small"
-                inline
-                disabled={!isValidEmail(party.email)}
-                onClick={() => verifyContact("emailVerified", party.email, isValidEmail)}
+              <VerifyLink
+                isValid={isValidEmail(party.email)}
+                onVerify={() => verifyContact("emailVerified", party.email, isValidEmail)}
               />
             )}
           </HBox>
@@ -402,17 +394,7 @@ const PartyRow = ({
       </HBox>
 
       <HBox sx={{ position: "relative", width: "100%" }}>
-        <HBox
-  sx={{
-    position: "absolute",
-    top: 10,
-    right: 16,
-    zIndex: 1,
-    display: "flex",
-    alignItems: "center",
-    gap: "8px",
-  }}
->
+        <HBox sx={{ position: "absolute", top: 10, right: 16, zIndex: 1, display: "flex", alignItems: "center", gap: "8px" }}>
             <HCheckBox
               checked={Boolean(party.sameAsPrimaryAddress)}
               onChange={(event) => {
@@ -439,11 +421,15 @@ const PartyRow = ({
             form={addressForm}
             setField={setPartyField}
             isNonIndividual={isNonIndividual}
-          readOnly={Boolean(party.sameAsPrimaryAddress)}
-          noAccordion
-          errors={errors}
-          individualOptions={lookups["los.address.type.individual"]}
-          nonIndividualOptions={lookups["los.address.type.nonindividual"]}
+            readOnly={Boolean(party.sameAsPrimaryAddress)}
+            noAccordion
+            errors={errors}
+            individualOptions={lookups["los.address.type.individual"]}
+            nonIndividualOptions={lookups["los.address.type.nonindividual"]}
+            cityOptions={lookups["los.address.city"]}
+            districtOptions={lookups["los.address.district"]}
+            stateOptions={lookups["los.address.state"]}
+            countryOptions={lookups["los.address.country"]}
         />
       </HBox>
 

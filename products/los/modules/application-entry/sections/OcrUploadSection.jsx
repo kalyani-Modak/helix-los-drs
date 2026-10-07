@@ -1,13 +1,12 @@
 import { HBox, HDropdown, HLabel } from "@helix/component-library";
 import SectionBlock from "../components/SectionBlock";
-import { OCR_DOC_TYPES } from "../constants/qdeOptions";
 import CropFreeOutlinedIcon from "@mui/icons-material/CropFreeOutlined";
 
-const OcrUploadSection = ({ form, setField, onFileSelect, ocrFileName, ocrStatusKey, docTypeOptions = OCR_DOC_TYPES }) => (
+const OcrUploadSection = ({ form, setField, onFileSelect, ocrFileName, ocrStatusKey, docTypeOptions = [] }) => (
   <SectionBlock sectionKey="ocrUpload" titleKey="label.qde.section.ocr" subTitleKey="label.qde.section.ocr.subtitle" icon={<CropFreeOutlinedIcon fontSize="small" />}>
     <HBox sx={{ width: "100%", display: "flex", flexDirection: "row", flexWrap: "nowrap" }}>
       <HBox sx={{ width: "30%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0 }}>
-        <HLabel value="label.qde.field.docType" align="left" colon={false} />
+        <HLabel value="label.qde.field.docType" align="left" colon={false} sx={{color: "text.primary" }} />
         <HDropdown
           name="ocrDocType"
           options={docTypeOptions}
@@ -18,7 +17,7 @@ const OcrUploadSection = ({ form, setField, onFileSelect, ocrFileName, ocrStatus
       </HBox>
 
       <HBox sx={{ width: "40%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0 }}>
-        <HLabel value="label.qde.field.uploadFile" align="left" colon={false} />
+        <HLabel value="label.qde.field.uploadFile" align="left" colon={false} sx={{color: "text.primary" }} />
         <input
           id="qde-ocr-file"
           type="file"
@@ -30,11 +29,12 @@ const OcrUploadSection = ({ form, setField, onFileSelect, ocrFileName, ocrStatus
           translate={!ocrFileName}
           align="left"
           colon={false}
+          sx={{ fontSize: "10px"}}
         />
       </HBox>
 
       <HBox sx={{ width: "30%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0 }}>
-        <HLabel value="label.qde.field.ocrStatus" align="left" colon={false} />
+        <HLabel value="label.qde.field.ocrStatus" align="left" colon={false} sx={{color: "text.primary" }} />
         <HLabel
           value={ocrStatusKey || "label.qde.status.noFile"}
           align="left"

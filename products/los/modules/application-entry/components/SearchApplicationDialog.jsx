@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { Divider } from "@mui/material";
 import { useIntl } from "react-intl";
 import { HBox, HButton, HDialog, HLabel, HTextField } from "@helix/component-library";
@@ -11,7 +11,7 @@ const PAN_PATTERN = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
  * Application No. OR Mobile OR PAN — exactly one of which is used per search.
  * The caller owns the lookup and receives `{ applicationNo, mobile, panNumber }`.
  */
-const SearchApplicationDialog = ({ open, onClose, onSearch, loading = false }) => {
+const SearchApplicationDialog = ({ open, onClose, onSearch, loading = false, isApplicationNo = false }) => {
   const intl = useIntl();
   const [criteria, setCriteria] = useState(EMPTY);
 
@@ -64,18 +64,27 @@ const SearchApplicationDialog = ({ open, onClose, onSearch, loading = false }) =
       }
     >
       <HBox sx={{ display: "flex", flexDirection: "column", gap: 1.5, px: 1 }}>
-        <HBox sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
-          <HLabel value="label.qde.field.applicationNo" align="left" colon={false} />
-          <HTextField
-            value={criteria.applicationNo}
-            onChange={(e) => setOnly("applicationNo", e.target.value)}
-            editable
-            placeholder="APP-XXXXXXXX"
-            width="100%"
-          />
-        </HBox>
+        {isApplicationNo && (
+          <>
+            <HBox sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
+              <HLabel
+                value="label.qde.field.applicationNo"
+                align="left"
+                colon={false}
+              />
 
-        {orSeparator}
+              <HTextField
+                value={criteria.applicationNo}
+                onChange={(e) => setOnly("applicationNo", e.target.value)}
+                editable
+                placeholder="APP-XXXXXXXX"
+                width="100%"
+              />
+            </HBox>
+
+            {orSeparator}
+          </>
+        )}
 
         <HBox sx={{ display: "flex", flexDirection: "column", gap: 0.5 }}>
           <HLabel value="label.qde.field.mobile" align="left" colon={false} />

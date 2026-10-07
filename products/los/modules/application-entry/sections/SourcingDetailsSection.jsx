@@ -1,10 +1,9 @@
 import { HBox, HDropdown, HLabel, HTextField } from "@helix/component-library";
 import SectionBlock from "../components/SectionBlock";
 import FieldError from "../components/FieldError";
-import { BRANCHES, CHANNELS } from "../constants/qdeOptions";
 import AccountTreeOutlinedIcon from "@mui/icons-material/AccountTreeOutlined";
 
-const SourcingDetailsSection = ({ form, setField, errors = {}, channelOptions = CHANNELS, branchOptions = BRANCHES }) => {
+const SourcingDetailsSection = ({ form, setField, errors = {}, channelOptions = [], branchOptions = [] }) => {
   const isDsa = form.channel === "DSA";
   const isRm = form.channel === "RM";
   const isDealer = form.channel === "Dealer";
@@ -14,7 +13,7 @@ const SourcingDetailsSection = ({ form, setField, errors = {}, channelOptions = 
     <SectionBlock sectionKey="sourcing" titleKey="label.qde.section.sourcing" subTitleKey="label.qde.section.sourcing.subtitle" icon={<AccountTreeOutlinedIcon fontSize="small" />}>
       <HBox sx={{ width: "100%", display: "flex", flexDirection: "row", flexWrap: "wrap" }}>
         <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
-          <HLabel value="label.qde.field.channel" required align="left" colon={false} />
+          <HLabel sx={{color: "text.primary" }} value="label.qde.field.channel" required align="left" colon={false} />
           <HDropdown
             name="channel"
             options={channelOptions}
@@ -29,7 +28,7 @@ const SourcingDetailsSection = ({ form, setField, errors = {}, channelOptions = 
         </HBox>
 
         <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
-          <HLabel value="label.qde.field.sourcingBranch" required align="left" colon={false} />
+          <HLabel sx={{color: "text.primary" }} value="label.qde.field.sourcingBranch" required align="left" colon={false} />
           <HDropdown
             name="sourcingBranch"
             options={branchOptions}
@@ -44,7 +43,7 @@ const SourcingDetailsSection = ({ form, setField, errors = {}, channelOptions = 
         </HBox>
 
         <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
-          <HLabel value="label.qde.field.servicingBranch" required align="left" colon={false} />
+          <HLabel sx={{color: "text.primary" }} value="label.qde.field.servicingBranch" required align="left" colon={false} />
           <HDropdown
             name="servicingBranch"
             options={branchOptions}
@@ -61,7 +60,7 @@ const SourcingDetailsSection = ({ form, setField, errors = {}, channelOptions = 
         {isDsa && (
           <>
             <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
-              <HLabel value="label.qde.field.dsaName" required align="left" colon={false} />
+              <HLabel sx={{color: "text.primary" }} value="label.qde.field.dsaName" required align="left" colon={false} />
               <HTextField
                 value={form.dsaName || ""}
                 onChange={(e) => setField("dsaName", e.target.value)}
@@ -75,7 +74,7 @@ const SourcingDetailsSection = ({ form, setField, errors = {}, channelOptions = 
             </HBox>
 
             <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
-              <HLabel value="label.qde.field.dsaCode" required align="left" colon={false} />
+              <HLabel sx={{color: "text.primary" }} value="label.qde.field.dsaCode" required align="left" colon={false} />
               <HTextField
                 value={form.dsaCode || ""}
                 onChange={(e) => setField("dsaCode", e.target.value)}
@@ -89,7 +88,7 @@ const SourcingDetailsSection = ({ form, setField, errors = {}, channelOptions = 
             </HBox>
 
             <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
-              <HLabel value="label.qde.field.dsaMobile" align="left" colon={false} />
+              <HLabel sx={{color: "text.primary" }} value="label.qde.field.dsaMobile" align="left" colon={false} />
               <HTextField
                 value={form.dsaMobile}
                 onChange={(e) => setField("dsaMobile", e.target.value)}
@@ -101,7 +100,7 @@ const SourcingDetailsSection = ({ form, setField, errors = {}, channelOptions = 
             </HBox>
 
             <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px", mt: 1  }}>
-              <HLabel value="label.qde.field.dsaEmail" align="left" colon={false} />
+              <HLabel sx={{color: "text.primary" }} value="label.qde.field.dsaEmail" align="left" colon={false} />
               <HTextField
                 value={form.dsaEmail}
                 onChange={(e) => setField("dsaEmail", e.target.value)}
@@ -115,7 +114,7 @@ const SourcingDetailsSection = ({ form, setField, errors = {}, channelOptions = 
         {isRm && (
           <>
             <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
-              <HLabel value="label.qde.field.rmName" required align="left" colon={false} />
+              <HLabel sx={{color: "text.primary" }} value="label.qde.field.rmName" required align="left" colon={false} />
               <HTextField
                 value={form.rmName}
                 onChange={(e) => setField("rmName", e.target.value)}
@@ -130,7 +129,7 @@ const SourcingDetailsSection = ({ form, setField, errors = {}, channelOptions = 
             </HBox>
 
             <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
-              <HLabel value="label.qde.field.rmCode" required align="left" colon={false} />
+              <HLabel sx={{color: "text.primary" }} value="label.qde.field.rmCode" required align="left" colon={false} />
               <HTextField
                 value={form.rmCode}
                 onChange={(e) => setField("rmCode", e.target.value)}
@@ -147,7 +146,7 @@ const SourcingDetailsSection = ({ form, setField, errors = {}, channelOptions = 
         {isDealer && (
           <>
             <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
-              <HLabel value="label.qde.field.dealerName" required align="left" colon={false} />
+              <HLabel sx={{color: "text.primary" }} value="label.qde.field.dealerName" required align="left" colon={false} />
               <HTextField
                 value={form.dealerName}
                 onChange={(e) => setField("dealerName", e.target.value)}
@@ -162,7 +161,7 @@ const SourcingDetailsSection = ({ form, setField, errors = {}, channelOptions = 
             </HBox>
 
             <HBox sx={{ width: "33%", flexShrink: 0, display: "flex", flexDirection: "column", gap: 0.5, minWidth: 0, boxSizing: "border-box", paddingRight: "8px", marginBottom: "8px" }}>
-              <HLabel value="label.qde.field.dealerCode" required align="left" colon={false} />
+              <HLabel sx={{color: "text.primary" }} value="label.qde.field.dealerCode" required align="left" colon={false} />
               <HTextField
                 value={form.dealerCode}
                 onChange={(e) => setField("dealerCode", e.target.value)}
