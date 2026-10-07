@@ -909,7 +909,6 @@ const ApplicationQuickDataEntry = () => {
         isNonIndividualApplicant
           ? lookups["los.address.type.nonindividual"]
           : lookups["los.address.type.individual"],
-        isNonIndividualApplicant ? ADDRESS_TYPES_NON_INDIVIDUAL : ADDRESS_TYPES_INDIVIDUAL
       ),
       addr1: address.szAddressLine1 || "",
       addr2: address.szAddressLine2 || "",
@@ -1023,9 +1022,9 @@ const ApplicationQuickDataEntry = () => {
       const url = appNo
         ? LosQdeAPI.fetchQde(ORG_ID, appNo)
         : mobileNo
-          ? LosQdeAPI.fetchQdeByMobile(ORG_ID, mobileNo)
+          ? LosQdeAPI.fetchQdeByMobile(ORG_ID, mobileNo, "PRIMARY_APPLICANT")
           : panNo
-            ? LosQdeAPI.fetchQdeByPanNumber(ORG_ID, panNo)
+            ? LosQdeAPI.fetchQdeByPanNumber(ORG_ID, panNo, "PRIMARY_APPLICANT")
             : null;
 
       if (!url) {
@@ -1060,7 +1059,7 @@ const ApplicationQuickDataEntry = () => {
 
   /** Loads an existing applicant into one co-applicant or guarantor row. */
   const handleSearchCustomer = useCallback(
-    async (party, { applicationNo, mobile, panNumber }) => {
+    async (party, { applicationNo, mobile, panNumber }, applicantType = "CO_APPLICANT") => {
       const appNo = (applicationNo || "").trim();
       const mobileNo = (mobile || "").trim();
       const panNo = (panNumber || "").trim().toUpperCase();
@@ -1071,20 +1070,23 @@ const ApplicationQuickDataEntry = () => {
       const lookupUrl = appNo
         ? LosQdeAPI.fetchQde(ORG_ID, appNo)
         : mobileNo
-          ? LosQdeAPI.fetchQdeByMobile(ORG_ID, mobileNo)
-          : LosQdeAPI.fetchQdeByPanNumber(ORG_ID, panNo);
+          ? LosQdeAPI.fetchQdeByMobile(ORG_ID, mobileNo, applicantType)
+          : LosQdeAPI.fetchQdeByPanNumber(ORG_ID, panNo, applicantType);
       const notFoundMessage = t("label.qde.msg.applicationNotFound", "No matching applicant found");
       const busyKey = `${party.id}:appSearch`;
 
       setBusy(busyKey, true);
       try {
         const data = unwrapQdePayload(await HAxiosService.GET(lookupUrl));
-        const candidates = [
-          data?.applicantDetails,
-          ...(Array.isArray(data?.coApplicants) ? data.coApplicants : []),
-          ...(Array.isArray(data?.guarantors) ? data.guarantors : []),
-          data?.szBorrowerType ? data : null,
-        ].filter(Boolean);
+        const candidates = appNo
+          ? [
+              data?.applicantDetails,
+              ...(Array.isArray(data?.coApplicants) ? data.coApplicants : []),
+              ...(Array.isArray(data?.guarantors) ? data.guarantors : []),
+            ].filter(Boolean)
+          : applicantType === "GUARANTOR"
+            ? (Array.isArray(data?.guarantors) ? data.guarantors : [])
+            : (Array.isArray(data?.coApplicants) ? data.coApplicants : []);
 
         const match = appNo
           ? data?.applicantDetails || candidates[0]

@@ -35,6 +35,7 @@ const PartyRow = ({
   primaryAddress = {},
   kycHandlers = {},
   onSearchCustomer,
+  applicantType = "CO_APPLICANT",
   lookups = {},
 }) => {
   const { colors, text, surfaces, border, action } = useDrsTheme();
@@ -103,7 +104,7 @@ const PartyRow = ({
   const searchExistingParty = async (criteria) => {
     setSearchLoading(true);
     try {
-      const found = await onSearchCustomer?.(party, criteria);
+      const found = await onSearchCustomer?.(party, criteria, applicantType);
       if (found) setApplicationSearchOpen(false);
       return found;
     } finally {
@@ -438,6 +439,7 @@ const PartyRow = ({
         onClose={() => setApplicationSearchOpen(false)}
         onSearch={searchExistingParty}
         loading={searchLoading}
+        isApplicationNo={false}
       />
       </>}
     </SectionBlock>
