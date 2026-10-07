@@ -314,7 +314,6 @@ const IndividualKyc = ({
               fontSize: "11px",
               color: "text.secondary",
               whiteSpace: "normal",
-              fontSize: "10px",
             }}
           />
         </HBox>

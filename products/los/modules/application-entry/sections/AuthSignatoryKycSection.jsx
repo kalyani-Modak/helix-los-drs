@@ -34,7 +34,6 @@ const AuthKycStatus = ({ status }) => {
           fontWeight: 600,
           lineHeight: 1.2,
           whiteSpace: "nowrap",
-          color: style.color,
           backgroundColor: style.background,
           border: `1px solid ${style.border}`,
           color: "text.primary",
