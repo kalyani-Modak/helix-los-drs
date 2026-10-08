@@ -39,6 +39,16 @@ const DdeFieldGrid = ({ fields, form, setField, errors = {}, lookups = {} }) => 
         const labelId = fieldLabelId(field.name);
         const disabled = Boolean(field.disabled);
         const readOnly = disabled;
+        const handleChange = (event) => {
+          let value = event.target.value;
+          if (field.type === "number" && value !== "" && field.max != null) {
+            const numericValue = Number(value);
+            if (Number.isFinite(numericValue) && numericValue > field.max) {
+              value = String(field.max);
+            }
+          }
+          setField(field.name, value);
+        };
 
         return (
           <Grid
@@ -125,7 +135,7 @@ const DdeFieldGrid = ({ fields, form, setField, errors = {}, lookups = {} }) => 
             {["text", "tel", "email", "number"].includes(field.type) ? (
               <HTextField
                 value={form[field.name] ?? ""}
-                onChange={(e) => setField(field.name, e.target.value)}
+                onChange={handleChange}
                 editable={!readOnly}
                 disabled={readOnly}
                 required={Boolean(field.required)}
