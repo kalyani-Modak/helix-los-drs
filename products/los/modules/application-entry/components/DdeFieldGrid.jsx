@@ -71,13 +71,13 @@ const DdeFieldGrid = ({ fields, form, setField, errors = {}, lookups = {} }) => 
                 sx={{
                   display: "flex",
                   flexDirection: "row",
-                  alignItems: "flex-start",
+                  alignItems: "center",
                   gap: 0.5,
                   width: "100%",
                 }}
               >
                 <HCheckBox
-                  sx={{ width: 20, flexShrink: 0, mt: -0.5 }}
+                  sx={{ width: 20, flexShrink: 0 }}
                   checked={Boolean(form[field.name])}
                   onChange={(e) => setField(field.name, e.target.checked)}
                   disabled={readOnly}
