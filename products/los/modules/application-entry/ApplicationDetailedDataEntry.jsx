@@ -79,14 +79,15 @@ const ApplicationDetailedDataEntry = () => {
   const location = useLocation();
   const orgId = location.state?.orgId || ORG_ID;
   const screenMenuId = location.state?.menuId;
-  const incomingApplicationNo = location.state?.applicationNo;
+  // TEMP: hardcoded application to test the DDE GET API. Remove to use location.state?.applicationNo.
+  const incomingApplicationNo = "APP-HL2600067";
   const [form, setForm] = useState(createEmptyDdeForm);
   const [formErrors, setFormErrors] = useState({});
   const [savedApplicationNo, setSavedApplicationNo] = useState("");
   const [loading, setLoading] = useState(false);
   const [expandedSections, setExpandedSections] = useState({});
 
-  const { lookups: ddeLookups } = useDdeLookups(orgId);
+  const { lookups: ddeLookups, loading: ddeLookupsLoading } = useDdeLookups(orgId);
   const { lookups: qdeLookups } = useQdeLookups(orgId, DDE_SHARED_LOOKUP_TYPES);
   const lookups = { ...ddeLookups, ...qdeLookups };
 
@@ -226,9 +227,7 @@ const ApplicationDetailedDataEntry = () => {
     async (appNo) => {
       setLoading(true);
       try {
-        const response =null; //await HAxiosService.GET(LosDdeAPI.fetchDdeSections(appNo)).then(
-        //   unwrapApiResponse
-        // );
+        const response = await HAxiosService.GET(LosDdeAPI.fetchDdeSections(appNo));
         const data = unwrapDdePayload(response);
         if (data?.parties?.length || data?.szApplicationNo) {
           setForm((prev) => ({ ...prev, ...hydrateDdeFormFromApi(data, lookups) }));
@@ -246,9 +245,13 @@ const ApplicationDetailedDataEntry = () => {
     [loadFromQde, lookups]
   );
 
+  // Wait for the lookups so income types / dropdown codes can be resolved while hydrating.
   useEffect(() => {
-      loadDde("APP-HL2600273");
-  },[]);
+    if (incomingApplicationNo && !ddeLookupsLoading) {
+      loadDde(incomingApplicationNo);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [incomingApplicationNo, ddeLookupsLoading]);
 
   const persistDde = useCallback(async () => {
     const appNo = form.applicationNo || savedApplicationNo;
@@ -265,8 +268,10 @@ const ApplicationDetailedDataEntry = () => {
       setSavedApplicationNo(String(newAppNo));
       setField("applicationNo", String(newAppNo));
     }
-    if (data?.parties?.length) {
-      setForm((prev) => ({ ...prev, ...hydrateDdeFormFromApi(data, lookups) }));
+    // The save response carries no snapshot, so re-read the saved application to pick up generated ids.
+    const saved = unwrapDdePayload(await HAxiosService.GET(LosDdeAPI.fetchDdeSections(newAppNo)));
+    if (saved?.parties?.length) {
+      setForm((prev) => ({ ...prev, ...hydrateDdeFormFromApi(saved, lookups) }));
     }
     return newAppNo;
   }, [form, lookups, orgId, savedApplicationNo, setField]);
