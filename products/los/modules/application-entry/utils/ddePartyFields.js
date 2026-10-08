@@ -51,6 +51,7 @@ export const partyBankFields = (holderLabel) => [
   {
     name: "bankAccountHolder",
     type: "select",
+    optionsMaster: holderLabel === "Co-Applicant" ? "accountHolderCoApplicant" : "accountHolderGuarantor",
     label: "Account Holder",
     required: true,
     section: "Bank Details",
@@ -66,6 +67,7 @@ export const partyBankFields = (holderLabel) => [
   {
     name: "bankBranch",
     type: "select",
+    optionsDependsOn: { field: "bankName", lookupPrefix: "los.bankbranch." },
     label: "Branch",
     required: true,
     help: true,

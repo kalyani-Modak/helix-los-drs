@@ -334,6 +334,7 @@ export const DDE_FIELDS = [
   {
     "name": "employmentType",
     "type": "select",
+    "optionsMaster": "employmentType",
     "label": "Employment Type",
     "section": "Employment & Income",
     "required": true,
@@ -344,7 +345,8 @@ export const DDE_FIELDS = [
   },
   {
     "name": "employer",
-    "type": "text",
+    "type": "select",
+    "optionsMaster": "employer",
     "label": "Employer Name",
     "section": "Employment & Income",
     "required": true,
@@ -358,6 +360,7 @@ export const DDE_FIELDS = [
   {
     "name": "employerCategory",
     "type": "select",
+    "optionsMaster": "employerCategory",
     "label": "Employer Category",
     "section": "Employment & Income",
     "showIf": {
@@ -368,6 +371,8 @@ export const DDE_FIELDS = [
   {
     "name": "industry",
     "type": "select",
+    "optionsMaster": "industry",
+    "placeholder": "Type to search...",
     "label": "Industry / Sector",
     "section": "Employment & Income",
     "showIf": {
@@ -412,6 +417,7 @@ export const DDE_FIELDS = [
   {
     "name": "employmentStatus",
     "type": "select",
+    "optionsMaster": "employmentStatus",
     "label": "Employment Status",
     "section": "Employment & Income",
     "required": true,
@@ -733,6 +739,7 @@ export const DDE_FIELDS = [
   {
     "name": "salaryCreditMode",
     "type": "select",
+    "optionsMaster": "salaryCreditMode",
     "label": "Salary Credit Mode",
     "section": "Income Details",
     "required": true,
@@ -1293,6 +1300,7 @@ export const DDE_FIELDS = [
   {
     "name": "borrowerBank1Holder",
     "type": "select",
+    "optionsMaster": "accountHolderPrimary",
     "label": "Account Holder",
     "section": "Bank Details",
     "required": true,
@@ -1308,6 +1316,7 @@ export const DDE_FIELDS = [
   {
     "name": "borrowerBank1Branch",
     "type": "select",
+    "optionsDependsOn": { "field": "borrowerBank1Name", "lookupPrefix": "los.bankbranch." },
     "label": "Branch",
     "section": "Bank Details",
     "required": true,
