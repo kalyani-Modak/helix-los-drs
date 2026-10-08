@@ -17,6 +17,7 @@ import { DDE_INCOME_SOURCES } from "../constants/ddeIncomeSources";
 import { resolveDdeLookupKey } from "../hooks/useDdeLookups";
 import { filterVisibleFields } from "../utils/ddeFieldVisibility";
 import { calculateDdeIncomeAverage } from "../utils/ddeIncomeCalculations";
+import { gap } from "@mui/system";
 
 const GRID_FIELDS = new Set(
   DDE_INCOME_SOURCES.flatMap((source) =>
@@ -54,20 +55,30 @@ const DdeIncomeSection = ({
   const intl = useIntl();
   const text = intl.formatMessage;
   const { colors, text: themeText, border, action } = useDrsTheme();
-  const visibleSummaryFields = filterVisibleFields(SUMMARY_FIELDS, form);
+  const visibleSummaryFields = filterVisibleFields(SUMMARY_FIELDS, form, lookups);
+  const incomeTypeOptions = lookups?.["los.income.type.salaried"] || [];
+  const rowSources = DDE_INCOME_SOURCES
+    .filter((source) => source.apiType !== "Other Income")
+    .map((source) => ({
+      ...source,
+      incomeTypeOption: incomeTypeOptions.find((option) => option.label === source.apiType),
+    }))
+    .filter((source) => source.incomeTypeOption)
+    .concat(DDE_INCOME_SOURCES.filter((source) => source.apiType === "Other Income"));
 
   const rowData = useMemo(() => {
-    return DDE_INCOME_SOURCES.map((source) => ({
+    return rowSources.map((source) => ({
       id: source.id,
       source,
-      incomeType: text({ id: source.labelKey }),
+      incomeType: source.incomeTypeOption?.label || text({ id: source.labelKey }),
+      incomeTypeCode: source.incomeTypeOption?.value || "",
       include: source.include ? Boolean(form[source.include]) : null,
       month1: toGridNumber(form[source.months[0]]),
       month2: toGridNumber(form[source.months[1]]),
       month3: toGridNumber(form[source.months[2]]),
       consideration: 100,
     }));
-  }, [form, text]);
+  }, [form, rowSources, text]);
 
   const columnDefs = useMemo(() => {
     const headerStyle = {
@@ -196,9 +207,6 @@ const DdeIncomeSection = ({
   const consideredTotal = Number(form.netMonthlyIncome) || 0;
 
   const summaryOptions = (field) => {
-    if (field.options?.length) {
-      return field.options.map((option) => ({ label: option, value: option }));
-    }
     if (field.optionsMaster) {
       return lookups?.[resolveDdeLookupKey(field.optionsMaster)] || [];
     }
@@ -223,11 +231,19 @@ const DdeIncomeSection = ({
     }
     if (field.type === "checkbox") {
       return (
-        <HBox sx={{ display: "flex", alignItems: "center", minHeight: 36 }}>
+        <HBox sx={{ display: "flex", alignItems: "center", gap: 1.5, minHeight: 36 }}>
           <HCheckBox
+            sx={{ width: 20, flex: "0 0 20px", p: 0, m: 0 }}
             checked={Boolean(form[field.name])}
             onChange={(event) => setField(field.name, event.target.checked)}
             disabled={disabled}
+          />
+          <HLabel
+          sx={{fontWeight: 600}}
+            value={text({ id: `label.dde.field.${field.name}` })}
+            translate={false}
+            align="left"
+            colon={false}
           />
         </HBox>
       );

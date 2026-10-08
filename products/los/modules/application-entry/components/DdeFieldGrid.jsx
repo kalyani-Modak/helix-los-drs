@@ -11,29 +11,20 @@ import {
 import { fromPickerValue, toPickerValue } from "../dateHelpers";
 import { filterVisibleFields } from "../utils/ddeFieldVisibility";
 import { resolveDdeLookupKey } from "../hooks/useDdeLookups";
+import FieldError from "./FieldError";
 
 const fieldLabelId = (name) => `label.dde.field.${name}`;
 
-const toDropdownOptions = (field, lookups, form) => {
-  if (field.options?.length) {
-    return field.options.map((o) => ({ label: o, value: o }));
-  }
+const toDropdownOptions = (field, lookups) => {
   if (field.optionsMaster) {
     const key = resolveDdeLookupKey(field.optionsMaster);
-    let opts = lookups[key] || [];
-    if (field.optionsMasterParentField && form[field.optionsMasterParentField]) {
-      const parent = form[field.optionsMasterParentField];
-      opts = opts.filter(
-        (o) => !o.parent || o.parent === parent || o.parentCode === parent
-      );
-    }
-    return opts;
+    return lookups[key] || [];
   }
   return [];
 };
 
 const DdeFieldGrid = ({ fields, form, setField, errors = {}, lookups = {} }) => {
-  const visible = filterVisibleFields(fields, form);
+  const visible = filterVisibleFields(fields, form, lookups);
   const err = (name) => errors[name];
 
   return (
@@ -57,7 +48,7 @@ const DdeFieldGrid = ({ fields, form, setField, errors = {}, lookups = {} }) => 
               field.type === "checkbox"
                 ? {
                     display: "flex",
-                    flexDirection: field.help ? "column" : "row",
+                    flexDirection: "column",
                     alignItems: "flex-start",
                     minHeight: 40,
                     pt: 0.25,
@@ -103,7 +94,7 @@ const DdeFieldGrid = ({ fields, form, setField, errors = {}, lookups = {} }) => 
             {field.type === "select" ? (
               <HDropdown
                 name={field.name}
-                options={toDropdownOptions(field, lookups, form)}
+                options={toDropdownOptions(field, lookups)}
                 value={form[field.name] ?? ""}
                 onChange={(e) => setField(field.name, e.target.value)}
                 disabled={readOnly}
@@ -117,6 +108,7 @@ const DdeFieldGrid = ({ fields, form, setField, errors = {}, lookups = {} }) => 
                 value={toPickerValue(form[field.name])}
                 onChange={(v) => setField(field.name, fromPickerValue(v))}
                 disabled={readOnly}
+                error={Boolean(err(field.name))}
                 width="100%"
               />
             ) : null}
@@ -138,11 +130,13 @@ const DdeFieldGrid = ({ fields, form, setField, errors = {}, lookups = {} }) => 
                 disabled={readOnly}
                 required={Boolean(field.required)}
                 error={Boolean(err(field.name))}
+                placeholder={field.placeholder}
                 width={field.type === "number" ? "100%" : "100%"}
                 type={field.type === "number" ? "number" : "text"}
                 fullWidth={field.name === "totalIncome"}
               />
             ) : null}
+            <FieldError message={err(field.name)} sx={{ mt: 0.5 }} />
             {field.help ? (
               <HLabel
                 value={`label.dde.help.${field.name}`}

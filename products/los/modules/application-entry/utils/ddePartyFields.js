@@ -3,33 +3,6 @@ import { DDE_FIELDS } from "../constants/ddeFieldMetadata";
 const cloneSection = (sectionName) =>
   DDE_FIELDS.filter((f) => f.section === sectionName).map((f) => ({ ...f }));
 
-export const RELATIONSHIPS_CO = [
-  "Spouse",
-  "Father",
-  "Mother",
-  "Son",
-  "Daughter",
-  "Sibling",
-  "Business Partner",
-  "Other",
-];
-
-export const RELATIONSHIPS_GUAR = [
-  "Spouse",
-  "Father",
-  "Mother",
-  "Son",
-  "Daughter",
-  "Sibling",
-  "Relative",
-  "Friend",
-  "Business Partner",
-  "Employer",
-  "Other",
-];
-
-const REPAYMENT_MODES = ["SI", "CEFTS", "Cash deposits", "Cheque"];
-
 export const partyPersonalFields = (variant) => {
   const base = cloneSection("Personal Details");
   const extra = [
@@ -38,7 +11,7 @@ export const partyPersonalFields = (variant) => {
       type: "select",
       label: "Relationship with Main Borrower",
       required: true,
-      options: variant === "co" ? RELATIONSHIPS_CO : RELATIONSHIPS_GUAR,
+      optionsMaster: variant === "co" ? "coApplicantRelationship" : "guarantorRelationship",
       section: "Personal Details",
     },
   ];
@@ -48,7 +21,7 @@ export const partyPersonalFields = (variant) => {
       type: "select",
       label: "Co-Applicant Type",
       required: true,
-      options: ["Earning", "Non-Earning"],
+      optionsMaster: "coApplicantType",
       section: "Personal Details",
     });
   }
@@ -80,7 +53,6 @@ export const partyBankFields = (holderLabel) => [
     type: "select",
     label: "Account Holder",
     required: true,
-    options: [holderLabel],
     section: "Bank Details",
   },
   {
@@ -88,7 +60,7 @@ export const partyBankFields = (holderLabel) => [
     type: "select",
     label: "Bank Name",
     required: true,
-    optionsMaster: "bank",
+    optionsMaster: "bankName",
     section: "Bank Details",
   },
   {
@@ -96,8 +68,6 @@ export const partyBankFields = (holderLabel) => [
     type: "select",
     label: "Branch",
     required: true,
-    optionsMaster: "branch",
-    optionsMasterParentField: "bankName",
     help: true,
     section: "Bank Details",
   },
@@ -129,7 +99,7 @@ export const partyBankFields = (holderLabel) => [
     type: "select",
     label: "Repayment Mode",
     required: true,
-    options: REPAYMENT_MODES,
+    optionsMaster: "repaymentMode",
     section: "Bank Details",
   },
 ];

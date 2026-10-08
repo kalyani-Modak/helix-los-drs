@@ -18,13 +18,11 @@ if (start < 0 || end < 0) {
 }
 let block = t.slice(start, end);
 block = block.replace('"data-entry": [', "[");
-block = block.replace(/DDE_SALARIED_ONLY/g, '{ field: "customerType", equals: "Salaried" }');
-block = block.replace(/options: PIN_DISTRICT_OPTIONS/g, "options: []");
-block = block.replace(/options: DDE_EMPLOYER_OPTIONS/g, "options: []");
-block = block.replace(
-  /options: DDE_REPAYMENT_MODE_OPTIONS/g,
-  'options: ["SI","CEFTS","Cash deposits","Cheque"]'
-);
+block = block.replace(/DDE_SALARIED_ONLY/g, '{ field: "customerType", equals: "SAL" }');
+block = block.replace(/equals:\s*"Salaried"/g, 'equals: "SAL"');
+block = block.replace(/equals:\s*"Self Employed Professional \(SEP\)"/g, 'equals: "SEP"');
+block = block.replace(/equals:\s*"Self Employed Non-Professional \(SENP\)"/g, 'equals: "SENP"');
+block = block.replace(/equals:\s*"Pensioner"/g, 'equals: "PENS"');
 block = block.replace(/\/\/[^\n]*/g, "");
 block = block.replace(/^\s*remarks,\s*$/gm, "");
 block = block.trim();
@@ -35,6 +33,29 @@ if (!block.endsWith("]")) {
 
 // eslint-disable-next-line no-eval
 const fields = eval(block);
+const ddeLookupTypeByField = {
+  customerType: "los.borrowercategory",
+  title: "party.title",
+  gender: "party.gender",
+  maritalStatus: "party.maritalstatus",
+  nationality: "party.nationality",
+  religion: "party.religion",
+  education: "party.education",
+  residenceStatus: "party.residencestatus",
+  currentDistrict: "party.address.district",
+  permanentDistrict: "party.address.district",
+  currentProvince: "party.address.state",
+  permanentProvince: "party.address.state",
+  pensionerType: "los.pensionertype",
+  pensionCreditMode: "los.pensioncreditmode",
+  borrowerBank1Name: "los.bankname",
+  borrowerBank1AccountType: "los.bankaccounttype",
+  repaymentMode: "los.repaymentmode",
+  loanPurposePrimary: "los.loanpurpose",
+  repaymentFrequency: "los.repaymentfrequency",
+  rateType: "los.ratetype",
+  repaymentScheduleType: "los.repaymentscheduletype",
+};
 const cleaned = fields.map((f) => {
   const o = { name: f.name, type: f.type, label: f.label };
   if (f.section) o.section = f.section;
@@ -46,9 +67,7 @@ const cleaned = fields.map((f) => {
   if (f.placeholder) o.placeholder = f.placeholder;
   if (f.disabled) o.disabled = true;
   if (f.fullWidth) o.fullWidth = true;
-  if (f.options?.length) o.options = f.options;
-  if (f.optionsMaster) o.optionsMaster = f.optionsMaster;
-  if (f.optionsMasterParentField) o.optionsMasterParentField = f.optionsMasterParentField;
+  if (ddeLookupTypeByField[f.name]) o.optionsMaster = ddeLookupTypeByField[f.name];
   if (f.showIf) o.showIf = f.showIf;
   if (f.alsoShowIf) o.alsoShowIf = f.alsoShowIf;
   if (f.help) o.help = f.help;

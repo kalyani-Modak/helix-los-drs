@@ -4,12 +4,7 @@ export const DDE_FIELDS = [
     "type": "select",
     "label": "Borrower Category",
     "required": true,
-    "options": [
-      "Salaried",
-      "Self Employed Professional (SEP)",
-      "Self Employed Non-Professional (SENP)",
-      "Pensioner"
-    ],
+    "optionsMaster": "los.borrowercategory",
     "help": "Auto-populated from QDE — drives which income sections appear below"
   },
   {
@@ -200,12 +195,12 @@ export const DDE_FIELDS = [
   },
   {
     "name": "currentDistrict",
-    "type": "text",
+    "type": "select",
     "label": "District",
     "section": "Current Address",
     "required": true,
     "maxLength": 80,
-    "placeholder": "Select district"
+    "optionsMaster": "district"
   },
   {
     "name": "currentProvince",
@@ -263,12 +258,12 @@ export const DDE_FIELDS = [
   },
   {
     "name": "permanentDistrict",
-    "type": "text",
+    "type": "select",
     "label": "District",
     "section": "Permanent Address",
     "required": true,
     "maxLength": 80,
-    "placeholder": "Select district"
+    "optionsMaster": "district"
   },
   {
     "name": "permanentProvince",
@@ -342,10 +337,9 @@ export const DDE_FIELDS = [
     "label": "Employment Type",
     "section": "Employment & Income",
     "required": true,
-    "optionsMaster": "employmentType",
     "showIf": {
       "field": "customerType",
-      "equals": "Salaried"
+      "equals": "SAL"
     }
   },
   {
@@ -358,7 +352,7 @@ export const DDE_FIELDS = [
     "placeholder": "Search employer",
     "showIf": {
       "field": "customerType",
-      "equals": "Salaried"
+      "equals": "SAL"
     }
   },
   {
@@ -366,10 +360,9 @@ export const DDE_FIELDS = [
     "type": "select",
     "label": "Employer Category",
     "section": "Employment & Income",
-    "optionsMaster": "employerCategory",
     "showIf": {
       "field": "customerType",
-      "equals": "Salaried"
+      "equals": "SAL"
     }
   },
   {
@@ -377,10 +370,9 @@ export const DDE_FIELDS = [
     "type": "select",
     "label": "Industry / Sector",
     "section": "Employment & Income",
-    "optionsMaster": "industry",
     "showIf": {
       "field": "customerType",
-      "equals": "Salaried"
+      "equals": "SAL"
     }
   },
   {
@@ -392,7 +384,7 @@ export const DDE_FIELDS = [
     "maxLength": 120,
     "showIf": {
       "field": "customerType",
-      "equals": "Salaried"
+      "equals": "SAL"
     }
   },
   {
@@ -403,7 +395,7 @@ export const DDE_FIELDS = [
     "maxLength": 80,
     "showIf": {
       "field": "customerType",
-      "equals": "Salaried"
+      "equals": "SAL"
     }
   },
   {
@@ -414,7 +406,7 @@ export const DDE_FIELDS = [
     "maxLength": 40,
     "showIf": {
       "field": "customerType",
-      "equals": "Salaried"
+      "equals": "SAL"
     }
   },
   {
@@ -423,15 +415,9 @@ export const DDE_FIELDS = [
     "label": "Employment Status",
     "section": "Employment & Income",
     "required": true,
-    "options": [
-      "Permanent",
-      "Contract",
-      "Probation",
-      "Temporary"
-    ],
     "showIf": {
       "field": "customerType",
-      "equals": "Salaried"
+      "equals": "SAL"
     }
   },
   {
@@ -442,7 +428,7 @@ export const DDE_FIELDS = [
     "required": true,
     "showIf": {
       "field": "customerType",
-      "equals": "Salaried"
+      "equals": "SAL"
     }
   },
   {
@@ -455,7 +441,7 @@ export const DDE_FIELDS = [
     "max": 60,
     "showIf": {
       "field": "customerType",
-      "equals": "Salaried"
+      "equals": "SAL"
     }
   },
   {
@@ -467,7 +453,7 @@ export const DDE_FIELDS = [
     "max": 11,
     "showIf": {
       "field": "customerType",
-      "equals": "Salaried"
+      "equals": "SAL"
     }
   },
   {
@@ -477,7 +463,7 @@ export const DDE_FIELDS = [
     "section": "Income Details",
     "showIf": {
       "field": "customerType",
-      "equals": "Salaried"
+      "equals": "SAL"
     },
     "help": "Tick to include Basic Salary"
   },
@@ -488,7 +474,7 @@ export const DDE_FIELDS = [
     "section": "Income Details",
     "showIf": {
       "field": "customerType",
-      "equals": "Salaried"
+      "equals": "SAL"
     },
     "help": "Tick to include Fixed Allowance"
   },
@@ -499,7 +485,7 @@ export const DDE_FIELDS = [
     "section": "Income Details",
     "showIf": {
       "field": "customerType",
-      "equals": "Salaried"
+      "equals": "SAL"
     },
     "help": "Tick to include Bonus"
   },
@@ -510,7 +496,7 @@ export const DDE_FIELDS = [
     "section": "Income Details",
     "showIf": {
       "field": "customerType",
-      "equals": "Salaried"
+      "equals": "SAL"
     },
     "help": "Tick to include Variable Income / Commissions"
   },
@@ -521,7 +507,7 @@ export const DDE_FIELDS = [
     "section": "Income Details",
     "showIf": {
       "field": "customerType",
-      "equals": "Salaried"
+      "equals": "SAL"
     },
     "help": "Tick to include Incentives"
   },
@@ -539,7 +525,7 @@ export const DDE_FIELDS = [
     },
     "alsoShowIf": {
       "field": "customerType",
-      "equals": "Salaried"
+      "equals": "SAL"
     }
   },
   {
@@ -555,7 +541,7 @@ export const DDE_FIELDS = [
     },
     "alsoShowIf": {
       "field": "customerType",
-      "equals": "Salaried"
+      "equals": "SAL"
     },
     "help": "% of basic salary considered for income calculation"
   },
@@ -572,7 +558,7 @@ export const DDE_FIELDS = [
     },
     "alsoShowIf": {
       "field": "customerType",
-      "equals": "Salaried"
+      "equals": "SAL"
     }
   },
   {
@@ -588,7 +574,7 @@ export const DDE_FIELDS = [
     },
     "alsoShowIf": {
       "field": "customerType",
-      "equals": "Salaried"
+      "equals": "SAL"
     }
   },
   {
@@ -604,7 +590,7 @@ export const DDE_FIELDS = [
     },
     "alsoShowIf": {
       "field": "customerType",
-      "equals": "Salaried"
+      "equals": "SAL"
     }
   },
   {
@@ -620,7 +606,7 @@ export const DDE_FIELDS = [
     },
     "alsoShowIf": {
       "field": "customerType",
-      "equals": "Salaried"
+      "equals": "SAL"
     }
   },
   {
@@ -636,7 +622,7 @@ export const DDE_FIELDS = [
     },
     "alsoShowIf": {
       "field": "customerType",
-      "equals": "Salaried"
+      "equals": "SAL"
     }
   },
   {
@@ -652,7 +638,7 @@ export const DDE_FIELDS = [
     },
     "alsoShowIf": {
       "field": "customerType",
-      "equals": "Salaried"
+      "equals": "SAL"
     }
   },
   {
@@ -668,7 +654,7 @@ export const DDE_FIELDS = [
     },
     "alsoShowIf": {
       "field": "customerType",
-      "equals": "Salaried"
+      "equals": "SAL"
     }
   },
   {
@@ -684,7 +670,7 @@ export const DDE_FIELDS = [
     },
     "alsoShowIf": {
       "field": "customerType",
-      "equals": "Salaried"
+      "equals": "SAL"
     }
   },
   {
@@ -696,7 +682,7 @@ export const DDE_FIELDS = [
     "max": 5000000,
     "showIf": {
       "field": "customerType",
-      "equals": "Salaried"
+      "equals": "SAL"
     }
   },
   {
@@ -710,7 +696,7 @@ export const DDE_FIELDS = [
     "disabled": true,
     "showIf": {
       "field": "customerType",
-      "equals": "Salaried"
+      "equals": "SAL"
     },
     "help": "Auto-calculated: Basic + Fixed Allowances + Bonus + Variable + Incentive + Other Income"
   },
@@ -725,7 +711,7 @@ export const DDE_FIELDS = [
     "disabled": true,
     "showIf": {
       "field": "customerType",
-      "equals": "Salaried"
+      "equals": "SAL"
     },
     "help": "Auto-calculated: Sum of the average income for each selected source + Other Income"
   },
@@ -740,7 +726,7 @@ export const DDE_FIELDS = [
     "disabled": true,
     "showIf": {
       "field": "customerType",
-      "equals": "Salaried"
+      "equals": "SAL"
     },
     "help": "Auto-calculated: same as Net Monthly Income"
   },
@@ -750,10 +736,9 @@ export const DDE_FIELDS = [
     "label": "Salary Credit Mode",
     "section": "Income Details",
     "required": true,
-    "optionsMaster": "creditMode",
     "showIf": {
       "field": "customerType",
-      "equals": "Salaried"
+      "equals": "SAL"
     }
   },
   {
@@ -764,7 +749,7 @@ export const DDE_FIELDS = [
     "maxLength": 80,
     "showIf": {
       "field": "customerType",
-      "equals": "Salaried"
+      "equals": "SAL"
     }
   },
   {
@@ -776,7 +761,7 @@ export const DDE_FIELDS = [
     "max": 31,
     "showIf": {
       "field": "customerType",
-      "equals": "Salaried"
+      "equals": "SAL"
     }
   },
   {
@@ -786,7 +771,7 @@ export const DDE_FIELDS = [
     "section": "Income Details",
     "showIf": {
       "field": "customerType",
-      "equals": "Salaried"
+      "equals": "SAL"
     }
   },
   {
@@ -794,20 +779,9 @@ export const DDE_FIELDS = [
     "type": "select",
     "label": "Profession",
     "section": "Self-Employed Professional",
-    "options": [
-      "Doctor",
-      "Chartered Accountant",
-      "Lawyer",
-      "Engineer",
-      "Architect",
-      "Consultant",
-      "Dentist",
-      "Auditor",
-      "Other"
-    ],
     "showIf": {
       "field": "customerType",
-      "equals": "Self Employed Professional (SEP)"
+      "equals": "SEP"
     }
   },
   {
@@ -818,7 +792,7 @@ export const DDE_FIELDS = [
     "maxLength": 120,
     "showIf": {
       "field": "customerType",
-      "equals": "Self Employed Professional (SEP)"
+      "equals": "SEP"
     }
   },
   {
@@ -829,7 +803,7 @@ export const DDE_FIELDS = [
     "maxLength": 60,
     "showIf": {
       "field": "customerType",
-      "equals": "Self Employed Professional (SEP)"
+      "equals": "SEP"
     }
   },
   {
@@ -837,16 +811,9 @@ export const DDE_FIELDS = [
     "type": "select",
     "label": "Membership Type",
     "section": "Self-Employed Professional",
-    "options": [
-      "Associate",
-      "Fellow",
-      "Member",
-      "Licentiate",
-      "Other"
-    ],
     "showIf": {
       "field": "customerType",
-      "equals": "Self Employed Professional (SEP)"
+      "equals": "SEP"
     }
   },
   {
@@ -856,7 +823,7 @@ export const DDE_FIELDS = [
     "section": "Self-Employed Professional",
     "showIf": {
       "field": "customerType",
-      "equals": "Self Employed Professional (SEP)"
+      "equals": "SEP"
     }
   },
   {
@@ -868,7 +835,7 @@ export const DDE_FIELDS = [
     "max": 60,
     "showIf": {
       "field": "customerType",
-      "equals": "Self Employed Professional (SEP)"
+      "equals": "SEP"
     }
   },
   {
@@ -879,7 +846,7 @@ export const DDE_FIELDS = [
     "maxLength": 120,
     "showIf": {
       "field": "customerType",
-      "equals": "Self Employed Professional (SEP)"
+      "equals": "SEP"
     }
   },
   {
@@ -891,7 +858,7 @@ export const DDE_FIELDS = [
     "fullWidth": true,
     "showIf": {
       "field": "customerType",
-      "equals": "Self Employed Professional (SEP)"
+      "equals": "SEP"
     }
   },
   {
@@ -902,7 +869,7 @@ export const DDE_FIELDS = [
     "min": 0,
     "showIf": {
       "field": "customerType",
-      "equals": "Self Employed Professional (SEP)"
+      "equals": "SEP"
     }
   },
   {
@@ -913,7 +880,7 @@ export const DDE_FIELDS = [
     "min": 0,
     "showIf": {
       "field": "customerType",
-      "equals": "Self Employed Professional (SEP)"
+      "equals": "SEP"
     }
   },
   {
@@ -921,10 +888,9 @@ export const DDE_FIELDS = [
     "type": "select",
     "label": "Income Proof Type",
     "section": "Self-Employed Professional",
-    "optionsMaster": "document",
     "showIf": {
       "field": "customerType",
-      "equals": "Self Employed Professional (SEP)"
+      "equals": "SEP"
     }
   },
   {
@@ -935,7 +901,7 @@ export const DDE_FIELDS = [
     "maxLength": 120,
     "showIf": {
       "field": "customerType",
-      "equals": "Self Employed Non-Professional (SENP)"
+      "equals": "SENP"
     }
   },
   {
@@ -943,22 +909,9 @@ export const DDE_FIELDS = [
     "type": "select",
     "label": "Nature of Business",
     "section": "Self-Employed Business",
-    "options": [
-      "Trading",
-      "Manufacturing",
-      "Service",
-      "Retail",
-      "Wholesale",
-      "Import/Export",
-      "Construction",
-      "Agriculture",
-      "Hospitality",
-      "Transportation",
-      "Other"
-    ],
     "showIf": {
       "field": "customerType",
-      "equals": "Self Employed Non-Professional (SENP)"
+      "equals": "SENP"
     }
   },
   {
@@ -966,17 +919,9 @@ export const DDE_FIELDS = [
     "type": "select",
     "label": "Business Constitution",
     "section": "Self-Employed Business",
-    "options": [
-      "Sole Proprietorship",
-      "Partnership",
-      "Private Limited",
-      "Public Limited",
-      "LLP",
-      "Other"
-    ],
     "showIf": {
       "field": "customerType",
-      "equals": "Self Employed Non-Professional (SENP)"
+      "equals": "SENP"
     }
   },
   {
@@ -987,7 +932,7 @@ export const DDE_FIELDS = [
     "maxLength": 40,
     "showIf": {
       "field": "customerType",
-      "equals": "Self Employed Non-Professional (SENP)"
+      "equals": "SENP"
     }
   },
   {
@@ -997,7 +942,7 @@ export const DDE_FIELDS = [
     "section": "Self-Employed Business",
     "showIf": {
       "field": "customerType",
-      "equals": "Self Employed Non-Professional (SENP)"
+      "equals": "SENP"
     }
   },
   {
@@ -1009,7 +954,7 @@ export const DDE_FIELDS = [
     "max": 100,
     "showIf": {
       "field": "customerType",
-      "equals": "Self Employed Non-Professional (SENP)"
+      "equals": "SENP"
     }
   },
   {
@@ -1021,7 +966,7 @@ export const DDE_FIELDS = [
     "max": 100,
     "showIf": {
       "field": "customerType",
-      "equals": "Self Employed Non-Professional (SENP)"
+      "equals": "SENP"
     }
   },
   {
@@ -1031,7 +976,7 @@ export const DDE_FIELDS = [
     "section": "Self-Employed Business",
     "showIf": {
       "field": "customerType",
-      "equals": "Self Employed Non-Professional (SENP)"
+      "equals": "SENP"
     }
   },
   {
@@ -1042,7 +987,7 @@ export const DDE_FIELDS = [
     "maxLength": 40,
     "showIf": {
       "field": "customerType",
-      "equals": "Self Employed Non-Professional (SENP)"
+      "equals": "SENP"
     }
   },
   {
@@ -1053,7 +998,7 @@ export const DDE_FIELDS = [
     "min": 0,
     "showIf": {
       "field": "customerType",
-      "equals": "Self Employed Non-Professional (SENP)"
+      "equals": "SENP"
     }
   },
   {
@@ -1064,7 +1009,7 @@ export const DDE_FIELDS = [
     "maxLength": 120,
     "showIf": {
       "field": "customerType",
-      "equals": "Self Employed Non-Professional (SENP)"
+      "equals": "SENP"
     }
   },
   {
@@ -1075,7 +1020,7 @@ export const DDE_FIELDS = [
     "maxLength": 120,
     "showIf": {
       "field": "customerType",
-      "equals": "Self Employed Non-Professional (SENP)"
+      "equals": "SENP"
     }
   },
   {
@@ -1086,7 +1031,7 @@ export const DDE_FIELDS = [
     "maxLength": 80,
     "showIf": {
       "field": "customerType",
-      "equals": "Self Employed Non-Professional (SENP)"
+      "equals": "SENP"
     }
   },
   {
@@ -1097,7 +1042,7 @@ export const DDE_FIELDS = [
     "maxLength": 15,
     "showIf": {
       "field": "customerType",
-      "equals": "Self Employed Non-Professional (SENP)"
+      "equals": "SENP"
     }
   },
   {
@@ -1108,7 +1053,7 @@ export const DDE_FIELDS = [
     "min": 0,
     "showIf": {
       "field": "customerType",
-      "equals": "Self Employed Non-Professional (SENP)"
+      "equals": "SENP"
     }
   },
   {
@@ -1119,7 +1064,7 @@ export const DDE_FIELDS = [
     "min": 0,
     "showIf": {
       "field": "customerType",
-      "equals": "Self Employed Non-Professional (SENP)"
+      "equals": "SENP"
     }
   },
   {
@@ -1130,7 +1075,7 @@ export const DDE_FIELDS = [
     "min": 0,
     "showIf": {
       "field": "customerType",
-      "equals": "Self Employed Non-Professional (SENP)"
+      "equals": "SENP"
     }
   },
   {
@@ -1141,7 +1086,7 @@ export const DDE_FIELDS = [
     "min": 0,
     "showIf": {
       "field": "customerType",
-      "equals": "Self Employed Non-Professional (SENP)"
+      "equals": "SENP"
     }
   },
   {
@@ -1152,7 +1097,7 @@ export const DDE_FIELDS = [
     "min": 0,
     "showIf": {
       "field": "customerType",
-      "equals": "Self Employed Non-Professional (SENP)"
+      "equals": "SENP"
     }
   },
   {
@@ -1160,10 +1105,9 @@ export const DDE_FIELDS = [
     "type": "select",
     "label": "Business Income Proof",
     "section": "Self-Employed Business",
-    "optionsMaster": "document",
     "showIf": {
       "field": "customerType",
-      "equals": "Self Employed Non-Professional (SENP)"
+      "equals": "SENP"
     }
   },
   {
@@ -1174,7 +1118,7 @@ export const DDE_FIELDS = [
     "maxLength": 80,
     "showIf": {
       "field": "customerType",
-      "equals": "Self Employed Non-Professional (SENP)"
+      "equals": "SENP"
     }
   },
   {
@@ -1182,18 +1126,10 @@ export const DDE_FIELDS = [
     "type": "select",
     "label": "Pensioner Type",
     "section": "Pensioner Income",
-    "options": [
-      "Government Pensioner",
-      "Semi-Government Pensioner",
-      "Private Sector Pensioner",
-      "Armed Forces",
-      "EPF / Provident Fund",
-      "Widow / Family Pension",
-      "Other"
-    ],
+    "optionsMaster": "pensionerType",
     "showIf": {
       "field": "customerType",
-      "equals": "Pensioner"
+      "equals": "PENS"
     }
   },
   {
@@ -1204,7 +1140,7 @@ export const DDE_FIELDS = [
     "maxLength": 120,
     "showIf": {
       "field": "customerType",
-      "equals": "Pensioner"
+      "equals": "PENS"
     }
   },
   {
@@ -1215,7 +1151,7 @@ export const DDE_FIELDS = [
     "maxLength": 120,
     "showIf": {
       "field": "customerType",
-      "equals": "Pensioner"
+      "equals": "PENS"
     }
   },
   {
@@ -1227,7 +1163,7 @@ export const DDE_FIELDS = [
     "max": 60,
     "showIf": {
       "field": "customerType",
-      "equals": "Pensioner"
+      "equals": "PENS"
     }
   },
   {
@@ -1237,7 +1173,7 @@ export const DDE_FIELDS = [
     "section": "Pensioner Income",
     "showIf": {
       "field": "customerType",
-      "equals": "Pensioner"
+      "equals": "PENS"
     }
   },
   {
@@ -1247,7 +1183,7 @@ export const DDE_FIELDS = [
     "section": "Pensioner Income",
     "showIf": {
       "field": "customerType",
-      "equals": "Pensioner"
+      "equals": "PENS"
     }
   },
   {
@@ -1258,7 +1194,7 @@ export const DDE_FIELDS = [
     "maxLength": 60,
     "showIf": {
       "field": "customerType",
-      "equals": "Pensioner"
+      "equals": "PENS"
     }
   },
   {
@@ -1269,7 +1205,7 @@ export const DDE_FIELDS = [
     "min": 0,
     "showIf": {
       "field": "customerType",
-      "equals": "Pensioner"
+      "equals": "PENS"
     }
   },
   {
@@ -1280,7 +1216,7 @@ export const DDE_FIELDS = [
     "min": 0,
     "showIf": {
       "field": "customerType",
-      "equals": "Pensioner"
+      "equals": "PENS"
     }
   },
   {
@@ -1291,7 +1227,7 @@ export const DDE_FIELDS = [
     "min": 0,
     "showIf": {
       "field": "customerType",
-      "equals": "Pensioner"
+      "equals": "PENS"
     }
   },
   {
@@ -1299,10 +1235,10 @@ export const DDE_FIELDS = [
     "type": "select",
     "label": "Pension Credit Mode",
     "section": "Pensioner Income",
-    "optionsMaster": "creditMode",
+    "optionsMaster": "pensionCreditMode",
     "showIf": {
       "field": "customerType",
-      "equals": "Pensioner"
+      "equals": "PENS"
     }
   },
   {
@@ -1313,7 +1249,7 @@ export const DDE_FIELDS = [
     "maxLength": 80,
     "showIf": {
       "field": "customerType",
-      "equals": "Pensioner"
+      "equals": "PENS"
     }
   },
   {
@@ -1324,7 +1260,7 @@ export const DDE_FIELDS = [
     "maxLength": 40,
     "showIf": {
       "field": "customerType",
-      "equals": "Pensioner"
+      "equals": "PENS"
     }
   },
   {
@@ -1334,7 +1270,7 @@ export const DDE_FIELDS = [
     "section": "Pensioner Income",
     "showIf": {
       "field": "customerType",
-      "equals": "Pensioner"
+      "equals": "PENS"
     }
   },
   {
@@ -1344,7 +1280,7 @@ export const DDE_FIELDS = [
     "section": "Pensioner Income",
     "showIf": {
       "field": "customerType",
-      "equals": "Pensioner"
+      "equals": "PENS"
     }
   },
   {
@@ -1360,9 +1296,6 @@ export const DDE_FIELDS = [
     "label": "Account Holder",
     "section": "Bank Details",
     "required": true,
-    "options": [
-      "Borrower"
-    ]
   },
   {
     "name": "borrowerBank1Name",
@@ -1378,8 +1311,6 @@ export const DDE_FIELDS = [
     "label": "Branch",
     "section": "Bank Details",
     "required": true,
-    "optionsMaster": "branch",
-    "optionsMasterParentField": "borrowerBank1Name",
     "help": "Filtered by selected Bank"
   },
   {
@@ -1411,12 +1342,7 @@ export const DDE_FIELDS = [
     "label": "Repayment Mode",
     "section": "Bank Details",
     "required": true,
-    "options": [
-      "SI",
-      "CEFTS",
-      "Cash deposits",
-      "Cheque"
-    ]
+    "optionsMaster": "repaymentMode"
   },
   {
     "name": "perfiosUploaded",
@@ -1581,6 +1507,7 @@ export const DDE_FIELDS = [
     "maxLength": 120,
     "showIf": {
       "field": "loanPurposePrimary",
+      "lookupMaster": "los.loanpurpose",
       "equals": "Others"
     }
   },
@@ -1611,14 +1538,7 @@ export const DDE_FIELDS = [
     "label": "Repayment Frequency",
     "section": "Loan Details",
     "required": true,
-    "options": [
-      "Monthly",
-      "Bi-Monthly",
-      "Quarterly",
-      "Semi-Annually",
-      "Annually",
-      "Bullet"
-    ]
+    "optionsMaster": "repaymentFrequency"
   },
   {
     "name": "installmentDueDay",
@@ -1651,10 +1571,7 @@ export const DDE_FIELDS = [
     "type": "select",
     "label": "Rate Type",
     "section": "Loan Details",
-    "options": [
-      "Fixed",
-      "Floating"
-    ]
+    "optionsMaster": "rateType"
   },
   {
     "name": "rateConcession",
@@ -1689,11 +1606,6 @@ export const DDE_FIELDS = [
     "type": "select",
     "label": "Grace Period Type",
     "section": "Loan Details",
-    "options": [
-      "Principal Only",
-      "Interest Only",
-      "Full Moratorium"
-    ],
     "showIf": {
       "field": "gracePeriodEnabled",
       "equals": [
@@ -1707,13 +1619,7 @@ export const DDE_FIELDS = [
     "label": "Repayment Schedule Type",
     "section": "Loan Details",
     "required": true,
-    "options": [
-      "Linear (Equal Installments)",
-      "Step-Up",
-      "Step-Down",
-      "Balloon",
-      "Custom"
-    ]
+    "optionsMaster": "repaymentScheduleType"
   },
   {
     "name": "stepFrequencyMonths",
@@ -1724,6 +1630,7 @@ export const DDE_FIELDS = [
     "max": 60,
     "showIf": {
       "field": "repaymentScheduleType",
+      "lookupMaster": "los.repaymentscheduletype",
       "equals": [
         "Step-Up",
         "Step-Down"

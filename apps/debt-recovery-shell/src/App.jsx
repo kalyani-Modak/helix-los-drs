@@ -332,7 +332,8 @@ const AppContent = ({ language, setLanguage }) => {
             <Route path="workflow-registry/application-entry-form" element={<ApplicationEntryFormPage />} />
             <Route path="workflow-registry/application-list" element={<ApplicationListPage />} />
             <Route path="workflow-registry/graphical-log" element={<WorkflowGraphicalLogPage />} />
-            <Route path="workflow-registry/graphical-log/:appNo" element={<WorkflowGraphicalLogPage />} />
+            <Route path="
+            :appNo" element={<WorkflowGraphicalLogPage />} />
             <Route path="application-entry/retail" element={<ApplicationQuickDataEntry />} />
             <Route path="application-entry/detailed-data-entry" element={<ApplicationDetailedDataEntry />} />
             <Route path="application-entry/uploadDocument" element={<ApplicationDocumentUpload />} />

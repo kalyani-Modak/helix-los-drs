@@ -65,7 +65,7 @@ export const emptyDdeParty = () => ({
 
 export const emptyCoApplicant = () => ({
   ...emptyDdeParty(),
-  type: "Earning",
+  type: "",
 });
 
 export const emptyGuarantor = () => emptyDdeParty();
@@ -131,7 +131,7 @@ export const mapQdePartyRecordToDde = (party, borrower, kind = "co") => {
     currentCountry: address.szCountry || party?.country || "India",
   };
   if (kind === "co") {
-    return { ...mapped, type: "Earning" };
+    return { ...mapped, type: party?.szCoAppType || "" };
   }
   return mapped;
 };

@@ -37,6 +37,12 @@ const DdePartyListSection = ({
   }, [items]);
 
   const createParty = () => (variant === "co" ? emptyCoApplicant() : emptyGuarantor());
+  const optionLabel = (type, value) =>
+    (lookups?.[type] || []).find((option) => option.value === value)?.label || "";
+  const isNonEarning = (party) =>
+    variant === "co" &&
+    (lookups?.["los.coapplicanttype"] || []).find((option) => option.value === party.type)
+      ?.label === "Non-Earning";
 
   const handleAdd = () => {
     const party = createParty();
@@ -49,8 +55,7 @@ const DdePartyListSection = ({
   };
 
   const setPartySectionsExpanded = (party, isExpanded) => {
-    const isNonEarning = variant === "co" && party.type === "Non-Earning";
-    partySubsections(variant, isNonEarning).forEach((subsection) => {
+    partySubsections(variant, isNonEarning(party)).forEach((subsection) => {
       onSectionExpandedChange(`${variant}-${party.id}-${subsection.key}`, isExpanded);
     });
   };
@@ -150,10 +155,17 @@ const DdePartyListSection = ({
             {items.map((party, index) => {
               const name = partyDisplayName(party);
               const isOpen = openPartyIds.has(party.id);
+              const relationshipLabel = optionLabel(
+                variant === "co" ? "los.coapplicant.relationship" : "los.guarantor.relationship",
+                party.relationship
+              );
+              const typeLabel = variant === "co"
+                ? optionLabel("los.coapplicanttype", party.type)
+                : "";
               const headerLabel =
                 variant === "co"
-                  ? `Co-Applicant #${index + 1}${name ? ` — ${name}` : ""}${party.relationship ? ` (${party.relationship})` : ""}${party.type ? ` — ${party.type}` : ""}`
-                  : `Guarantor #${index + 1}${name ? ` — ${name}` : ""}${party.relationship ? ` (${party.relationship})` : ""}`;
+                  ? `Co-Applicant #${index + 1}${name ? ` — ${name}` : ""}${relationshipLabel ? ` (${relationshipLabel})` : ""}${typeLabel ? ` — ${typeLabel}` : ""}`
+                  : `Guarantor #${index + 1}${name ? ` — ${name}` : ""}${relationshipLabel ? ` (${relationshipLabel})` : ""}`;
 
               return (
                 <Grid key={party.id} size={12}>

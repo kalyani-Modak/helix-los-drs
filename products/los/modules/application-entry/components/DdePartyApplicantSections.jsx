@@ -18,7 +18,10 @@ const DdePartyApplicantSections = ({
   expandedSections,
   onSectionExpandedChange,
 }) => {
-  const isNonEarning = variant === "co" && party.type === "Non-Earning";
+  const isNonEarning =
+    variant === "co" &&
+    (lookups?.["los.coapplicanttype"] || []).find((option) => option.value === party.type)
+      ?.label === "Non-Earning";
 
   const setPartyField = (name, value) => {
     if (name === "dob") {

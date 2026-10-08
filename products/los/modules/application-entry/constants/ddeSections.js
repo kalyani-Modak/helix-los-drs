@@ -79,7 +79,21 @@ export const DDE_SECTION_CONFIG = [
   },
 ];
 
-export const DDE_SALARIED = "Salaried";
-export const DDE_SEP = "Self Employed Professional (SEP)";
-export const DDE_SENP = "Self Employed Non-Professional (SENP)";
-export const DDE_PENSIONER = "Pensioner";
+export const DDE_SALARIED = "SAL";
+export const DDE_SEP = "SEP";
+export const DDE_SENP = "SENP";
+export const DDE_PENSIONER = "PENS";
+
+const DDE_CUSTOMER_TYPE_ALIASES = {
+  Salaried: DDE_SALARIED,
+  SALARIED: DDE_SALARIED,
+  "Self Employed Professional (SEP)": DDE_SEP,
+  SELF_EMPLOYED_PROFESSIONAL: DDE_SEP,
+  "Self Employed Non-Professional (SENP)": DDE_SENP,
+  SELF_EMPLOYED_NON_PROFESSIONAL: DDE_SENP,
+  Pensioner: DDE_PENSIONER,
+  PENSIONER: DDE_PENSIONER,
+};
+
+export const normalizeDdeCustomerType = (value) =>
+  DDE_CUSTOMER_TYPE_ALIASES[value] || value || "";

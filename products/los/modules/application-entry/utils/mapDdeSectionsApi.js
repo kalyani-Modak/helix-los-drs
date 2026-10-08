@@ -1,6 +1,7 @@
 import { computeAgeFromDob } from "./ddeFormState";
 import { emptyCoApplicant, emptyDdeParty, emptyGuarantor } from "./ddePartyState";
 import { DDE_INCOME_SOURCES } from "../constants/ddeIncomeSources";
+import { normalizeDdeCustomerType } from "../constants/ddeSections";
 
 const yn = (value) => (value === true || value === "Y" ? "Y" : value === false || value === "N" ? "N" : value ?? "");
 const toNum = (v) => {
@@ -44,7 +45,7 @@ const mapEmploymentFromApi = (employmentDetails = []) => {
   };
 };
 
-const mapIncomeFromApi = (incomeDetails = []) => {
+const mapIncomeFromApi = (incomeDetails = [], lookups = {}) => {
   const row = Array.isArray(incomeDetails) ? incomeDetails[0] : incomeDetails;
   if (!row?.incomeDetails) return {};
   const inc = row.incomeDetails;
@@ -60,7 +61,11 @@ const mapIncomeFromApi = (incomeDetails = []) => {
   };
   const assoc = row.incomeDetailsAssociations || [];
   assoc.forEach((a) => {
-    const def = DDE_INCOME_SOURCES.find((m) => m.apiType === a.szincomeType);
+    const incomeTypeLabel = (lookups["los.income.type.salaried"] || [])
+      .find((option) => option.value === a.szincomeType)?.label;
+    const def = DDE_INCOME_SOURCES.find(
+      (source) => source.apiType === incomeTypeLabel || source.apiType === a.szincomeType
+    );
     if (!def) return;
     if (def.include) patch[def.include] = a.cIncludeYN === "Y";
     const hasMonthlyValues = [a.fmonth1, a.fmonth2, a.fmonth3].some(
@@ -123,13 +128,13 @@ const mapTaxFromApi = (taxDetails = []) => {
   return patch;
 };
 
-const mapIndividualToForm = (party) => {
+const mapIndividualToForm = (party, lookups) => {
   const individual = party.individualDetails || {};
   const kyc = party.kycDetails || {};
   const dob = individual.dtDateOfBirth || "";
   return {
     szApplicantId: party.szApplicantId || null,
-    customerType: individual.szApplicantCategory || "",
+    customerType: normalizeDdeCustomerType(individual.szApplicantCategory),
     firstName: individual.szFirstName || "",
     middleName: individual.szMiddleName || "",
     lastName: individual.szLastName || "",
@@ -147,32 +152,32 @@ const mapIndividualToForm = (party) => {
   };
 };
 
-export const mapDdePartyFromApi = (party, kind = "co") => {
+export const mapDdePartyFromApi = (party, kind = "co", lookups = {}) => {
   const base = kind === "co" ? emptyCoApplicant() : emptyGuarantor();
   const bank = (party.bankDetails || [])[0];
   const mapped = {
     ...base,
-    ...mapIndividualToForm(party),
+    ...mapIndividualToForm(party, lookups),
     id: party.szApplicantId || base.id,
     relationship: party.szRelationWithBrwr || "",
-    type: party.szCoAppType || (kind === "co" ? "Earning" : undefined),
+    type: party.szCoAppType || "",
     ...mapBankFromApi(bank),
     ...mapEmploymentFromApi(party.employmentDetails),
-    ...mapIncomeFromApi(party.incomeDetails),
+    ...mapIncomeFromApi(party.incomeDetails, lookups),
     ...mapTaxFromApi(party.taxDetails),
   };
   if (kind !== "co") delete mapped.type;
   return mapped;
 };
 
-export const hydrateFormFromDdeGet = (apiPayload = {}) => {
+export const hydrateFormFromDdeGet = (apiPayload = {}, lookups = {}) => {
   const parties = apiPayload.parties || [];
   const primary =
     parties.find((p) => p.szApplicantType === "PRIMARY_APPLICANT") || parties[0] || {};
   const loanRow = (apiPayload.loanDetails || [])[0] || {};
 
   const borrower = {
-    ...mapIndividualToForm(primary),
+    ...mapIndividualToForm(primary, lookups),
     applicationNo: apiPayload.szApplicationNo || "",
     homePhone: apiPayload.szHomePhone || "",
     officePhone: apiPayload.szOffPhone || "",
@@ -185,16 +190,16 @@ export const hydrateFormFromDdeGet = (apiPayload = {}) => {
     repaymentScheduleType: loanRow.szRepayScedType || "",
     ...mapBankFromApi((primary.bankDetails || [])[0]),
     ...mapEmploymentFromApi(primary.employmentDetails),
-    ...mapIncomeFromApi(primary.incomeDetails),
+    ...mapIncomeFromApi(primary.incomeDetails, lookups),
     ...mapTaxFromApi(primary.taxDetails),
   };
 
   const coApplicants = parties
     .filter((p) => p.szApplicantType === "CO_APPLICANT")
-    .map((p) => mapDdePartyFromApi(p, "co"));
+    .map((p) => mapDdePartyFromApi(p, "co", lookups));
   const guarantors = parties
     .filter((p) => p.szApplicantType === "GUARANTOR")
-    .map((p) => mapDdePartyFromApi(p, "guarantor"));
+    .map((p) => mapDdePartyFromApi(p, "guarantor", lookups));
 
   const ddeMeta = {
     applicationDetails: {
@@ -303,13 +308,17 @@ const buildEmploymentSection = (src, applicantId) => ({
   },
 });
 
-const buildIncomeSection = (src, applicantId) => {
+const buildIncomeSection = (src, applicantId, lookups) => {
+  const incomeTypeOptions = lookups["los.income.type.salaried"] || [];
   const associations = DDE_INCOME_SOURCES.map((def) => {
     const amount = toNum(src[def.amount]);
     const included = def.include ? src[def.include] : amount != null;
+    const incomeType = def.apiType === "Other Income"
+      ? def.apiType
+      : incomeTypeOptions.find((option) => option.label === def.apiType)?.value;
     return {
       cIncludeYN: included ? "Y" : "N",
-      szincomeType: def.apiType,
+      szincomeType: incomeType,
       fmonth1: toNum(src[def.months[0]]),
       fmonth2: toNum(src[def.months[1]]),
       fmonth3: toNum(src[def.months[2]]),
@@ -317,7 +326,7 @@ const buildIncomeSection = (src, applicantId) => {
       iconsiderationPer: 100,
       fmonthlyConsidered: included && amount != null ? amount : 0,
     };
-  }).filter((a) => a.cIncludeYN === "Y" || a.fAvgAmount != null);
+  }).filter((a) => a.szincomeType && (a.cIncludeYN === "Y" || a.fAvgAmount != null));
 
   return {
     incomeDetails: {
@@ -357,19 +366,19 @@ const buildTaxSection = (src, applicantId) => {
   };
 };
 
-const buildApplicantSaveEntry = (applicantId, src, applicationNo, isPrimary, borrowerForm) => ({
+const buildApplicantSaveEntry = (applicantId, src, applicationNo, isPrimary, borrowerForm, lookups) => ({
   szApplicantId: applicantId,
   sections: {
     party: buildPartySection(src, applicationNo, isPrimary, borrowerForm),
     bankDetails: buildBankDetails(src, applicationNo, applicantId),
     employment: buildEmploymentSection(src, applicantId),
-    incomeDetails: buildIncomeSection(src, applicantId),
+    incomeDetails: buildIncomeSection(src, applicantId, lookups),
     taxDetails: buildTaxSection(src, applicantId),
   },
 });
 
 /** POST `/dde/application/{applicationNo}/sections` body. */
-export const buildDdeSectionsSavePayload = (orgId, applicationNo, form) => {
+export const buildDdeSectionsSavePayload = (orgId, applicationNo, form, lookups = {}) => {
   const meta = form.ddeMeta || {};
   const appDetails = meta.applicationDetails || {};
   const loanTemplate = meta.loanDetailsRow || {};
@@ -377,7 +386,7 @@ export const buildDdeSectionsSavePayload = (orgId, applicationNo, form) => {
   const applicants = [];
   const primaryId = meta.primaryApplicantId;
   if (primaryId) {
-    applicants.push(buildApplicantSaveEntry(primaryId, form, applicationNo, true, form));
+    applicants.push(buildApplicantSaveEntry(primaryId, form, applicationNo, true, form, lookups));
   }
 
   const isServerApplicantId = (id) =>
@@ -386,13 +395,13 @@ export const buildDdeSectionsSavePayload = (orgId, applicationNo, form) => {
   (form.coApplicants || []).forEach((party) => {
     const applicantId = party.szApplicantId || party.id;
     if (!isServerApplicantId(applicantId)) return;
-    applicants.push(buildApplicantSaveEntry(applicantId, party, applicationNo, false, form));
+    applicants.push(buildApplicantSaveEntry(applicantId, party, applicationNo, false, form, lookups));
   });
 
   (form.guarantors || []).forEach((party) => {
     const applicantId = party.szApplicantId || party.id;
     if (!isServerApplicantId(applicantId)) return;
-    applicants.push(buildApplicantSaveEntry(applicantId, party, applicationNo, false, form));
+    applicants.push(buildApplicantSaveEntry(applicantId, party, applicationNo, false, form, lookups));
   });
 
   return {

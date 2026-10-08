@@ -1,4 +1,5 @@
 import { DDE_INCOME_SOURCES } from "../constants/ddeIncomeSources";
+import { DDE_SALARIED } from "../constants/ddeSections";
 
 const num = (v) => {
   const n = Number(v);
@@ -40,7 +41,7 @@ export const getDdeIncomeAveragePatch = (fieldName, fieldValue, values) => {
 };
 
 export const applyDdeIncomePatch = (values) => {
-  if (values.customerType !== "Salaried") {
+  if (values.customerType !== DDE_SALARIED) {
     return null;
   }
   return computeDdeIncomeTotals(values);

@@ -1,12 +1,12 @@
 import { filterVisibleFields } from "./ddeFieldVisibility";
 import { DDE_FIELDS } from "../constants/ddeFieldMetadata";
 
-export const validateDdeForm = (values, intl) => {
+export const validateDdeForm = (values, intl, lookups) => {
   const errors = {};
   const message = (id, fallback) =>
     intl.formatMessage({ id, defaultMessage: fallback });
 
-  filterVisibleFields(DDE_FIELDS, values).forEach((field) => {
+  filterVisibleFields(DDE_FIELDS, values, lookups).forEach((field) => {
     if (field.disabled) return;
     const raw = values[field.name];
     const empty =
@@ -16,9 +16,13 @@ export const validateDdeForm = (values, intl) => {
       (field.type === "checkbox" && raw !== true && field.required);
 
     if (field.required && empty) {
+      const fieldLabel = message(
+        `label.dde.field.${field.name}`,
+        field.label || field.name
+      );
       errors[field.name] = message(
-        "label.dde.validation.required",
-        "This field is required."
+        `label.dde.validation.required.${field.name}`,
+        `${fieldLabel} is required.`
       );
     }
 

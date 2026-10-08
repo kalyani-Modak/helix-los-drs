@@ -39,6 +39,7 @@ import {
 } from "./utils/mapDdeApiPayload";
 import { computeAgeFromDob, createEmptyDdeForm } from "./utils/ddeFormState";
 import { useDdeLookups } from "./hooks/useDdeLookups";
+import { useQdeLookups } from "./hooks/useQdeLookups";
 import DdeFieldGrid from "./components/DdeFieldGrid";
 import DdeFormSection from "./components/DdeFormSection";
 import PerfiosSection from "./sections/PerfiosSection";
@@ -49,6 +50,12 @@ import DdeTaxSection from "./sections/DdeTaxSection";
 import { partySubsections } from "./utils/ddePartyFields";
 
 const ORG_ID = "001";
+const DDE_SHARED_LOOKUP_TYPES = [
+  "party.gender",
+  "los.borrowercategory",
+  "los.address.type.individual",
+  "los.address.type.nonindividual",
+];
 const BORROWER_CATEGORY_FIELDS = DDE_FIELDS.filter((field) => field.name === "customerType");
 const SECTION_ICONS = {
   personal: <PersonOutlineOutlinedIcon fontSize="small" />,
@@ -70,6 +77,7 @@ const ApplicationDetailedDataEntry = () => {
   const toast = useToast();
   const navigate = useNavigate();
   const location = useLocation();
+  const orgId = location.state?.orgId || ORG_ID;
   const screenMenuId = location.state?.menuId;
   const incomingApplicationNo = location.state?.applicationNo;
   const [form, setForm] = useState(createEmptyDdeForm);
@@ -78,7 +86,9 @@ const ApplicationDetailedDataEntry = () => {
   const [loading, setLoading] = useState(false);
   const [expandedSections, setExpandedSections] = useState({});
 
-  const { lookups } = useDdeLookups(ORG_ID);
+  const { lookups: ddeLookups } = useDdeLookups(orgId);
+  const { lookups: qdeLookups } = useQdeLookups(orgId, DDE_SHARED_LOOKUP_TYPES);
+  const lookups = { ...ddeLookups, ...qdeLookups };
 
   const t = useCallback(
     (id, fallback) => intl.formatMessage({ id, defaultMessage: fallback }),
@@ -110,7 +120,11 @@ const ApplicationDetailedDataEntry = () => {
   const setAllSectionsExpanded = useCallback((expanded) => {
     const partySectionKeys = [
       ...(form.coApplicants || []).flatMap((party) =>
-        partySubsections("co", party.type === "Non-Earning").map(
+        partySubsections(
+          "co",
+          (lookups["los.coapplicanttype"] || []).find((option) => option.value === party.type)
+            ?.label === "Non-Earning"
+        ).map(
           (subsection) => `co-${party.id}-${subsection.key}`
         )
       ),
@@ -127,7 +141,7 @@ const ApplicationDetailedDataEntry = () => {
       ),
       ...Object.fromEntries(partySectionKeys.map((key) => [key, expanded])),
     }));
-  }, [form.coApplicants, form.guarantors]);
+  }, [form.coApplicants, form.guarantors, lookups]);
 
   const setSectionExpanded = useCallback(
     (sectionKey, expanded) =>
@@ -136,7 +150,7 @@ const ApplicationDetailedDataEntry = () => {
   );
 
   const loadFromQde = useCallback(async (appNo) => {
-    const response = await HAxiosService.GET(LosQdeAPI.fetchQde(ORG_ID, appNo)).then(
+    const response = await HAxiosService.GET(LosQdeAPI.fetchQde(orgId, appNo)).then(
       unwrapApiResponse
     );
     const payload = response?.responseJson || response?.data || response;
@@ -206,7 +220,7 @@ const ApplicationDetailedDataEntry = () => {
         },
       };
     });
-  }, []);
+  }, [orgId]);
 
   const loadDde = useCallback(
     async (appNo) => {
@@ -217,7 +231,7 @@ const ApplicationDetailedDataEntry = () => {
         // );
         const data = unwrapDdePayload(response);
         if (data?.parties?.length || data?.szApplicationNo) {
-          setForm((prev) => ({ ...prev, ...hydrateDdeFormFromApi(data) }));
+          setForm((prev) => ({ ...prev, ...hydrateDdeFormFromApi(data, lookups) }));
         } else {
           await loadFromQde(appNo);
         }
@@ -229,7 +243,7 @@ const ApplicationDetailedDataEntry = () => {
         setLoading(false);
       }
     },
-    [loadFromQde]
+    [loadFromQde, lookups]
   );
 
   useEffect(() => {
@@ -241,7 +255,7 @@ const ApplicationDetailedDataEntry = () => {
     if (!appNo) {
       throw new Error("Application number is required to save detailed data entry.");
     }
-    const payload = buildDdeSavePayload(ORG_ID, appNo, form);
+    const payload = buildDdeSavePayload(orgId, appNo, form, lookups);
     const response = await HAxiosService.POST(LosDdeAPI.saveDdeSections(appNo), payload).then(
       unwrapApiResponse
     );
@@ -252,13 +266,13 @@ const ApplicationDetailedDataEntry = () => {
       setField("applicationNo", String(newAppNo));
     }
     if (data?.parties?.length) {
-      setForm((prev) => ({ ...prev, ...hydrateDdeFormFromApi(data) }));
+      setForm((prev) => ({ ...prev, ...hydrateDdeFormFromApi(data, lookups) }));
     }
     return newAppNo;
-  }, [form, savedApplicationNo, setField]);
+  }, [form, lookups, orgId, savedApplicationNo, setField]);
 
   const handleSave = useCallback(async () => {
-    const errors = validateDdeForm(form, intl);
+    const errors = validateDdeForm(form, intl, lookups);
     setFormErrors(errors);
     if (Object.keys(errors).length > 0) {
       toast.error(t("label.dde.msg.validationFailed", "Please fix validation errors."));
@@ -272,7 +286,7 @@ const ApplicationDetailedDataEntry = () => {
       toast.error(error?.message || t("label.dde.msg.saveFailed", "Unable to save detailed data entry."));
       return { success: false };
     }
-  }, [form, intl, persistDde, t, toast]);
+  }, [form, intl, lookups, persistDde, t, toast]);
 
   const handleReset = useCallback(() => {
     setForm(createEmptyDdeForm());

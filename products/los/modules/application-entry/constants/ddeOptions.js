@@ -93,47 +93,11 @@ export const DDE_VERIFICATION_STATUS = {
 /* Employment / Income                                                        */
 /* -------------------------------------------------------------------------- */
 
-export const EMPLOYMENT_TYPES = [
-  { label: "Salaried", value: "Salaried" },
-  {
-    label: "Self Employed Professional",
-    value: "Self Employed Professional",
-  },
-  {
-    label: "Self Employed Non Professional",
-    value: "Self Employed Non Professional",
-  },
-  { label: "Business", value: "Business" },
-  { label: "Agriculturist", value: "Agriculturist" },
-  { label: "Other", value: "Other" },
-];
-
-export const INCOME_FREQUENCIES = [
-  { label: "Monthly", value: "Monthly" },
-  { label: "Quarterly", value: "Quarterly" },
-  { label: "Half Yearly", value: "Half Yearly" },
-  { label: "Yearly", value: "Yearly" },
-];
-
-
 /* -------------------------------------------------------------------------- */
 /* Address                                                                    */
 /* -------------------------------------------------------------------------- */
-
-export const DDE_ADDRESS_TYPES = [
-  { label: "Current Residence", value: "Current Residence" },
-  { label: "Permanent", value: "Permanent" },
-  { label: "Office", value: "Office" },
-  { label: "Communication", value: "Communication" },
-];
 
 
 /* -------------------------------------------------------------------------- */
 /* Common Yes / No                                                             */
 /* -------------------------------------------------------------------------- */
-
-export const YES_NO_OPTIONS = [
-  { label: "Yes", value: "Y" },
-  { label: "No", value: "N" },
-];
-

@@ -11,34 +11,6 @@ import SectionBlock from "../components/SectionBlock";
 import LocationOnOutlinedIcon from "@mui/icons-material/LocationOnOutlined";
 
 
-const cityOptions = [
-  { label: "Mumbai", value: "Mumbai" },
-  { label: "Pune", value: "Pune" },
-  { label: "Nashik", value: "Nashik" },
-  { label: "Nagpur", value: "Nagpur" },
-];
-
-const districtOptions = [
-  { label: "Mumbai Suburban", value: "Mumbai Suburban" },
-  { label: "Pune", value: "Pune" },
-  { label: "Thane", value: "Thane" },
-  { label: "Nashik", value: "Nashik" },
-];
-
-const stateOptions = [
-  { label: "Maharashtra", value: "Maharashtra" },
-  { label: "Gujarat", value: "Gujarat" },
-  { label: "Karnataka", value: "Karnataka" },
-  { label: "Delhi", value: "Delhi" },
-];
-
-const countryOptions = [
-  { label: "India", value: "India" },
-  { label: "United States", value: "United States" },
-  { label: "United Kingdom", value: "United Kingdom" },
-  { label: "Australia", value: "Australia" },
-];
-
 const ADDRESS_FIELDS = [
   "addr1",
   "addr2",
@@ -80,6 +52,7 @@ const AddressFields = ({
   errors,
   disabled,
   onPincodeChange,
+  lookups,
 }) => {
   const err = (field) => errors[`${prefix}.${field}`];
   const pincode = address.pincode || "";
@@ -123,7 +96,7 @@ const AddressFields = ({
         />
         <HDropdown
           name={`${prefix}-city`}
-          options={cityOptions}
+          options={[]}
           value={address.city || ""}
           onChange={(e) => setAddressField("city", e.target.value)}
           disabled={disabled}
@@ -144,7 +117,7 @@ const AddressFields = ({
         />
         <HDropdown
           name={`${prefix}-district`}
-          options={districtOptions}
+          options={lookups["party.address.district"] || []}
           value={address.district || ""}
           onChange={(e) => setAddressField("district", e.target.value)}
           disabled={disabled}
@@ -165,7 +138,7 @@ const AddressFields = ({
         />
         <HDropdown
           name={`${prefix}-state`}
-          options={stateOptions}
+          options={lookups["party.address.state"] || []}
           value={address.state || ""}
           onChange={(e) => setAddressField("state", e.target.value)}
           disabled={disabled}
@@ -200,7 +173,7 @@ const AddressFields = ({
         />
         <HDropdown
           name={`${prefix}-country`}
-          options={countryOptions}
+          options={[]}
           value={address.country || ""}
           onChange={(e) => setAddressField("country", e.target.value)}
           disabled={disabled}
@@ -220,6 +193,7 @@ const DdeAddressDetailsSection = ({
   setField,
   errors = {},
   readOnly = false,
+  lookups = {},
 }) => {
   const toast = useToast();
   const currentAddress = form?.currentAddress || {};
@@ -237,19 +211,13 @@ const DdeAddressDetailsSection = ({
     const value = e.target.value.replace(/\D/g, "").slice(0, 6);
     setAddressField("pincode", value);
 
-    if (value === "560001") {
-      setAddressField("city", "Pune");
-      setAddressField("district", "Pune");
-      setAddressField("state", "Maharashtra");
-      setAddressField("country", "India");
-      toast.success("PIN 560001 found. Location details populated.");
-    } else if (value.length === 6) {
+    if (value.length === 6) {
       setAddressField("city", "");
       setAddressField("district", "");
       setAddressField("state", "");
       setAddressField("country", "");
       toast.warning(
-        `PIN ${value} not found in master. Please enter City / District / State manually.`,
+        `No location lookup is available for PIN ${value}.`,
       );
     }
   };
@@ -304,6 +272,7 @@ const DdeAddressDetailsSection = ({
             errors={errors}
             disabled={readOnly}
             onPincodeChange={makePincodeHandler(setCurrentAddressField)}
+            lookups={lookups}
           />
         </HBox>
       </SectionBlock>
@@ -339,6 +308,7 @@ const DdeAddressDetailsSection = ({
             errors={errors}
             disabled={readOnly || sameAsCurrent}
             onPincodeChange={makePincodeHandler(setPermanentAddressField)}
+            lookups={lookups}
           />
         </HBox>
       </SectionBlock>

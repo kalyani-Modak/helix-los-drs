@@ -244,17 +244,26 @@ const DdeTaxSection = ({
           <HBox
             sx={{
               width: "100%",
+              border: "1px solid",
+              borderColor: border.control,
+              borderRadius: 1,
               overflow: "hidden",
               "& .ag-header": {
                 backgroundColor: action.hover,
                 borderBottomColor: border.control,
-                borderColor: border.control,
               },
-              "& .ag-header-cell": {
+              "& .ag-header-cell, & .ag-header-group-cell": {
                 color: themeText.primary,
                 borderRight: "1px solid",
                 borderColor: border.control,
               },
+              "& .ag-theme-alpine .ag-header-cell .ag-header-cell-text, & .ag-theme-alpine-dark .ag-header-cell .ag-header-cell-text, & .ag-theme-alpine .ag-header-group-text, & .ag-theme-alpine-dark .ag-header-group-text": {
+                fontWeight: "500 !important",
+                fontSize: "14px !important",
+              },
+                "& .ag-header .ag-header-cell.dde-tax-particulars-header .ag-header-cell-text": {
+                  fontWeight: "900 !important",
+                },
               "& .ag-cell": {
                 borderRight: "1px solid",
                 borderColor: border.control,
@@ -262,11 +271,6 @@ const DdeTaxSection = ({
                 alignItems: "center",
               },
               "& .ag-row": { borderBottomColor: border.control },
-              "& .ag-root-wrapper .ag-paging-panel, & .ag-paging-panel": {
-                display: "none !important",
-                minHeight: "0 !important",
-                height: "0 !important",
-              },
             }}
           >
             <HAgGrid
