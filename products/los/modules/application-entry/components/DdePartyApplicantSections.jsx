@@ -56,7 +56,7 @@ const DdePartyApplicantSections = ({
   const values = {
     ...party,
     bankAccountHolder:
-      party.bankAccountHolder || (variant === "co" ? "Co-Applicant" : "Guarantor"),
+      party.bankAccountHolder || (variant === "co" ? "COAPPLICANT" : "GUARANTOR"),
   };
 
   return (
@@ -104,6 +104,7 @@ const DdePartyApplicantSections = ({
                 fields={subsection.fields}
                 form={values}
                 setField={setPartyField}
+                setFields={onUpdate}
                 lookups={lookups}
               />
             </SectionBlock>

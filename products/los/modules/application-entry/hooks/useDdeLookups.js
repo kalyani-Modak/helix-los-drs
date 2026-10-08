@@ -23,6 +23,21 @@ export const DDE_LOOKUP_TYPES = [
   "los.coapplicant.relationship",
   "los.guarantor.relationship",
   "los.income.type.salaried",
+  "los.employmenttype",
+  "los.employercategory",
+  "los.employmentstatus",
+  "los.accountholder.primary",
+  "los.accountholder.coapplicant",
+  "los.accountholder.guarantor",
+  "los.bankbranch.AXIS",
+  "los.bankbranch.BOB",
+  "los.bankbranch.ICICI",
+  "los.bankbranch.IDFC",
+  "los.bankbranch.PNB",
+  "los.bankbranch.SBI",
+  "los.salarycreditmode",
+  "los.employer",
+  "los.industrysector",
 ];
 
 const MASTER_ALIAS = {
@@ -49,6 +64,15 @@ const MASTER_ALIAS = {
   coApplicantRelationship: "los.coapplicant.relationship",
   guarantorRelationship: "los.guarantor.relationship",
   salariedIncomeType: "los.income.type.salaried",
+  employmentType: "los.employmenttype",
+  employerCategory: "los.employercategory",
+  employmentStatus: "los.employmentstatus",
+  salaryCreditMode: "los.salarycreditmode",
+  accountHolderPrimary: "los.accountholder.primary",
+  accountHolderCoApplicant: "los.accountholder.coapplicant",
+  accountHolderGuarantor: "los.accountholder.guarantor",
+  employer: "los.employer",
+  industry: "los.industrysector",
 };
 
 export const resolveDdeLookupKey = (optionsMaster) =>

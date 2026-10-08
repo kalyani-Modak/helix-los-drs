@@ -15,7 +15,11 @@ import FieldError from "./FieldError";
 
 const fieldLabelId = (name) => `label.dde.field.${name}`;
 
-const toDropdownOptions = (field, lookups) => {
+const toDropdownOptions = (field, lookups, form = {}) => {
+  if (field.optionsDependsOn) {
+    const parent = form[field.optionsDependsOn.field];
+    return parent ? lookups[field.optionsDependsOn.lookupPrefix + parent] ?? [] : [];
+  }
   if (field.optionsMaster) {
     const key = resolveDdeLookupKey(field.optionsMaster);
     return lookups[key] || [];
@@ -23,7 +27,7 @@ const toDropdownOptions = (field, lookups) => {
   return [];
 };
 
-const DdeFieldGrid = ({ fields, form, setField, errors = {}, lookups = {} }) => {
+const DdeFieldGrid = ({ fields, form, setField, setFields, errors = {}, lookups = {} }) => {
   const visible = filterVisibleFields(fields, form, lookups);
   const err = (name) => errors[name];
 
@@ -39,6 +43,16 @@ const DdeFieldGrid = ({ fields, form, setField, errors = {}, lookups = {} }) => 
         const labelId = fieldLabelId(field.name);
         const disabled = Boolean(field.disabled);
         const readOnly = disabled;
+        const handleChange = (event) => {
+          let value = event.target.value;
+          if (field.type === "number" && value !== "" && field.max != null) {
+            const numericValue = Number(value);
+            if (Number.isFinite(numericValue) && numericValue > field.max) {
+              value = String(field.max);
+            }
+          }
+          setField(field.name, value);
+        };
 
         return (
           <Grid
@@ -61,13 +75,13 @@ const DdeFieldGrid = ({ fields, form, setField, errors = {}, lookups = {} }) => 
                 sx={{
                   display: "flex",
                   flexDirection: "row",
-                  alignItems: "flex-start",
+                  alignItems: "center",
                   gap: 0.5,
                   width: "100%",
                 }}
               >
                 <HCheckBox
-                  sx={{ width: 20, flexShrink: 0, mt: -0.5 }}
+                  sx={{ width: 20, flexShrink: 0 }}
                   checked={Boolean(form[field.name])}
                   onChange={(e) => setField(field.name, e.target.checked)}
                   disabled={readOnly}
@@ -94,9 +108,22 @@ const DdeFieldGrid = ({ fields, form, setField, errors = {}, lookups = {} }) => 
             {field.type === "select" ? (
               <HDropdown
                 name={field.name}
-                options={toDropdownOptions(field, lookups)}
+                options={toDropdownOptions(field, lookups, form)}
+                placeholder={field.placeholder}
                 value={form[field.name] ?? ""}
-                onChange={(e) => setField(field.name, e.target.value)}
+                onChange={(e) => {
+                  const dependents = fields.filter((f) => f.optionsDependsOn?.field === field.name);
+                  if (setFields) {
+                    // one batched patch: parties update from a stale list, so sequential setField calls would overwrite each other
+                    setFields({
+                      [field.name]: e.target.value,
+                      ...Object.fromEntries(dependents.map((f) => [f.name, ""])),
+                    });
+                    return;
+                  }
+                  setField(field.name, e.target.value);
+                  dependents.forEach((f) => setField(f.name, ""));
+                }}
                 disabled={readOnly}
                 required={Boolean(field.required)}
                 error={Boolean(err(field.name))}
@@ -125,7 +152,7 @@ const DdeFieldGrid = ({ fields, form, setField, errors = {}, lookups = {} }) => 
             {["text", "tel", "email", "number"].includes(field.type) ? (
               <HTextField
                 value={form[field.name] ?? ""}
-                onChange={(e) => setField(field.name, e.target.value)}
+                onChange={handleChange}
                 editable={!readOnly}
                 disabled={readOnly}
                 required={Boolean(field.required)}
