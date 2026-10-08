@@ -20,7 +20,16 @@ import SectionBlock from "../components/SectionBlock";
 // } from "../constants/qdeOptions";
 import { GENDERS } from "../constants/qdeOptions";
 import { useDdeLookups } from "../hooks/useDdeLookups";
-import { fromPickerValue, toPickerValue } from "../dateHelpers";
+import dayjs from "dayjs";
+
+const getDateValue = (value) => {
+  if (!value) return null;
+  const date = dayjs(value);
+  return date.isValid() ? date : null;
+};
+
+const formatDateValue = (value) =>
+  value?.isValid() ? value.format("YYYY-MM-DD") : "";
 
 const calcAge = (dob) => {
   if (!dob) return "";
@@ -372,8 +381,8 @@ const PersonalDetailsSection = ({ form, setField, errors = {}, orgId }) => {
           />
 
           <HDatePicker
-            value={toPickerValue(form.dob)}
-            onChange={(value) => setField("dob", fromPickerValue(value))}
+            value={getDateValue(form.dob)}
+            onChange={(value) => setField("dob", formatDateValue(value))}
             required
             error={err("dob")}
             width="100%"
