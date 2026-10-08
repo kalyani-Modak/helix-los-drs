@@ -13,12 +13,10 @@ export const LosQdeAPI = {
   updateQde: () => `${base()}los/updateQde`,
   fetchQde: (orgId, appNo) =>
     `${base()}los/fetchQde?orgId=${encodeURIComponent(orgId)}&applicationNo=${encodeURIComponent(appNo)}`,
-  fetchQdeByMobile: (orgId, mobile) =>
-    `${base()}los/fetchQdeByMobile?orgId=${encodeURIComponent(orgId)}&mobile=${encodeURIComponent(mobile)}`,
-  fetchQdeByPanNumber: (orgId, panNumber) =>
-    `${base()}los/fetchQdeByPanNumber?orgId=${encodeURIComponent(orgId)}&panNumber=${encodeURIComponent(panNumber)}`,
-  fetchQdeByAadhaar: (orgId, aadhaarNumber) =>
-    `${base()}los/fetchQdeByAadhaar?orgId=${encodeURIComponent(orgId)}&aadhaarNumber=${encodeURIComponent(aadhaarNumber)}`,
+  fetchQdeByMobile: (orgId, mobile, applicantType) =>
+    `${base()}los/fetchQdeByMobile?orgId=${encodeURIComponent(orgId)}&mobile=${encodeURIComponent(mobile)}&applicantType=${encodeURIComponent(applicantType)}`,
+  fetchQdeByPanNumber: (orgId, panNumber, applicantType) =>
+    `${base()}los/fetchQdeByPanNumber?orgId=${encodeURIComponent(orgId)}&panNumber=${encodeURIComponent(panNumber)}&applicantType=${encodeURIComponent(applicantType)}`,
   fetchQdeByCustomerId: (orgId, customerId) =>
     `${base()}los/fetchQdeByCustomerId?orgId=${encodeURIComponent(orgId)}&customerId=${encodeURIComponent(customerId)}`,
   listApplications: (orgId, { status, page = 0, size = 20 } = {}) => {

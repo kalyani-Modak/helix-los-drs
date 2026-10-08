@@ -2,10 +2,19 @@ import { HBox, HRadio, HCheckBox, HDatePicker, HDropdown, HLabel, HTextField } f
 import SectionBlock from "../components/SectionBlock";
 import FieldError from "../components/FieldError";
 import VerifyLink from "../components/VerifyLink";
-import { fromPickerValue, toPickerValue } from "../dateHelpers";
 import { useIntl } from "react-intl";
 import PersonOutlineOutlinedIcon from "@mui/icons-material/PersonOutlineOutlined";
 import CheckCircleOutlineIcon from "@mui/icons-material/CheckCircleOutline";
+import dayjs from "dayjs";
+
+const getDateValue = (value) => {
+  if (!value) return null;
+  const date = dayjs(value);
+  return date.isValid() ? date : null;
+};
+
+const formatDateValue = (value) =>
+  value?.isValid() ? value.format("YYYY-MM-DD") : "";
 
 const ApplicantDetailsSection = ({
   form,
@@ -100,8 +109,8 @@ const ApplicantDetailsSection = ({
                 colon={false}
               />
               <HDatePicker
-                value={toPickerValue(form.doi)}
-                onChange={(value) => setField("doi", fromPickerValue(value))}
+                value={getDateValue(form.doi)}
+                onChange={(value) => setField("doi", formatDateValue(value))}
                 width="100%"
               />
             </HBox>
@@ -205,8 +214,8 @@ const ApplicantDetailsSection = ({
                 />
 
                 <HDatePicker
-                  value={toPickerValue(form.dob)}
-                  onChange={(value) => setField("dob", fromPickerValue(value))}
+                  value={getDateValue(form.dob)}
+                  onChange={(value) => setField("dob", formatDateValue(value))}
                   required
                   error={Boolean(err("dob"))}
                   width="100%"

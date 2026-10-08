@@ -51,6 +51,7 @@ const GuarantorSection = ({ items = [], onAdd, onRemove, onChange, errors = {}, 
               kycHandlers={kycHandlers}
               primaryAddress={primaryAddress}
               onSearchCustomer={onSearchCustomer}
+              applicantType="GUARANTOR"
               lookups={lookups}
             />
           </Grid>

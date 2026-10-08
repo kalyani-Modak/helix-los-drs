@@ -11,7 +11,7 @@ const PAN_PATTERN = /^[A-Z]{5}[0-9]{4}[A-Z]$/;
  * Application No. OR Mobile OR PAN — exactly one of which is used per search.
  * The caller owns the lookup and receives `{ applicationNo, mobile, panNumber }`.
  */
-const SearchApplicationDialog = ({ open, onClose, onSearch, loading = false, isApplicationNo = false }) => {
+const SearchApplicationDialog = ({ open, onClose, onSearch, loading = false, isApplicationNo = true }) => {
   const intl = useIntl();
   const [criteria, setCriteria] = useState(EMPTY);
 
@@ -25,7 +25,7 @@ const SearchApplicationDialog = ({ open, onClose, onSearch, loading = false, isA
   const setOnly = (name, value) => setCriteria({ ...EMPTY, [name]: value });
 
   const hasCriteria = Boolean(
-    criteria.applicationNo.trim()
+    (isApplicationNo && criteria.applicationNo.trim())
     || criteria.mobile.trim()
     || PAN_PATTERN.test(criteria.panNumber.trim().toUpperCase())
   );
