@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useIntl } from "react-intl";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
@@ -20,8 +20,7 @@ import ReceiptLongOutlinedIcon from "@mui/icons-material/ReceiptLongOutlined";
 import UnfoldMoreOutlinedIcon from "@mui/icons-material/UnfoldMoreOutlined";
 import UnfoldLessOutlinedIcon from "@mui/icons-material/UnfoldLessOutlined";
 
-import { LosDdeAPI, LosQdeAPI } from "./apiEndpoints";
-import { unwrapApiResponse } from "./unwrapApiResponse";
+import { LosDdeAPI } from "./apiEndpoints";
 import { DDE_SECTION_CONFIG } from "./constants/ddeSections";
 import { DDE_FIELDS } from "./constants/ddeFieldMetadata";
 import { isDdeSectionVisible } from "./utils/ddeFieldVisibility";
@@ -31,7 +30,6 @@ import {
 } from "./utils/ddeIncomeCalculations";
 import { syncPermanentFromCurrent } from "./utils/ddeAddressSync";
 import { validateDdeForm } from "./utils/ddeValidation";
-import { mapQdeToDdePrefill, mapQdePartiesToDde } from "./utils/mapQdeToDdePrefill";
 import {
   buildDdeSavePayload,
   hydrateDdeFormFromApi,
@@ -50,6 +48,7 @@ import DdeTaxSection from "./sections/DdeTaxSection";
 import { partySubsections } from "./utils/ddePartyFields";
 
 const ORG_ID = "001";
+const TEMP_APPLICATION_NO = "APP-HL2600238";
 const DDE_SHARED_LOOKUP_TYPES = [
   "party.gender",
   "los.borrowercategory",
@@ -79,16 +78,23 @@ const ApplicationDetailedDataEntry = () => {
   const location = useLocation();
   const orgId = location.state?.orgId || ORG_ID;
   const screenMenuId = location.state?.menuId;
-  const incomingApplicationNo = location.state?.applicationNo;
+  const incomingApplicationNo = location.state?.applicationNo || TEMP_APPLICATION_NO;
   const [form, setForm] = useState(createEmptyDdeForm);
   const [formErrors, setFormErrors] = useState({});
   const [savedApplicationNo, setSavedApplicationNo] = useState("");
   const [loading, setLoading] = useState(false);
   const [expandedSections, setExpandedSections] = useState({});
 
-  const { lookups: ddeLookups } = useDdeLookups(orgId);
-  const { lookups: qdeLookups } = useQdeLookups(orgId, DDE_SHARED_LOOKUP_TYPES);
-  const lookups = { ...ddeLookups, ...qdeLookups };
+  const { lookups: ddeLookups, loading: ddeLookupsLoading } = useDdeLookups(orgId);
+  const { lookups: qdeLookups, loading: qdeLookupsLoading } = useQdeLookups(
+    orgId,
+    DDE_SHARED_LOOKUP_TYPES
+  );
+  const lookups = useMemo(
+    () => ({ ...ddeLookups, ...qdeLookups }),
+    [ddeLookups, qdeLookups]
+  );
+  const lookupsLoading = ddeLookupsLoading || qdeLookupsLoading;
 
   const t = useCallback(
     (id, fallback) => intl.formatMessage({ id, defaultMessage: fallback }),
@@ -149,106 +155,34 @@ const ApplicationDetailedDataEntry = () => {
     []
   );
 
-  const loadFromQde = useCallback(async (appNo) => {
-    const response = await HAxiosService.GET(LosQdeAPI.fetchQde(orgId, appNo)).then(
-      unwrapApiResponse
-    );
-    const payload = response?.responseJson || response?.data || response;
-    const applicant = payload?.applicantDetails || {};
-    const individual = applicant.individualDetails || {};
-    const address = applicant.address || {};
-    const loan = payload?.loanDetails || {};
-    const qdeShape = {
-      firstName: individual.szFirstName,
-      middleName: individual.szMiddleName,
-      lastName: individual.szLastName,
-      gender: individual.szGender,
-      dob: individual.dtDateOfBirth,
-      mobile: applicant.szMobile,
-      email: applicant.szEmail,
-      pan: applicant.kycDetails?.szPanNumber,
-      aadhaar: applicant.kycDetails?.szAadhaarNumber,
-      profile: individual.szApplicantCategory,
-      addr1: address.szAddressLine1,
-      addr2: address.szAddressLine2,
-      city: address.szCity,
-      district: address.szDistrict,
-      state: address.szState,
-      pincode: address.iPincode,
-      country: address.szCountry,
-      loanAmount: loan.fAppliedAmount != null ? String(loan.fAppliedAmount) : "",
-      tenure: loan.iAppliedTenor != null ? String(loan.iAppliedTenor) : "",
-      coApplicants: payload?.coApplicants,
-      guarantors: payload?.guarantors,
-    };
-    const prefill = mapQdeToDdePrefill(qdeShape);
-    setForm((prev) => {
-      const borrowerSnapshot = { ...prev, ...prefill };
-      return {
-        ...prev,
-        ...prefill,
-        applicationNo: appNo,
-        coApplicants:
-          prev.coApplicants?.length > 0
-            ? prev.coApplicants
-            : mapQdePartiesToDde(qdeShape.coApplicants || [], "co", borrowerSnapshot),
-        guarantors:
-          prev.guarantors?.length > 0
-            ? prev.guarantors
-            : mapQdePartiesToDde(qdeShape.guarantors || [], "guarantor", borrowerSnapshot),
-        ddeMeta: {
-          ...(prev.ddeMeta || {}),
-          primaryApplicantId: applicant.szApplicantId || prev.ddeMeta?.primaryApplicantId || null,
-          applicationDetails: {
-            szAppType: payload?.applicationControl?.szApplicationType,
-            szBorrType: payload?.applicationControl?.szBorrowerType,
-            szCustType: payload?.applicationControl?.szCustomerType,
-            szPortfolioCode: payload?.applicationControl?.szPortfolioCode,
-            szSourceChannel: payload?.sourcingDetails?.szSourcingChannel,
-            szSourceLocation: payload?.sourcingDetails?.szSourcingBranch,
-            szServiceLocation: payload?.sourcingDetails?.szServicingBranch,
-          },
-          loanDetailsRow: {
-            szProductCode: loan.szProductCode,
-            fInterestRate: loan.fInterestRate,
-            szSchemeCode: loan.szSchemeCode,
-            szLoanType: loan.szLoanType,
-            szTenorUnit: loan.szTenorUnit || "MONTH",
-            cPrimaryAccountYn: "Y",
-            szCurrencyCode: loan.szCurrencyCode || "INR",
-          },
-        },
-      };
-    });
-  }, [orgId]);
-
   const loadDde = useCallback(
     async (appNo) => {
       setLoading(true);
       try {
-        const response =null; //await HAxiosService.GET(LosDdeAPI.fetchDdeSections(appNo)).then(
-        //   unwrapApiResponse
-        // );
+        const response = await HAxiosService.GET(LosDdeAPI.fetchDdeSections(appNo));
         const data = unwrapDdePayload(response);
-        if (data?.parties?.length || data?.szApplicationNo) {
-          setForm((prev) => ({ ...prev, ...hydrateDdeFormFromApi(data, lookups) }));
-        } else {
-          await loadFromQde(appNo);
-        }
-        setSavedApplicationNo(appNo);
-      } catch {
-        await loadFromQde(appNo);
-        setSavedApplicationNo(appNo);
+        setForm((prev) => ({
+          ...prev,
+          ...hydrateDdeFormFromApi(data, lookups),
+          applicationNo: data?.szApplicationNo || appNo,
+        }));
+        setSavedApplicationNo(data?.szApplicationNo || appNo);
+      } catch (error) {
+        toast.error(
+          error?.message || t("label.dde.msg.loadFailed", "Unable to load detailed data entry.")
+        );
       } finally {
         setLoading(false);
       }
     },
-    [loadFromQde, lookups]
+    [lookups, t, toast]
   );
 
   useEffect(() => {
-      loadDde("APP-HL2600273");
-  },[]);
+    if (incomingApplicationNo && !lookupsLoading) {
+      loadDde(incomingApplicationNo);
+    }
+  }, [incomingApplicationNo, loadDde, lookupsLoading]);
 
   const persistDde = useCallback(async () => {
     const appNo = form.applicationNo || savedApplicationNo;
@@ -256,9 +190,7 @@ const ApplicationDetailedDataEntry = () => {
       throw new Error("Application number is required to save detailed data entry.");
     }
     const payload = buildDdeSavePayload(orgId, appNo, form, lookups);
-    const response = await HAxiosService.POST(LosDdeAPI.saveDdeSections(appNo), payload).then(
-      unwrapApiResponse
-    );
+    const response = await HAxiosService.POST(LosDdeAPI.saveDdeSections(appNo), payload);
     const data = unwrapDdePayload(response);
     const newAppNo = data?.szApplicationNo || appNo;
     if (newAppNo) {

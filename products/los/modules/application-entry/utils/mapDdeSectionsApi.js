@@ -131,6 +131,7 @@ const mapTaxFromApi = (taxDetails = []) => {
 const mapIndividualToForm = (party, lookups) => {
   const individual = party.individualDetails || {};
   const kyc = party.kycDetails || {};
+  const address = party.address || {};
   const dob = individual.dtDateOfBirth || "";
   return {
     szApplicantId: party.szApplicantId || null,
@@ -149,6 +150,14 @@ const mapIndividualToForm = (party, lookups) => {
     pan: kyc.szPanNumber || "",
     mobile: party.szMobile || "",
     email: party.szEmail || "",
+    currentAddressLine1: address.szAddressLine1 || "",
+    currentAddressLine2: address.szAddressLine2 || "",
+    currentCity: address.szCity || "",
+    currentDistrict: address.szDistrict || "",
+    currentProvince: address.szState || "",
+    currentPostalCode: address.iPincode != null ? String(address.iPincode) : "",
+    currentCountry: address.szCountry || "",
+    sameAsCurrent: address.szperaddrsameascuraddyn === "Y",
   };
 };
 

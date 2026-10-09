@@ -5,8 +5,19 @@ import {
 } from "./mapDdeSectionsApi";
 
 export const unwrapDdePayload = (response) => {
+  if (
+    response &&
+    typeof response === "object" &&
+    ("szApplicationNo" in response ||
+      Array.isArray(response.parties) ||
+      Array.isArray(response.applicants))
+  ) {
+    return response;
+  }
+
   const unwrapped = unwrapApiResponse(response);
-  return unwrapped?.responseJson || unwrapped?.data || unwrapped || {};
+  const payload = unwrapped?.responseJson || unwrapped?.data || unwrapped || response;
+  return payload && typeof payload === "object" ? payload : {};
 };
 
 /** POST body for DDE sections save. */
