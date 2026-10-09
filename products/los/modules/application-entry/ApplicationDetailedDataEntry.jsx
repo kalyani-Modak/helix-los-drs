@@ -160,7 +160,6 @@ const ApplicationDetailedDataEntry = () => {
       setLoading(true);
       try {
         const response = await HAxiosService.GET(LosDdeAPI.fetchDdeSections(appNo));
-        const response = await HAxiosService.GET(LosDdeAPI.fetchDdeSections(appNo));
         const data = unwrapDdePayload(response);
         setForm((prev) => ({
           ...prev,
