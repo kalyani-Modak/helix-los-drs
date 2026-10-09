@@ -3,7 +3,6 @@ import { IconButton } from "@mui/material";
 import { Search as SearchIcon } from "@mui/icons-material";
 import { useIntl } from "react-intl";
 import { HButton, HCheckBox, HDatePicker, HDropdown, HLabel, HTextField, HBox, useDrsTheme, HRadio } from "@helix/component-library";
-import { fromPickerValue, toPickerValue } from "../dateHelpers";
 import AddressDetailsSection from "../sections/AddressDetailsSection";
 import KycCheckSection from "../sections/KycCheckSection";
 import SectionBlock from "./SectionBlock";
@@ -13,6 +12,16 @@ import DeleteOutlineOutlinedIcon from '@mui/icons-material/DeleteOutlineOutlined
 import ExpandMoreIcon from "@mui/icons-material/ExpandMore";
 import ChevronRightIcon from "@mui/icons-material/ChevronRight";
 import SearchApplicationDialog from "./SearchApplicationDialog";
+import dayjs from "dayjs";
+
+const getDateValue = (value) => {
+  if (!value) return null;
+  const date = dayjs(value);
+  return date.isValid() ? date : null;
+};
+
+const formatDateValue = (value) =>
+  value?.isValid() ? value.format("YYYY-MM-DD") : "";
 
 const PartyField = ({ label, children, required = false, error, errorSx, sx }) => (
   <HBox sx={{ width: "100%", display: "flex", flexDirection: "column", gap: 0.5, ...sx }}>
@@ -35,6 +44,7 @@ const PartyRow = ({
   primaryAddress = {},
   kycHandlers = {},
   onSearchCustomer,
+  applicantType = "CO_APPLICANT",
   lookups = {},
 }) => {
   const { colors, text, surfaces, border, action } = useDrsTheme();
@@ -103,7 +113,7 @@ const PartyRow = ({
   const searchExistingParty = async (criteria) => {
     setSearchLoading(true);
     try {
-      const found = await onSearchCustomer?.(party, criteria);
+      const found = await onSearchCustomer?.(party, criteria, applicantType);
       if (found) setApplicationSearchOpen(false);
       return found;
     } finally {
@@ -305,7 +315,7 @@ const PartyRow = ({
           <>
             <PartyField label="label.qde.field.entityName" required error={err("entityName")} sx={{ mt: 1 }} errorSx={{ mt: 1.5 }}><HTextField value={party.entityName || ""} onChange={(e) => field("entityName", e.target.value)} editable required width="100%" /></PartyField>
             <PartyField label="label.qde.field.entityType" required error={err("entityType")} sx={{ mt: 1 }}><HDropdown name="entityType" options={entityTypeOptions} value={party.entityType || ""} onChange={(e) => field("entityType", e.target.value)} required width="100%" /></PartyField>
-            <PartyField label="label.qde.field.doi" sx={{ mt: 1 }}><HDatePicker value={toPickerValue(party.doi)} onChange={(value) => field("doi", fromPickerValue(value))} width="100%" /></PartyField>
+            <PartyField label="label.qde.field.doi" sx={{ mt: 1 }}><HDatePicker value={getDateValue(party.doi)} onChange={(value) => field("doi", formatDateValue(value))} width="100%" /></PartyField>
             <PartyField label="GSTIN"><HTextField value={party.gstin || ""} onChange={(e) => field("gstin", e.target.value)} editable width="100%" /></PartyField>
           </>
         ) : (
@@ -314,7 +324,7 @@ const PartyRow = ({
             <PartyField label="label.qde.field.middleName" sx={{ mt: 1.5 }}><HTextField value={party.middleName || ""} onChange={(e) => field("middleName", e.target.value)} editable type="name" width="100%" /></PartyField>
             <PartyField label="label.qde.field.lastName" required error={err("lastName")} sx={{ mt: 1.5 }} errorSx={{ mt: 1.5 }}><HTextField value={party.lastName || ""} onChange={(e) => field("lastName", e.target.value)} editable required type="name" width="100%" /></PartyField>
             <PartyField label="label.qde.field.gender" required error={err("gender")} sx={{ mt: 1 }}><HDropdown name="gender" options={genderOptions} value={party.gender || ""} onChange={(e) => field("gender", e.target.value)} required width="100%" /></PartyField>
-            <PartyField label="label.qde.field.dob" required error={err("dob")} sx={{ mt: 1 }}><HDatePicker value={toPickerValue(party.dob)} onChange={(value) => field("dob", fromPickerValue(value))} required width="100%" /></PartyField>
+            <PartyField label="label.qde.field.dob" required error={err("dob")} sx={{ mt: 1 }}><HDatePicker value={getDateValue(party.dob)} onChange={(value) => field("dob", formatDateValue(value))} required width="100%" /></PartyField>
             <PartyField label="label.qde.field.customerProfile" sx={{ mt: 1 }} ><HDropdown name="category" options={borrowerCategoryOptions} value={party.category || ""} onChange={(e) => field("category", e.target.value)} width="100%" /></PartyField>
           </>
         )}
@@ -438,6 +448,7 @@ const PartyRow = ({
         onClose={() => setApplicationSearchOpen(false)}
         onSearch={searchExistingParty}
         loading={searchLoading}
+        isApplicationNo={false}
       />
       </>}
     </SectionBlock>

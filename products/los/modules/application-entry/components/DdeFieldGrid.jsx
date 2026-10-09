@@ -8,10 +8,19 @@ import {
   HTextField,
   HTextarea,
 } from "@helix/component-library";
-import { fromPickerValue, toPickerValue } from "../dateHelpers";
 import { filterVisibleFields } from "../utils/ddeFieldVisibility";
 import { resolveDdeLookupKey } from "../hooks/useDdeLookups";
 import FieldError from "./FieldError";
+import dayjs from "dayjs";
+
+const getDateValue = (value) => {
+  if (!value) return null;
+  const date = dayjs(value);
+  return date.isValid() ? date : null;
+};
+
+const formatDateValue = (value) =>
+  value?.isValid() ? value.format("YYYY-MM-DD") : "";
 
 const fieldLabelId = (name) => `label.dde.field.${name}`;
 
@@ -132,8 +141,8 @@ const DdeFieldGrid = ({ fields, form, setField, setFields, errors = {}, lookups 
             ) : null}
             {field.type === "date" ? (
               <HDatePicker
-                value={toPickerValue(form[field.name])}
-                onChange={(v) => setField(field.name, fromPickerValue(v))}
+                value={getDateValue(form[field.name])}
+                onChange={(v) => setField(field.name, formatDateValue(v))}
                 disabled={readOnly}
                 error={Boolean(err(field.name))}
                 width="100%"

@@ -53,6 +53,7 @@ const CoApplicantSection = ({ items = [], onAdd, onRemove, onChange, errors = {}
               kycHandlers={kycHandlers}
               primaryAddress={primaryAddress}
               onSearchCustomer={onSearchCustomer}
+              applicantType="CO_APPLICANT"
               lookups={lookups}
             />
           </Grid>

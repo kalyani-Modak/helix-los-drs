@@ -311,7 +311,6 @@ const IndividualKyc = ({
             align="left"
             colon={false}
             sx={{
-              fontSize: "11px",
               color: "text.secondary",
               whiteSpace: "normal",
             }}
