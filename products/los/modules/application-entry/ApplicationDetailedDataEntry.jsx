@@ -160,6 +160,7 @@ const ApplicationDetailedDataEntry = () => {
       setLoading(true);
       try {
         const response = await HAxiosService.GET(LosDdeAPI.fetchDdeSections(appNo));
+        const response = await HAxiosService.GET(LosDdeAPI.fetchDdeSections(appNo));
         const data = unwrapDdePayload(response);
         setForm((prev) => ({
           ...prev,
@@ -178,6 +179,7 @@ const ApplicationDetailedDataEntry = () => {
     [lookups, t, toast]
   );
 
+  // Wait for the lookups so income types / dropdown codes can be resolved while hydrating.
   useEffect(() => {
     if (incomingApplicationNo && !lookupsLoading) {
       loadDde(incomingApplicationNo);
@@ -197,8 +199,10 @@ const ApplicationDetailedDataEntry = () => {
       setSavedApplicationNo(String(newAppNo));
       setField("applicationNo", String(newAppNo));
     }
-    if (data?.parties?.length) {
-      setForm((prev) => ({ ...prev, ...hydrateDdeFormFromApi(data, lookups) }));
+    // The save response carries no snapshot, so re-read the saved application to pick up generated ids.
+    const saved = unwrapDdePayload(await HAxiosService.GET(LosDdeAPI.fetchDdeSections(newAppNo)));
+    if (saved?.parties?.length) {
+      setForm((prev) => ({ ...prev, ...hydrateDdeFormFromApi(saved, lookups) }));
     }
     return newAppNo;
   }, [form, lookups, orgId, savedApplicationNo, setField]);

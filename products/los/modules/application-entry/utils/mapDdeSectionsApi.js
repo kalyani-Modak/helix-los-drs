@@ -40,7 +40,9 @@ const mapEmploymentFromApi = (employmentDetails = []) => {
     employeeId: emp.szEmpNo || "",
     employmentStatus: emp.szEmpStatus || "",
     dateOfJoining: emp.dtDateOfJoining || "",
-    lengthOfServiceMonths: emp.iMonthOfService != null ? String(emp.iMonthOfService) : "",
+    // Backend stores one total in months; the screen splits it into years + months.
+    lengthOfServiceYears: emp.iMonthOfService != null ? String(Math.floor(Number(emp.iMonthOfService) / 12)) : "",
+    lengthOfServiceMonths: emp.iMonthOfService != null ? String(Number(emp.iMonthOfService) % 12) : "",
     totalIncome: emp.fTotalIncAmt != null ? String(emp.fTotalIncAmt) : "",
   };
 };
@@ -312,7 +314,10 @@ const buildEmploymentSection = (src, applicantId) => ({
     szEmpNo: str(src.employeeId),
     szEmpStatus: str(src.employmentStatus),
     dtDateOfJoining: str(src.dateOfJoining) || null,
-    iMonthOfService: toNum(src.lengthOfServiceMonths),
+    iMonthOfService:
+      toNum(src.lengthOfServiceYears) == null && toNum(src.lengthOfServiceMonths) == null
+        ? null
+        : (toNum(src.lengthOfServiceYears) || 0) * 12 + (toNum(src.lengthOfServiceMonths) || 0),
     fTotalIncAmt: toNum(src.totalIncome),
   },
 });
