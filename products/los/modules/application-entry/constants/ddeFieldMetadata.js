@@ -784,6 +784,7 @@ export const DDE_FIELDS = [
   {
     "name": "professionType",
     "type": "select",
+    "optionsMaster": "profession",
     "label": "Profession",
     "section": "Self-Employed Professional",
     "showIf": {
@@ -816,6 +817,7 @@ export const DDE_FIELDS = [
   {
     "name": "membershipType",
     "type": "select",
+    "optionsMaster": "membershipType",
     "label": "Membership Type",
     "section": "Self-Employed Professional",
     "showIf": {
@@ -893,6 +895,7 @@ export const DDE_FIELDS = [
   {
     "name": "professionalIncomeProof",
     "type": "select",
+    "optionsMaster": "incomeProof",
     "label": "Income Proof Type",
     "section": "Self-Employed Professional",
     "showIf": {
@@ -914,6 +917,7 @@ export const DDE_FIELDS = [
   {
     "name": "businessNature",
     "type": "select",
+    "optionsMaster": "natureOfBusiness",
     "label": "Nature of Business",
     "section": "Self-Employed Business",
     "showIf": {
@@ -924,6 +928,7 @@ export const DDE_FIELDS = [
   {
     "name": "businessConstitution",
     "type": "select",
+    "optionsMaster": "businessConstitution",
     "label": "Business Constitution",
     "section": "Self-Employed Business",
     "showIf": {
@@ -1110,6 +1115,7 @@ export const DDE_FIELDS = [
   {
     "name": "businessIncomeProof",
     "type": "select",
+    "optionsMaster": "incomeProof",
     "label": "Business Income Proof",
     "section": "Self-Employed Business",
     "showIf": {

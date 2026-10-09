@@ -38,6 +38,11 @@ export const DDE_LOOKUP_TYPES = [
   "los.salarycreditmode",
   "los.employer",
   "los.industrysector",
+  "los.natureofbusiness",
+  "los.businessconstitution",
+  "los.profession",
+  "los.membershiptype",
+  "los.incomeproof",
 ];
 
 const MASTER_ALIAS = {
@@ -73,6 +78,11 @@ const MASTER_ALIAS = {
   accountHolderGuarantor: "los.accountholder.guarantor",
   employer: "los.employer",
   industry: "los.industrysector",
+  natureOfBusiness: "los.natureofbusiness",
+  businessConstitution: "los.businessconstitution",
+  profession: "los.profession",
+  membershipType: "los.membershiptype",
+  incomeProof: "los.incomeproof",
 };
 
 export const resolveDdeLookupKey = (optionsMaster) =>
