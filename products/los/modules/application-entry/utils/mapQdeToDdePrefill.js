@@ -17,6 +17,7 @@ export const mapQdeToDdePrefill = (qde = {}) => {
     email: qde.email || "",
     currentAddressLine1: qde.addr1 || "",
     currentAddressLine2: qde.addr2 || "",
+    currentLandmark: qde.landmark || "",
     currentCity: qde.city || "",
     currentDistrict: qde.district || "",
     currentProvince: qde.state || "",

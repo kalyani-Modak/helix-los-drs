@@ -11,6 +11,16 @@ const toNum = (v) => {
 };
 const str = (v) => (v == null ? "" : String(v));
 const empty = (v) => v === "" || v == null;
+const resolveLookupValue = (value, options = []) => {
+  if (value == null || value === "") return "";
+  const normalizedValue = String(value).trim().toLowerCase();
+  const match = options.find(
+    (option) =>
+      String(option.value).trim().toLowerCase() === normalizedValue ||
+      String(option.label).trim().toLowerCase() === normalizedValue
+  );
+  return match?.value ?? value;
+};
 
 const mapBankFromApi = (bank) => {
   if (!bank) return {};
@@ -40,9 +50,20 @@ const mapEmploymentFromApi = (employmentDetails = []) => {
     employeeId: emp.szEmpNo || "",
     employmentStatus: emp.szEmpStatus || "",
     dateOfJoining: emp.dtDateOfJoining || "",
-    // Backend stores one total in months; the screen splits it into years + months.
-    lengthOfServiceYears: emp.iMonthOfService != null ? String(Math.floor(Number(emp.iMonthOfService) / 12)) : "",
-    lengthOfServiceMonths: emp.iMonthOfService != null ? String(Number(emp.iMonthOfService) % 12) : "",
+    lengthOfServiceYears:
+      emp.iYearofService != null
+        ? String(emp.iYearofService)
+        : emp.iMonthOfService != null
+          ? String(Math.floor(Number(emp.iMonthOfService) / 12))
+          : "",
+    lengthOfServiceMonths:
+      emp.iMonthOfService != null
+        ? String(
+            emp.iYearofService != null
+              ? emp.iMonthOfService
+              : Number(emp.iMonthOfService) % 12
+          )
+        : "",
     totalIncome: emp.fTotalIncAmt != null ? String(emp.fTotalIncAmt) : "",
   };
 };
@@ -122,6 +143,7 @@ const mapTaxFromApi = (taxDetails = []) => {
   const years = ["taxYear1", "taxYear2", "taxYear3"];
   (row.taxDetailsAssociations || []).slice(0, 3).forEach((a, i) => {
     const prefix = years[i];
+    patch[prefix] = a.szYear || "";
     patch[`${prefix}StatutoryIncome`] = a.fStatIncYear != null ? String(a.fStatIncYear) : "";
     patch[`${prefix}AssessableIncome`] = a.fAssIncYear != null ? String(a.fAssIncYear) : "";
     patch[`${prefix}TaxPaid`] = a.fTaxPaidYear != null ? String(a.fTaxPaidYear) : "";
@@ -137,6 +159,8 @@ const mapIndividualToForm = (party, lookups) => {
   const dob = individual.dtDateOfBirth || "";
   return {
     szApplicantId: party.szApplicantId || null,
+    szCustomerType: party.szCustType || "NEW",
+    szBorrowerType: party.szBorrowerType || (party.nonIndividual ? "NON_INDIVIDUAL" : "INDIVIDUAL"),
     customerType: normalizeDdeCustomerType(individual.szApplicantCategory),
     firstName: individual.szFirstName || "",
     middleName: individual.szMiddleName || "",
@@ -152,14 +176,25 @@ const mapIndividualToForm = (party, lookups) => {
     pan: kyc.szPanNumber || "",
     mobile: party.szMobile || "",
     email: party.szEmail || "",
+    relationship:
+      party.szRelationshipWithPrimaryApplicant || party.szRelationWithBrwr || "",
+    coApplicantType: party.szCoAppType || "",
     currentAddressLine1: address.szAddressLine1 || "",
     currentAddressLine2: address.szAddressLine2 || "",
     currentCity: address.szCity || "",
-    currentDistrict: address.szDistrict || "",
-    currentProvince: address.szState || "",
+    currentLandmark: address.szLandmark ?? "",
+    currentDistrict: resolveLookupValue(
+      address.szDistrict,
+      lookups["party.address.district"]
+    ),
+    currentProvince: resolveLookupValue(
+      address.szState,
+      lookups["party.address.state"]
+    ),
     currentPostalCode: address.iPincode != null ? String(address.iPincode) : "",
     currentCountry: address.szCountry || "",
     sameAsCurrent: address.szperaddrsameascuraddyn === "Y",
+    sameAsPrimaryCurrent: address.szsameasprimaryaplcnt === "Y",
   };
 };
 
@@ -170,7 +205,8 @@ export const mapDdePartyFromApi = (party, kind = "co", lookups = {}) => {
     ...base,
     ...mapIndividualToForm(party, lookups),
     id: party.szApplicantId || base.id,
-    relationship: party.szRelationWithBrwr || "",
+    relationship:
+      party.szRelationshipWithPrimaryApplicant || party.szRelationWithBrwr || "",
     type: party.szCoAppType || "",
     ...mapBankFromApi(bank),
     ...mapEmploymentFromApi(party.employmentDetails),
@@ -198,6 +234,7 @@ export const hydrateFormFromDdeGet = (apiPayload = {}, lookups = {}) => {
     loanAmount: loanRow.fAppliedAmount != null ? String(loanRow.fAppliedAmount) : "",
     tenureMonths: loanRow.iAppliedTenor != null ? String(loanRow.iAppliedTenor) : "",
     loanPurposePrimary: loanRow.szPriLoanPurpose || "",
+    repaymentFrequency: loanRow.szRepayFreq || "",
     repaymentScheduleType: loanRow.szRepayScedType || "",
     ...mapBankFromApi((primary.bankDetails || [])[0]),
     ...mapEmploymentFromApi(primary.employmentDetails),
@@ -234,17 +271,18 @@ export const hydrateFormFromDdeGet = (apiPayload = {}, lookups = {}) => {
   };
 };
 
-const buildPartySection = (partyRow, applicationNo, isPrimary, borrowerForm) => {
-  const src = isPrimary ? borrowerForm : partyRow;
-  const applicantId = isPrimary
-    ? borrowerForm.ddeMeta?.primaryApplicantId || partyRow.szApplicantId
-    : partyRow.szApplicantId;
-
+const buildPartySection = (src) => {
   return {
-    szBorrowerType: "INDIVIDUAL",
-    szCustomerType: "NEW",
-    szApplicantId: applicantId || null,
-    szApplicationNo: applicationNo,
+    szBorrowerType: src.szBorrowerType || "INDIVIDUAL",
+    szCustomerType: src.szCustomerType || "NEW",
+    szCustomerId: src.szCustomerId || null,
+    szRelationshipWithPrimaryApplicant: src.relationship || null,
+    szBirthCountry: str(src.countryOfBirth),
+    szEduLevel: str(src.education),
+    szResiStatus: str(src.residenceStatus),
+    szCoAppType: src.coApplicantType || src.type || null,
+    szMobile: str(src.mobile),
+    szEmail: str(src.email),
     individualDetails: {
       szFirstName: str(src.firstName),
       szMiddleName: str(src.middleName),
@@ -252,32 +290,33 @@ const buildPartySection = (partyRow, applicationNo, isPrimary, borrowerForm) => 
       szGender: str(src.gender),
       dtDateOfBirth: str(src.dob) || null,
       szApplicantCategory: str(src.customerType),
-      szEduLevel: str(src.education),
-      szResiStatus: str(src.residenceStatus),
+      szMaritalStats: str(src.maritalStatus),
       szStaffYn: "N",
+      szPreApprovedYn: "N",
+    },
+    nonIndividualDetails: null,
+    kycDetails: {
+      szPanNumber: str(src.pan),
+      szAadhaarNumber: str(src.aadhaar),
     },
     address: {
       szAddressType: "Current",
       szAddressLine1: str(src.currentAddressLine1),
       szAddressLine2: str(src.currentAddressLine2),
-      szLandmark: "",
+      szAddressLine3: null,
+      szLandmark: str(src.currentLandmark),
+      iPincode: toNum(src.currentPostalCode),
       szCity: str(src.currentCity),
       szDistrict: str(src.currentDistrict),
       szState: str(src.currentProvince),
-      iPincode: toNum(src.currentPostalCode),
       szCountry: str(src.currentCountry),
       szperaddrsameascuraddyn: src.sameAsCurrent ? "Y" : "N",
-    },
-    szMobile: str(src.mobile),
-    szEmail: str(src.email),
-    kycDetails: {
-      szPanNumber: str(src.pan),
-      szAadhaarNumber: str(src.aadhaar),
+      szsameasprimaryaplcnt: src.sameAsPrimaryCurrent ? "Y" : "N",
     },
   };
 };
 
-const buildBankDetails = (src, applicationNo, applicantId) => {
+const buildBankDetails = (src) => {
   if (
     empty(src.bankName) &&
     empty(src.bankAccountNumber) &&
@@ -288,8 +327,6 @@ const buildBankDetails = (src, applicationNo, applicantId) => {
   return [
     {
       szBnkDtlId: src.szBnkDtlId || null,
-      szApplicationNo: applicationNo,
-      szApplicantId: applicantId,
       szAccHolder: str(src.bankAccountHolder),
       szBankId: str(src.bankName),
       szBranchId: str(src.bankBranch),
@@ -302,11 +339,10 @@ const buildBankDetails = (src, applicationNo, applicantId) => {
   ];
 };
 
-const buildEmploymentSection = (src, applicantId) => ({
+const buildEmploymentSection = (src) => ({
   employmentDetails: {
     szEmploymentType: str(src.employmentType),
     szEmployerName: str(src.employer),
-    szApplicantId: applicantId,
     szEmpoyerCategory: str(src.employerCategory),
     szIndustrySector: str(src.industry),
     szDesignation: str(src.designation),
@@ -314,15 +350,13 @@ const buildEmploymentSection = (src, applicantId) => ({
     szEmpNo: str(src.employeeId),
     szEmpStatus: str(src.employmentStatus),
     dtDateOfJoining: str(src.dateOfJoining) || null,
-    iMonthOfService:
-      toNum(src.lengthOfServiceYears) == null && toNum(src.lengthOfServiceMonths) == null
-        ? null
-        : (toNum(src.lengthOfServiceYears) || 0) * 12 + (toNum(src.lengthOfServiceMonths) || 0),
+    iYearofService: toNum(src.lengthOfServiceYears),
+    iMonthOfService: toNum(src.lengthOfServiceMonths),
     fTotalIncAmt: toNum(src.totalIncome),
   },
 });
 
-const buildIncomeSection = (src, applicantId, lookups) => {
+const buildIncomeSection = (src, lookups) => {
   const incomeTypeOptions = lookups["los.income.type.salaried"] || [];
   const associations = DDE_INCOME_SOURCES.map((def) => {
     const amount = toNum(src[def.amount]);
@@ -344,7 +378,6 @@ const buildIncomeSection = (src, applicantId, lookups) => {
 
   return {
     incomeDetails: {
-      szApplicantId: applicantId,
       szSalaryCreditMode: str(src.salaryCreditMode),
       fGrossMonthlyIncome: toNum(src.grossMonthlyIncome),
       fNetMonthlyIncome: toNum(src.netMonthlyIncome),
@@ -352,14 +385,16 @@ const buildIncomeSection = (src, applicantId, lookups) => {
       szSalaryBank: str(src.salaryBank),
       dtSalaryDate: str(src.salaryDate) || null,
       cEPF_ETFApplicable: yn(src.epfEtfApplicable),
+      sztotalavgmonth: toNum(src.grossMonthlyIncome),
     },
     incomeDetailsAssociations: associations,
   };
 };
 
-const buildTaxSection = (src, applicantId) => {
+const buildTaxSection = (src) => {
   const associations = [1, 2, 3].map((i) => ({
     sztaxdtlassocid: src[`taxYear${i}AssocId`] || null,
+    szYear: str(src[`taxYear${i}`]),
     fStatIncYear: toNum(src[`taxYear${i}StatutoryIncome`]),
     fAssIncYear: toNum(src[`taxYear${i}AssessableIncome`]),
     fTaxPaidYear: toNum(src[`taxYear${i}TaxPaid`]),
@@ -368,7 +403,6 @@ const buildTaxSection = (src, applicantId) => {
   return {
     taxDetails: {
       sztaxdtlid: src.szTaxDtlId || null,
-      szApplicantId: applicantId,
       szTIN: str(src.taxPayerTin),
       szTaxFileNo: str(src.taxFileNumber),
       szAssessAuthority: str(src.taxAssessedBy),
@@ -380,19 +414,20 @@ const buildTaxSection = (src, applicantId) => {
   };
 };
 
-const buildApplicantSaveEntry = (applicantId, src, applicationNo, isPrimary, borrowerForm, lookups) => ({
+const buildApplicantSaveEntry = (orgId, applicantId, src, lookups) => ({
   szApplicantId: applicantId,
   sections: {
-    party: buildPartySection(src, applicationNo, isPrimary, borrowerForm),
-    bankDetails: buildBankDetails(src, applicationNo, applicantId),
-    employment: buildEmploymentSection(src, applicantId),
-    incomeDetails: buildIncomeSection(src, applicantId, lookups),
-    taxDetails: buildTaxSection(src, applicantId),
+    szOrgId: orgId,
+    party: buildPartySection(src),
+    bankDetails: buildBankDetails(src),
+    employment: buildEmploymentSection(src),
+    incomeDetails: buildIncomeSection(src, lookups),
+    taxDetails: buildTaxSection(src),
   },
 });
 
 /** POST `/dde/application/{applicationNo}/sections` body. */
-export const buildDdeSectionsSavePayload = (orgId, applicationNo, form, lookups = {}) => {
+export const buildDdeSectionsSavePayload = (orgId, form, lookups = {}) => {
   const meta = form.ddeMeta || {};
   const appDetails = meta.applicationDetails || {};
   const loanTemplate = meta.loanDetailsRow || {};
@@ -400,7 +435,7 @@ export const buildDdeSectionsSavePayload = (orgId, applicationNo, form, lookups 
   const applicants = [];
   const primaryId = meta.primaryApplicantId;
   if (primaryId) {
-    applicants.push(buildApplicantSaveEntry(primaryId, form, applicationNo, true, form, lookups));
+    applicants.push(buildApplicantSaveEntry(orgId, primaryId, form, lookups));
   }
 
   const isServerApplicantId = (id) =>
@@ -409,13 +444,13 @@ export const buildDdeSectionsSavePayload = (orgId, applicationNo, form, lookups 
   (form.coApplicants || []).forEach((party) => {
     const applicantId = party.szApplicantId || party.id;
     if (!isServerApplicantId(applicantId)) return;
-    applicants.push(buildApplicantSaveEntry(applicantId, party, applicationNo, false, form, lookups));
+    applicants.push(buildApplicantSaveEntry(orgId, applicantId, party, lookups));
   });
 
   (form.guarantors || []).forEach((party) => {
     const applicantId = party.szApplicantId || party.id;
     if (!isServerApplicantId(applicantId)) return;
-    applicants.push(buildApplicantSaveEntry(applicantId, party, applicationNo, false, form, lookups));
+    applicants.push(buildApplicantSaveEntry(orgId, applicantId, party, lookups));
   });
 
   return {
@@ -435,7 +470,6 @@ export const buildDdeSectionsSavePayload = (orgId, applicationNo, form, lookups 
     loanDetails: [
       {
         szProductCode: loanTemplate.szProductCode ?? "",
-        cPrimaryAccountYn: loanTemplate.cPrimaryAccountYn ?? "Y",
         szCurrencyCode: loanTemplate.szCurrencyCode ?? "INR",
         fAppliedAmount: toNum(form.loanAmount),
         iAppliedTenor: toNum(form.tenureMonths),
@@ -444,6 +478,7 @@ export const buildDdeSectionsSavePayload = (orgId, applicationNo, form, lookups 
         szSchemeCode: loanTemplate.szSchemeCode ?? "",
         szLoanType: loanTemplate.szLoanType ?? "",
         szPriLoanPurpose: str(form.loanPurposePrimary),
+        szRepayFreq: str(form.repaymentFrequency),
         szRepayScedType: str(form.repaymentScheduleType),
       },
     ],

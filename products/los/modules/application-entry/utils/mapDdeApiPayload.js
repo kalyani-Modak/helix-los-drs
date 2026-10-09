@@ -21,8 +21,8 @@ export const unwrapDdePayload = (response) => {
 };
 
 /** POST body for DDE sections save. */
-export const buildDdeSavePayload = (orgId, applicationNo, form, lookups) =>
-  buildDdeSectionsSavePayload(orgId, applicationNo, form, lookups);
+export const buildDdeSavePayload = (orgId, form, lookups) =>
+  buildDdeSectionsSavePayload(orgId, form, lookups);
 
 /** Maps GET `/dde/application/{appNo}/sections` into flat form state. */
 export const hydrateDdeFormFromApi = (apiPayload = {}, lookups) =>

@@ -190,7 +190,7 @@ const ApplicationDetailedDataEntry = () => {
     if (!appNo) {
       throw new Error("Application number is required to save detailed data entry.");
     }
-    const payload = buildDdeSavePayload(orgId, appNo, form, lookups);
+    const payload = buildDdeSavePayload(orgId, form, lookups);
     const response = await HAxiosService.POST(LosDdeAPI.saveDdeSections(appNo), payload);
     const data = unwrapDdePayload(response);
     const newAppNo = data?.szApplicationNo || appNo;

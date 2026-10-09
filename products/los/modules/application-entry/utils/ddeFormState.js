@@ -4,6 +4,7 @@ import { DDE_INCOME_SOURCES } from "../constants/ddeIncomeSources";
 export const createEmptyDdeForm = () => {
   const form = {
     applicationNo: "",
+    currentLandmark: "",
     coApplicants: [],
     guarantors: [],
     perfiosFileName: "",

@@ -346,6 +346,7 @@
   "label.dde.field.email": "Email",
   "label.dde.field.currentAddressLine1": "Address Line 1",
   "label.dde.field.currentAddressLine2": "Address Line 2",
+  "label.dde.field.currentLandmark": "Orientierungspunkt",
   "label.dde.field.currentCity": "City",
   "label.dde.field.currentDistrict": "District",
   "label.dde.field.currentProvince": "State",
