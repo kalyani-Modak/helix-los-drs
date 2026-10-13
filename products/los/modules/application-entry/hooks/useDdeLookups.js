@@ -3,6 +3,7 @@ import { useQdeLookups } from "./useQdeLookups";
 /** Lookup types for DDE dropdowns. */
 export const DDE_LOOKUP_TYPES = [
   "party.title",
+  "party.gender",
   "party.maritalstatus",
   "party.nationality",
   "party.religion",
@@ -16,6 +17,7 @@ export const DDE_LOOKUP_TYPES = [
   "los.bankaccounttype",
   "los.repaymentmode",
   "los.loanpurpose",
+  "los.graceperiodtype",
   "los.repaymentfrequency",
   "los.ratetype",
   "los.repaymentscheduletype",
@@ -62,6 +64,7 @@ const MASTER_ALIAS = {
   accountType: "los.bankaccounttype",
   repaymentMode: "los.repaymentmode",
   loanPurpose: "los.loanpurpose",
+  gracePeriodType: "los.graceperiodtype",
   repaymentFrequency: "los.repaymentfrequency",
   rateType: "los.ratetype",
   repaymentScheduleType: "los.repaymentscheduletype",

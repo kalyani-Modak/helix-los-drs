@@ -9,16 +9,6 @@ import {
 import { useIntl } from "react-intl";
 import DescriptionOutlinedIcon from "@mui/icons-material/DescriptionOutlined";
 import SectionBlock from "../components/SectionBlock";
-// import {
-//   EDUCATION_LEVELS,
-//   GENDERS,
-//   MARITAL_STATUSES,
-//   NATIONALITIES,
-//   RELIGIONS,
-//   RESIDENCE_STATUSES,
-//   TITLES,
-// } from "../constants/qdeOptions";
-import { GENDERS } from "../constants/qdeOptions";
 import { useDdeLookups } from "../hooks/useDdeLookups";
 import dayjs from "dayjs";
 
@@ -53,7 +43,7 @@ const calcAge = (dob) => {
 
 const PersonalDetailsSection = ({ form, setField, errors = {}, orgId }) => {
   const intl = useIntl();
-  const { lookups, loading } = useDdeLookups(orgId);
+  const { lookups } = useDdeLookups(orgId);
   const err = (name) => Boolean(errors[name]);
   const age = useMemo(() => calcAge(form.dob), [form.dob]);
 
@@ -446,7 +436,7 @@ const PersonalDetailsSection = ({ form, setField, errors = {}, orgId }) => {
 
           <HDropdown
             name="gender"
-            options={GENDERS}
+            options={lookups["party.gender"] || []}
             value={form.gender || ""}
             onChange={(e) => setField("gender", e.target.value)}
             required

@@ -2332,8 +2332,8 @@ const handleSave = useCallback(async () => {
                   errors={formErrors.applicant}
                   onOpenApplicationSearch={() => setSearchDialogOpen(true)}
                   onClearApplicationNo={handleClearApplication}
-                  applicationTypeOptions={lookups["los.applicationtype"]}
-                  portfolioOptions={lookups["los.portfolio"]}
+                  applicationTypeOptions={lookups["los.applicationtype"] || []}
+                  portfolioOptions={lookups["los.portfolio"] || []}
                 />
               </HBox>
 
@@ -2343,7 +2343,7 @@ const handleSave = useCallback(async () => {
                 onFileSelect={handleFileSelect}
                 ocrFileName={ocrFileName}
                 ocrStatusKey={ocrStatusKey}
-                docTypeOptions={lookups["los.doctype"]}
+                docTypeOptions={lookups["los.doctype"] || []}
               />
 
              <HBox id="qde-kyc">
@@ -2377,9 +2377,9 @@ const handleSave = useCallback(async () => {
                 onVerifyMobile={() => openOtp("mobile", form.mobile)}
                 onVerifyEmail={() => openOtp("email", form.email)}
                 errors={formErrors.applicant}
-                genderOptions={lookups["party.gender"]}
-                entityTypeOptions={lookups["los.entitytype"]}
-                borrowerCategoryOptions={lookups["los.borrowercategory"]}
+                genderOptions={lookups["party.gender"] || []}
+                entityTypeOptions={lookups["los.entitytype"] || []}
+                borrowerCategoryOptions={lookups["los.borrowercategory"] || []}
               />
               </HBox>
               {isNonIndividual ? (
@@ -2415,8 +2415,8 @@ const handleSave = useCallback(async () => {
                   // onPincodeLookup={handlePincodeLookup}
                   noAccordion={false}
                   errors={formErrors.applicant}
-                  individualOptions={lookups["los.address.type.individual"]}
-                  nonIndividualOptions={lookups["los.address.type.nonindividual"]}
+                  individualOptions={lookups["los.address.type.individual"] || []}
+                  nonIndividualOptions={lookups["los.address.type.nonindividual"] || []}
                 />
               </HBox>
 
@@ -2452,8 +2452,8 @@ const handleSave = useCallback(async () => {
                   form={form}
                   setField={setField}
                   errors={formErrors.applicant}
-                  productOptions={lookups["los.product"]}
-                  schemeOptions={lookups["los.scheme"]}
+                  productOptions={lookups["los.product"] || []}
+                  schemeOptions={lookups["los.scheme"] || []}
                 />
               </HBox>
 
@@ -2462,8 +2462,8 @@ const handleSave = useCallback(async () => {
                   form={form}
                   setField={setField}
                   errors={formErrors.applicant}
-                  channelOptions={lookups["los.channel"]}
-                  branchOptions={lookups["los.branch"]}
+                  channelOptions={lookups["los.channel"] || []}
+                  branchOptions={lookups["los.branch"] || []}
                 />
               </HBox>
             </HBox>

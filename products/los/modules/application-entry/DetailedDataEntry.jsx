@@ -15,8 +15,8 @@ import {
 
 import { LosQdeAPI } from "./apiEndpoints";
 import { unwrapApiResponse } from "./unwrapApiResponse";
-import { BORROWER_CATEGORIES } from "./constants/qdeOptions";
 import { OCR_MAX_SIZE_BYTES, UPLOAD_STATUS } from "./constants/ddeOptions";
+import { useQdeLookups } from "./hooks/useQdeLookups";
 
 import OcrBanner from "./sections/OcrBanner";
 import PersonalDetailsSection from "./sections/PersonalDetailsSection";
@@ -226,6 +226,11 @@ const DetailedDataEntry = () => {
   const location = useLocation();
   const screenMenuId = location.state?.menuId;
   const applicationNo = location.state?.applicationNo;
+  const { lookups: qdeLookups, loading: qdeLookupsLoading } = useQdeLookups(
+    ORG_ID,
+    ["los.borrowercategory"]
+  );
+  const borrowerCategoryOptions = qdeLookups["los.borrowercategory"] || [];
 
   const t = useCallback((id, defaultMessage) => intl.formatMessage({ id, defaultMessage }), [intl]);
 
@@ -429,11 +434,12 @@ const DetailedDataEntry = () => {
               />
               <HDropdown
                 name="profile"
-                options={BORROWER_CATEGORIES}
+                options={borrowerCategoryOptions}
                 value={form.profile}
                 onChange={(e) => setField("profile", e.target.value)}
                 required
                 error={Boolean(errors.profile)}
+                disabled={qdeLookupsLoading}
                 width="100%"
               />
               <HLabel

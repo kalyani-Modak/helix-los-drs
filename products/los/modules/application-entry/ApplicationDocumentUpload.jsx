@@ -13,7 +13,6 @@ import dayjs from "dayjs";
 
 import { LosDocumentAPI, LosQdeAPI } from "./apiEndpoints";
 import { unwrapApiResponse } from "./unwrapApiResponse";
-import { useQdeLookups } from "./hooks/useQdeLookups";
 import { useDuLookups } from "./hooks/useDuLookups";
 
 /* ============================================================
@@ -246,14 +245,13 @@ const ApplicationDocumentUpload = () => {
   const [applicantsLoaded, setApplicantsLoaded] = useState(false);
 
   const { lookups: duLookups } = useDuLookups(orgId);
-  const { lookups: categoryLookups } = useQdeLookups(orgId, ["los.borrowercategory"]);
   const stageOptions = duLookups["los.du.stage"] || [];
 
   const [waiveReasonOptions, setWaiveReasonOptions,] = useState(USE_MOCK_DATA ? MOCK_WAIVE_REASON_OPTIONS : []);
 
   const [applicableFor, setApplicableFor] = useState("");
   const [applicantCategory, setApplicantCategory] = useState("");
-  const applicantCategoryOptions = categoryLookups["los.borrowercategory"] || [];
+  const applicantCategoryOptions = duLookups["los.borrowercategory"] || [];
 
   const [stage, setStage] = useState(USE_MOCK_DATA ? MOCK_DOCUMENT_DATA.stage : "");
   useEffect(() => {

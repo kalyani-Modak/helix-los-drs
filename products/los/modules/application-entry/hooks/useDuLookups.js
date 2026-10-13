@@ -3,13 +3,17 @@ import { HAxiosService } from "@helix/component-library";
 import { LosQdeAPI } from "../apiEndpoints";
 import { unwrapApiResponse } from "../unwrapApiResponse";
 
-/** Lookup types owned by the DU screen. Customer Type reuses los.borrowercategory, fetched via useQdeLookups. */
+/** Lookup types used by the DU screen. */
 export const DU_LOOKUP_TYPES = [
   "los.du.stage",
+  "los.borrowercategory",
 ];
 
 const toHDropdownOptions = (values = []) =>
-  values.map((v) => ({ label: v.szDescription, value: v.szCode }));
+  (Array.isArray(values) ? values : []).map((v) => ({
+    label: v.szDescription,
+    value: v.szCode,
+  }));
 
 /**
  * Fetches every DU lookup type in one call and returns them as `{label, value}`

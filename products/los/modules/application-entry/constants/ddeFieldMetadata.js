@@ -1621,6 +1621,7 @@ export const DDE_FIELDS = [
     "type": "select",
     "label": "Grace Period Type",
     "section": "Loan Details",
+    "optionsMaster": "gracePeriodType",
     "showIf": {
       "field": "gracePeriodEnabled",
       "equals": [
@@ -1661,6 +1662,7 @@ export const DDE_FIELDS = [
     "max": 100,
     "showIf": {
       "field": "repaymentScheduleType",
+      "lookupMaster": "los.repaymentscheduletype",
       "equals": [
         "Step-Up",
         "Step-Down"
