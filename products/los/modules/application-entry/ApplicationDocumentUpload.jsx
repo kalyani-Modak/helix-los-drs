@@ -96,6 +96,46 @@ const formatFileSize = (bytes) => {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 };
 
+const getPreviewErrorMessage = async (error, fallback) => {
+  const data =
+    error?.response?.data ??
+    error?.data ??
+    error?.responseJson ??
+    error?.apiData;
+
+  if (typeof Blob !== "undefined" && data instanceof Blob) {
+    try {
+      const responseText = await data.text();
+      if (!responseText.trim()) {
+        return fallback;
+      }
+
+      try {
+        const responseBody = JSON.parse(responseText);
+        return (
+          responseBody?.errorMessage ||
+          responseBody?.message ||
+          responseBody?.msg ||
+          responseBody?.error ||
+          fallback
+        );
+      } catch {
+        return responseText.trim();
+      }
+    } catch {
+      return fallback;
+    }
+  }
+
+  return (
+    data?.errorMessage ||
+    data?.message ||
+    data?.msg ||
+    error?.message ||
+    fallback
+  );
+};
+
 const isDocumentChanged = (item, originalItem) => {
   // New/custom document
   if (!originalItem) {
@@ -1257,7 +1297,7 @@ const ApplicationDocumentUpload = () => {
       if (current?.fileUrl) {
         URL.revokeObjectURL(current.fileUrl);
       }
-      return current;
+      return null;
     });
     if (item.selectedFile) {
       const fileUrl = URL.createObjectURL(item.selectedFile);
@@ -1297,6 +1337,16 @@ const ApplicationDocumentUpload = () => {
         { responseType: "blob" }
       );
 
+      if (response?.status >= 400) {
+        toast.error(
+          await getPreviewErrorMessage(
+            response,
+            "No uploaded file available to preview"
+          )
+        );
+        return;
+      }
+
       const blob = response.data ?? response;
       const fileUrl = URL.createObjectURL(blob);
 
@@ -1308,12 +1358,13 @@ const ApplicationDocumentUpload = () => {
       });
     } catch (error) {
       toast.error(
-        error?.message ||
-        t(
-          "label.docupload.msg.previewFailed",
-          "Unable to load preview"
+        await getPreviewErrorMessage(
+          error,
+          "No uploaded file available to preview"
         )
       );
+
+      return;
     }
   };
 
