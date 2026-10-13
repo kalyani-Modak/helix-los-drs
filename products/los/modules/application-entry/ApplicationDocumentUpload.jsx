@@ -14,6 +14,7 @@ import dayjs from "dayjs";
 import { LosDocumentAPI, LosQdeAPI } from "./apiEndpoints";
 import { unwrapApiResponse } from "./unwrapApiResponse";
 import { useDuLookups } from "./hooks/useDuLookups";
+import { DDE_PENSIONER, normalizeDdeCustomerType } from "./constants/ddeSections";
 
 /* ============================================================
    CONFIGURATION
@@ -251,7 +252,9 @@ const ApplicationDocumentUpload = () => {
 
   const [applicableFor, setApplicableFor] = useState("");
   const [applicantCategory, setApplicantCategory] = useState("");
-  const applicantCategoryOptions = duLookups["los.borrowercategory"] || [];
+  const applicantCategoryOptions = (duLookups["los.borrowercategory"] || []).filter(
+    (option) => normalizeDdeCustomerType(option.value) !== DDE_PENSIONER
+  );
 
   const [stage, setStage] = useState(USE_MOCK_DATA ? MOCK_DOCUMENT_DATA.stage : "");
   useEffect(() => {
