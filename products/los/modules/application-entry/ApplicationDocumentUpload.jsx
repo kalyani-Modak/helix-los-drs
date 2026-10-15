@@ -1179,6 +1179,10 @@ const ApplicationDocumentUpload = () => {
       }
 
       const blob = response.data ?? response;
+      if (blob.size > MAX_DOCUMENT_FILE_SIZE) {
+        toast.error("Preview file exceeds the maximum allowed size of 10 MB.");
+        return;
+      }
       const fileUrl = URL.createObjectURL(blob);
 
       setPreview({
@@ -1458,7 +1462,7 @@ const ApplicationDocumentUpload = () => {
             toast.success(`${successfulCount} document(s) saved successfully`);
           }
 
-          return {success: false,partialSuccess: successfulCount > 0,failedDocuments,};
+          return { success: false, partialSuccess: successfulCount > 0, failedDocuments, };
         }
 
         toast.success(t("label.docupload.msg.saved", "Documents saved successfully"));
@@ -2152,7 +2156,7 @@ const ApplicationDocumentUpload = () => {
           open={Boolean(
             preview
           )}
-          onClose={() => {setPreview(null);}}
+          onClose={() => { setPreview(null); }}
           title={
             preview?.docName ||
             t(
@@ -2171,7 +2175,7 @@ const ApplicationDocumentUpload = () => {
               translate={false}
               variant="outlined"
               inline
-              onClick={() => {setPreview(null);}}
+              onClick={() => { setPreview(null); }}
             />
           }
         >
