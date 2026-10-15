@@ -729,7 +729,7 @@ const ApplicationDocumentUpload = () => {
         return;
       }
 
-      const payload = await HAxiosService.GET(LosDocumentAPI.LosDocumentAPI("ECF-DocumentUpload") + "/documents" + `?szApplicantId=${applicableFor}&szStageDue=${stage}&szApplicantCategory=${applicantCategory}`).then(unwrapApiResponse);
+      const payload = await HAxiosService.GET(LosDocumentAPI.LosDocumentAPI("ECF-DocumentUpload") + "/documents" + `?szOrgId=${encodeURIComponent(orgId)}&szApplicantId=${applicableFor}&szStageDue=${stage}&szApplicantCategory=${applicantCategory}`).then(unwrapApiResponse);
 
       console.log("Incomming payload = ", payload);
       applyFamilies(payload);
@@ -1796,6 +1796,7 @@ const ApplicationDocumentUpload = () => {
               "ECF-DocumentUpload"
             ) +
             "/documents" +
+            `?szOrgId=${encodeURIComponent(orgId)}` +
             `?szApplicantId=${encodeURIComponent(applicableFor)}` +
             `&szStageDue=${encodeURIComponent(stage)}`+
             `&szApplicantCategory=${encodeURIComponent(applicantCategory)}`
