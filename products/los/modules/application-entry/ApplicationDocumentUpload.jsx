@@ -15,7 +15,7 @@ import { LosDocumentAPI, LosQdeAPI } from "./apiEndpoints";
 import { unwrapApiResponse } from "./unwrapApiResponse";
 import { useDuLookups } from "./hooks/useDuLookups";
 import { DDE_PENSIONER, normalizeDdeCustomerType } from "./constants/ddeSections";
-import {MAX_DOCUMENT_FILE_SIZE,ALLOWED_DOCUMENT_FILES,ACCEPTED_DOCUMENT_FILES,} from "./documentFileValidation";
+import { MAX_DOCUMENT_FILE_SIZE, ALLOWED_DOCUMENT_FILES, ACCEPTED_DOCUMENT_FILES, } from "./utils/documentFileValidation";
 
 /* ============================================================
    CONFIGURATION
@@ -209,7 +209,7 @@ const ApplicationDocumentUpload = () => {
 
   const screenMenuId = location.state?.menuId;
 
-//as we dont have parent page we are using default values.
+  //as we dont have parent page we are using default values.
   const incomingApplicationNo = location.state?.applicationNo;
   const orgId = location.state?.orgId || "001";
 
@@ -285,7 +285,7 @@ const ApplicationDocumentUpload = () => {
   const { lookups: duLookups } = useDuLookups(orgId);
   const stageOptions = duLookups["los.du.stage"] || [];
 
-  const [waiveReasonOptions, setWaiveReasonOptions,] = useState( MOCK_WAIVE_REASON_OPTIONS);//lookup required
+  const [waiveReasonOptions, setWaiveReasonOptions,] = useState(MOCK_WAIVE_REASON_OPTIONS);//lookup required
 
   const [applicableFor, setApplicableFor] = useState("");
   const [applicantCategory, setApplicantCategory] = useState("");
@@ -294,7 +294,7 @@ const ApplicationDocumentUpload = () => {
   );
 
   const [stage, setStage] = useState("");
-  
+
   const [families, setFamilies] = useState([]);
 
   const [expanded, setExpanded] = useState({});
@@ -308,8 +308,26 @@ const ApplicationDocumentUpload = () => {
 
   const originalItemsRef = useRef([]);
 
-  const [preview, setPreview] = useState(null);
+  const isMountedRef = useRef(true);
 
+  useEffect(() => {
+    isMountedRef.current = true;
+
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  const [preview, setPreview] = useState(null);
+  useEffect(() => {
+    const fileUrl = preview?.fileUrl;
+
+    return () => {
+      if (fileUrl) {
+        URL.revokeObjectURL(fileUrl);
+      }
+    };
+  }, [preview?.fileUrl]);
   const [waiveDialog, setWaiveDialog] = useState(null);
 
   const [deferDialog, setDeferDialog] = useState(null);
@@ -660,10 +678,10 @@ const ApplicationDocumentUpload = () => {
     },
     [toast]
   );
-  
-   /* ==========================================================
-     LOAD CHECKLIST
-     ========================================================== */
+
+  /* ==========================================================
+    LOAD CHECKLIST
+    ========================================================== */
 
   const loadChecklist = useCallback(async () => {
     try {
@@ -683,7 +701,7 @@ const ApplicationDocumentUpload = () => {
       setFamilies([]);
       toast.error("Unable to load the document checklist");
     }
-  }, [applicationNo, applicantsLoaded, applicableFor, applicantCategory, stage, applyFamilies,orgId,toast]);
+  }, [applicationNo, applicantsLoaded, applicableFor, applicantCategory, stage, applyFamilies, orgId, toast]);
 
   const loadApplicantOptions = useCallback(async () => {
     setApplicantsLoaded(false);
@@ -824,13 +842,9 @@ const ApplicationDocumentUpload = () => {
       setDeferDialog({
         itemId: item.itemId,
 
-        stage:
-          item.deferralStage ||
-          stage,
+        stage: item.deferralStage || stage,
 
-        date:
-          item.deferralDate ||
-          "",
+        date: item.deferralDate || "",
       });
 
       return;
@@ -852,9 +866,7 @@ const ApplicationDocumentUpload = () => {
         item.itemId,
         {
           status: STATUS.RECEIVED,
-
           szreceivedyn: "Y",
-
           szwaivedyn: "N",
           szdifferyn: "N",
         }
@@ -878,127 +890,50 @@ const ApplicationDocumentUpload = () => {
     }
 
     const item = {
-
       itemId: newCustomId(),
-
       _isNew: true,
-
       custom: true,
-
-
       idocumentsrno: null,
-
-      szapplicationno:
-        applicationNo,
-
-      szorgid:orgId,
-
+      szapplicationno: applicationNo,
+      szorgid: orgId,
       szdoccode: newDocName.trim(),
-
-      szapplicantid:
-        applicableFor,
-
+      szapplicantid: applicableFor,
       szassetsrno: null,
-
-      szstagedue:
-        stage,
-
-      szdocwaiveallowyn:
-        "Y",
-
-      szreceivedyn:
-        "N",
-
-      szwaivedyn:
-        "N",
-
-      szwaiverdec:
-        null,
-
-      szwaiverreason:
-        null,
-
-      szdifferyn:
-        "N",
-
-      szmandatoryyn:
-        "N",
-
-      szoriginalreqyn:
-        "N",
-
-      szverfdecision:
-        null,
-
-      szverifiedby:
-        null,
-
-      szuserspecifiedyn:
-        "Y",
-
-      documentid:
-        null,
-
-      szdocfamilycode:
-        family.docFamilyCode,
-
-      szdocfamilydesc:
-        family.docFamilyName,
-
-      cfraudyn:
-        "N",
-
-      szremarks:
-        null,
-
-      iduedays:
-        null,
-
-      dtduedate:
-        null,
-
-      szdocketlocation:
-        null,
-
-      inoofpages:
-        null,
-
-      clevel:
-        "P",
-
-      dtrecieptdate:
-        null,
-
-      szcreatedby:
-        getLoggedInUsername(),
-
-      dtcreatedon:
-        new Date(),
-
-      szupdatedby:
-        getLoggedInUsername(),
-
-      dtupdatedon:
-        new Date(),
+      szstagedue: stage,
+      szdocwaiveallowyn: "Y",
+      szreceivedyn: "N",
+      szwaivedyn: "N",
+      szwaiverdec: null,
+      szwaiverreason: null,
+      szdifferyn: "N",
+      szmandatoryyn: "N",
+      szoriginalreqyn: "N",
+      szverfdecision: null,
+      szverifiedby: null,
+      szuserspecifiedyn: "Y",
+      documentid: null,
+      szdocfamilycode: family.docFamilyCode,
+      szdocfamilydesc: family.docFamilyName,
+      cfraudyn: "N",
+      szremarks: null,
+      iduedays: null,
+      dtduedate: null,
+      szdocketlocation: null,
+      inoofpages: null,
+      clevel: "P",
+      dtrecieptdate: null,
+      szcreatedby: getLoggedInUsername(),
+      dtcreatedon: new Date(),
+      szupdatedby: getLoggedInUsername(),
+      dtupdatedon: new Date(),
     };
 
     setFamilies(
       (prev) =>
         prev.map(
           (row) =>
-            row.docFamilyCode ===
-              family.docFamilyCode
-              ? {
-                ...row,
-
-                items: [
-                  ...(row.items ||
-                    []),
-
-                  item,
-                ],
-              }
-              : row
+            row.docFamilyCode === family.docFamilyCode ?
+              { ...row, items: [...(row.items || []), item,], } : row
         )
     );
 
@@ -1012,10 +947,10 @@ const ApplicationDocumentUpload = () => {
 
   const handleDeleteCustom =
     async (item) => {
-      const docSrNo =item.iDocumentsSrNo ??item.idocumentsSrNo ??item.idocumentsrno ??null;
+      const docSrNo = item.iDocumentsSrNo ?? item.idocumentsSrNo ?? item.idocumentsrno ?? null;
 
       if (!item.custom) {
-        toast.error(t("label.docupload.msg.masterDeleteDenied","Master checklist documents cannot be deleted"));
+        toast.error(t("label.docupload.msg.masterDeleteDenied", "Master checklist documents cannot be deleted"));
         return;
       }
 
@@ -1032,7 +967,7 @@ const ApplicationDocumentUpload = () => {
         } catch (error) {
           toast.error(
             error?.message ||
-            t("label.docupload.msg.deleteFailed","Unable to delete document")
+            t("label.docupload.msg.deleteFailed", "Unable to delete document")
           );
 
           return;
@@ -1044,12 +979,12 @@ const ApplicationDocumentUpload = () => {
           prev.map(
             (family) => ({
               ...family,
-              items: (family.items || []).filter((row) =>row.itemId !==item.itemId),
+              items: (family.items || []).filter((row) => row.itemId !== item.itemId),
             })
           )
       );
 
-      toast.success( t("label.docupload.msg.deleteSuccess", "Document deleted successfully") );
+      toast.success(t("label.docupload.msg.deleteSuccess", "Document deleted successfully"));
 
     };
 
@@ -1061,7 +996,7 @@ const ApplicationDocumentUpload = () => {
     const docSrNo = item.iDocumentsSrNo ?? item.idocumentsSrNo ?? item.idocumentsrno ?? null;
 
     if (docSrNo == null) {
-      toast.error( t("label.docupload.msg.noFileToDelete","This document has no uploaded file yet"));
+      toast.error(t("label.docupload.msg.noFileToDelete", "This document has no uploaded file yet"));
       return;
     }
 
@@ -1195,12 +1130,7 @@ const ApplicationDocumentUpload = () => {
 
 
   const handlePreview = async (item) => {
-    setPreview((current) => {
-      if (current?.fileUrl) {
-        URL.revokeObjectURL(current.fileUrl);
-      }
-      return null;
-    });
+    setPreview(null);
     if (item.selectedFile) {
       const fileUrl = URL.createObjectURL(item.selectedFile);
 
@@ -1214,11 +1144,7 @@ const ApplicationDocumentUpload = () => {
       return;
     }
 
-    const docSrNo =
-      item.iDocumentsSrNo ??
-      item.idocumentsSrNo ??
-      item.idocumentsrno ??
-      null;
+    const docSrNo = item.iDocumentsSrNo ?? item.idocumentsSrNo ?? item.idocumentsrno ?? null;
 
     if (!docSrNo) {
       toast.error(
@@ -1246,6 +1172,9 @@ const ApplicationDocumentUpload = () => {
             "No uploaded file available to preview"
           )
         );
+        return;
+      }
+      if (!isMountedRef.current) {
         return;
       }
 
@@ -1304,35 +1233,35 @@ const ApplicationDocumentUpload = () => {
     return true;
   }, [applicableFor, stage, applicantCategory, t, toast]);
 
- const validateMandatoryDocuments = useCallback(() => {
-  const allItems = flattenItems(families);
+  const validateMandatoryDocuments = useCallback(() => {
+    const allItems = flattenItems(families);
 
-  const mandatoryItems = allItems.filter(
-    (item) =>
-      (item.szmandatoryyn || item.szMandatoryYn) === "Y"
-  );
-
-  const invalidItems = mandatoryItems.filter(
-    (item) =>
-      ![
-        STATUS.RECEIVED,
-        STATUS.DEFERRED,
-        STATUS.WAIVED,
-      ].includes(getDocumentStatus(item))
-  );
-
-  if (invalidItems.length > 0) {
-    toast.error(
-      t(
-        "label.docupload.validation.mandatoryDocuments",
-        "Please receive and upload all mandatory documents before submitting"
-      )
+    const mandatoryItems = allItems.filter(
+      (item) =>
+        (item.szmandatoryyn || item.szMandatoryYn) === "Y"
     );
-    return false;
-  }
 
-  return true;
-}, [families, t, toast]);
+    const invalidItems = mandatoryItems.filter(
+      (item) =>
+        ![
+          STATUS.RECEIVED,
+          STATUS.DEFERRED,
+          STATUS.WAIVED,
+        ].includes(getDocumentStatus(item))
+    );
+
+    if (invalidItems.length > 0) {
+      toast.error(
+        t(
+          "label.docupload.validation.mandatoryDocuments",
+          "Please receive and upload all mandatory documents before submitting"
+        )
+      );
+      return false;
+    }
+
+    return true;
+  }, [families, t, toast]);
   /* ==========================================================
      SAVE
      ========================================================== */
@@ -1375,229 +1304,74 @@ const ApplicationDocumentUpload = () => {
         }
 
         const requestPayload = currentItems.map((item) => ({
-          /*
-           * Primary Key
-           */
-          iDocumentsSrNo: item.iDocumentsSrNo ??
-            item.idocumentsSrNo ??
-            item.idocumentsrno ??
-            null,
 
-          szApplicationNo:appNo,
+          iDocumentsSrNo: item.iDocumentsSrNo ?? item.idocumentsSrNo ?? item.idocumentsrno ?? null,
 
-          szOrgId: orgId ,
+          szApplicationNo: appNo,
 
-          szDocCode:
-            item.szdoccode ||
-            item.szDocCode ||
-            item.docCode ||
-            item.docName ||
-            null,
+          szOrgId: orgId,
 
-          szApplicantId:
-            item.szapplicantid ||
-            item.szApplicantId ||
-            applicableFor ||
-            null,
+          szDocCode: item.szdoccode || item.szDocCode || item.docCode || item.docName || null,
 
-          szAssetSrNo:
-            item.szassetsrno ??
-            item.szAssetSrNo ??
-            null,
+          szApplicantId: item.szapplicantid || item.szApplicantId || applicableFor || null,
 
-          /*
-           * Stage
-           */
-          szStageDue:
-            item.szstagedue ||
-            item.szStageDue ||
-            stage ||
-            null,
+          szAssetSrNo: item.szassetsrno ?? item.szAssetSrNo ?? null,
 
-          /*
-           * Waive allowed
-           */
-          szDocWaiveAllowYn:
-            item.szdocwaiveallowyn ||
-            item.szDocWaiveAllowYn ||
-            "N",
+          szStageDue: item.szstagedue || item.szStageDue || stage || null,
 
-          /*
-           * Status
-           */
-          szReceivedYn:
-            item.status === STATUS.RECEIVED
-              ? "Y"
-              : "N",
+          szDocWaiveAllowYn: item.szdocwaiveallowyn || item.szDocWaiveAllowYn || "N",
 
-          szWaivedYn:
-            item.status === STATUS.WAIVED
-              ? "Y"
-              : "N",
+          szReceivedYn: item.status === STATUS.RECEIVED ? "Y" : "N",
 
-          szDifferYn:
-            item.status === STATUS.DEFERRED
-              ? "Y"
-              : "N",
+          szWaivedYn: item.status === STATUS.WAIVED ? "Y" : "N",
 
-          /*
-           * Waiver
-           */
-          szWaiverDec:
-            item.waiveComments ||
-            item.szwaiverdec ||
-            item.szWaiverDec ||
-            null,
+          szDifferYn: item.status === STATUS.DEFERRED ? "Y" : "N",
 
-          szWaiverReason:
-            item.waiveReason ||
-            item.szwaiverreason ||
-            item.szWaiverReason ||
-            null,
+          szWaiverDec: item.waiveComments || item.szwaiverdec || item.szWaiverDec || null,
 
-          /*
-           * Mandatory / Original
-           */
-          szMandatoryYn:
-            item.szmandatoryyn ||
-            item.szMandatoryYn ||
-            "N",
+          szWaiverReason: item.waiveReason || item.szwaiverreason || item.szWaiverReason || null,
 
-          szOriginalReqYn:
-            item.szoriginalreqyn ||
-            item.szOriginalReqYn ||
-            "N",
+          szMandatoryYn: item.szmandatoryyn || item.szMandatoryYn || "N",
 
-          /*
-           * Verification
-           */
-          szVerfDecision:
-            item.szverfdecision ||
-            item.szVerfDecision ||
-            null,
+          szOriginalReqYn: item.szoriginalreqyn || item.szOriginalReqYn || "N",
 
-          szVerifiedBy:
-            item.szverifiedby ||
-            item.szVerifiedBy ||
-            null,
+          szVerfDecision: item.szverfdecision || item.szVerfDecision || null,
 
-          /*
-           * User specified
-           */
-          szUserSpecifiedYn:
-            item.custom || item._isNew
-              ? "Y"
-              : item.szuserspecifiedyn ||
-              item.szUserSpecifiedYn ||
-              "N",
+          szVerifiedBy: item.szverifiedby || item.szVerifiedBy || null,
 
-          /*
-           * Existing DMS document ID
-           */
-          documentId:
-            item.documentid ??
-            item.documentId ??
-            null,
+          szUserSpecifiedYn: item.custom || item._isNew ? "Y" : item.szuserspecifiedyn || item.szUserSpecifiedYn || "N",
 
-          /*
-           * Document family
-           */
-          szDocFamilyCode:
-            item.szdocfamilycode ||
-            item.szDocFamilyCode ||
-            item.docFamilyCode ||
-            null,
+          documentId: item.documentid ?? item.documentId ?? null,
 
-          szDocFamilyDesc:
-            item.szdocfamilydesc ||
-            item.szDocFamilyDesc ||
-            item.docFamilyName ||
-            null,
+          szDocFamilyCode: item.szdocfamilycode || item.szDocFamilyCode || item.docFamilyCode || null,
 
-          /*
-           * Fraud
-           */
-          cFraudYn:
-            item.cfraudyn ||
-            item.cFraudYn ||
-            "N",
+          szDocFamilyDesc: item.szdocfamilydesc || item.szDocFamilyDesc || item.docFamilyName || null,
 
-          /*
-           * Remarks
-           */
-          szRemarks:
-            item.remarks ||
-            item.szremarks ||
-            item.szRemarks ||
-            null,
+          cFraudYn: item.cfraudyn || item.cFraudYn || "N",
 
-          /*
-           * Due information
-           */
-          iDueDays:
-            item.iduedays ??
-            item.idueDays ??
-            null,
+          szRemarks: item.remarks || item.szremarks || item.szRemarks || null,
 
-          dtDueDate:
-            item.dtduedate ||
-            item.dtDueDate ||
-            null,
+          iDueDays: item.iduedays ?? item.idueDays ?? null,
 
-          /*
-           * Docket
-           */
-          szDocketLocation:
-            item.szdocketlocation ||
-            item.szDocketLocation ||
-            null,
+          dtDueDate: item.dtduedate || item.dtDueDate || null,
 
-          /*
-           * Pages
-           */
-          iNoOfPages:
-            item.inoofpages ??
-            item.inoOfPages ??
-            null,
+          szDocketLocation: item.szdocketlocation || item.szDocketLocation || null,
 
-          /*
-           * Level
-           */
-          cLevel:
-            item.clevel ||
-            item.cLevel ||
-            "P",
+          iNoOfPages: item.inoofpages ?? item.inoOfPages ?? null,
 
-          /*
-           * Receipt
-           */
-          dtRecieptDate:
-            item.dtrecieptdate ||
-            item.dtRecieptDate ||
-            null,
+          cLevel: item.clevel || item.cLevel || "P",
 
-          dtDeferralDate:
-            item.deferralDate ||
-            item.dtdeferraldate ||
-            item.dtDeferralDate ||
-            null,
+          dtRecieptDate: item.dtrecieptdate || item.dtRecieptDate || null,
 
-          /*
-           * Audit
-           */
+          dtDeferralDate: item.deferralDate || item.dtdeferraldate || item.dtDeferralDate || null,
+
           szCreatedBy: getLoggedInUsername(),
 
           szUpdatedBy: getLoggedInUsername(),
 
-          dtCreatedOn:
-            item.dtcreatedon ||
-            item.dtCreatedOn ||
-            null,
+          dtCreatedOn: item.dtcreatedon || item.dtCreatedOn || null,
 
-          dtUpdatedOn:
-            item.dtupdatedon ||
-            item.dtUpdatedOn ||
-            null,
+          dtUpdatedOn: item.dtupdatedon || item.dtUpdatedOn || null,
 
           /*
            * ==================================================
@@ -1612,9 +1386,7 @@ const ApplicationDocumentUpload = () => {
            * multipart file_1001
            * ==================================================
            */
-          filePartName: item.selectedFile
-            ? `file_${item.itemId}`
-            : null,
+          filePartName: item.selectedFile ? `file_${item.itemId}` : null,
         }));
 
         /*
@@ -1626,21 +1398,13 @@ const ApplicationDocumentUpload = () => {
 
         formData.append(
           "request",
-          new Blob(
-            [JSON.stringify(requestPayload)],
-            {
-              type: "application/json",
-            }
+          new Blob([JSON.stringify(requestPayload)], { type: "application/json", }
           )
         );
 
         currentItems.forEach((item) => {
           if (item.selectedFile) {
-            formData.append(
-              `file_${item.itemId}`,
-              item.selectedFile,
-              item.selectedFile.name
-            );
+            formData.append(`file_${item.itemId}`, item.selectedFile, item.selectedFile.name);
           }
         });
 
@@ -1669,62 +1433,48 @@ const ApplicationDocumentUpload = () => {
             "/documents" +
             `?szOrgId=${encodeURIComponent(orgId)}` +
             `&szApplicantId=${encodeURIComponent(applicableFor)}` +
-            `&szStageDue=${encodeURIComponent(stage)}`+
+            `&szStageDue=${encodeURIComponent(stage)}` +
             `&szApplicantCategory=${encodeURIComponent(applicantCategory)}`
           )
         );
 
         applyFamilies(refreshed);
 
-        /*
-         * ==================================================
-         * SUCCESS
-         * ==================================================
-         */
-        toast.success(
-          t(
-            "label.docupload.msg.saved",
-            "Documents saved successfully"
-          )
-        );
+        // Check individual document results returned by the backend.
+        const documentResults = Array.isArray(saved) ? saved : [];
 
-        return {
-          success: true,
-        };
+        const failedDocuments = documentResults.filter((item) => item.status === "FAILURE");
+
+        const successfulCount = documentResults.filter((item) => item.status === "SUCCESS").length;
+
+        if (failedDocuments.length > 0) {
+          const failedNames = failedDocuments
+            .map((item) => item.documentCode || item.docCode || "Unknown document")
+            .join(", ");
+
+          toast.error(`${failedDocuments.length} document(s) failed: ${failedNames}`);
+
+          if (successfulCount > 0) {
+            toast.success(`${successfulCount} document(s) saved successfully`);
+          }
+
+          return {success: false,partialSuccess: successfulCount > 0,failedDocuments,};
+        }
+
+        toast.success(t("label.docupload.msg.saved", "Documents saved successfully"));
+
+        return { success: true };
+
 
       } catch (error) {
-        console.error(
-          "Failed to upload documents",
-          error
-        );
+        console.error("Failed to upload documents", error);
 
-        toast.error(
-          error?.message ||
-          t(
-            "label.docupload.msg.saveFailed",
-            "Save failed"
-          )
-        );
+        toast.error(error?.message || t("label.docupload.msg.saveFailed", "Save failed"));
 
-        return {
-          success: false,
-        };
+        return { success: false, };
       }
     },
-    [
-      applicationNo,
-      incomingApplicationNo,
-      stage,
-      applicableFor,
-      applicantCategory,
-      families,
-      validateHeaderFields,
-      orgId,
-      applyFamilies,
-      t,
-      toast,
-      validateMandatoryDocuments,
-    ]
+    [applicationNo, incomingApplicationNo, stage, applicableFor, applicantCategory, families, validateHeaderFields, orgId, applyFamilies, t, toast, validateMandatoryDocuments,]
   );
   /* ==========================================================
      RESET
@@ -2402,12 +2152,7 @@ const ApplicationDocumentUpload = () => {
           open={Boolean(
             preview
           )}
-          onClose={() => {
-            if (preview?.fileUrl) {
-              URL.revokeObjectURL(preview.fileUrl);
-            }
-            setPreview(null);
-          }}
+          onClose={() => {setPreview(null);}}
           title={
             preview?.docName ||
             t(
@@ -2426,12 +2171,7 @@ const ApplicationDocumentUpload = () => {
               translate={false}
               variant="outlined"
               inline
-              onClick={() => {
-                if (preview?.fileUrl) {
-                  URL.revokeObjectURL(preview.fileUrl);
-                }
-                setPreview(null);
-              }}
+              onClick={() => {setPreview(null);}}
             />
           }
         >
