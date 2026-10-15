@@ -15,17 +15,11 @@ import { LosDocumentAPI, LosQdeAPI } from "./apiEndpoints";
 import { unwrapApiResponse } from "./unwrapApiResponse";
 import { useDuLookups } from "./hooks/useDuLookups";
 import { DDE_PENSIONER, normalizeDdeCustomerType } from "./constants/ddeSections";
+import {MAX_DOCUMENT_FILE_SIZE,ALLOWED_DOCUMENT_FILES,ACCEPTED_DOCUMENT_FILES,} from "./documentFileValidation";
 
 /* ============================================================
    CONFIGURATION
    ============================================================ */
-
-/*
- * true  -> use hardcoded data
- * false -> use actual backend APIs
- */
-const USE_MOCK_DATA = true;
-
 
 const STATUS = {
   PENDING: "Pending",
@@ -54,7 +48,6 @@ const MOCK_WAIVE_REASON_OPTIONS = [
 ];
 
 
-const MOCK_DOCUMENT_DATA = {}
 
 const documentButtonStyle = {
   height: "30px",
@@ -78,6 +71,11 @@ const newCustomId = () =>
     : `custom-${Date.now()}-${Math.random()
       .toString(36)
       .slice(2, 10)}`;
+
+const getLoggedInUsername = () =>
+  typeof sessionStorage !== "undefined"
+    ? sessionStorage.getItem("SEC_USERNAME") || "SYSTEM"
+    : "SYSTEM";
 
 const flattenItems = (families = []) =>
   families.flatMap((family) => family.items || []);
@@ -211,10 +209,9 @@ const ApplicationDocumentUpload = () => {
 
   const screenMenuId = location.state?.menuId;
 
+//as we dont have parent page we are using default values.
   const incomingApplicationNo = location.state?.applicationNo;
   const orgId = location.state?.orgId || "001";
-
-  const borrowerType = location.state?.borrowerType || "Individual";
 
   /* ==========================================================
      TRANSLATION HELPER
@@ -288,7 +285,7 @@ const ApplicationDocumentUpload = () => {
   const { lookups: duLookups } = useDuLookups(orgId);
   const stageOptions = duLookups["los.du.stage"] || [];
 
-  const [waiveReasonOptions, setWaiveReasonOptions,] = useState(USE_MOCK_DATA ? MOCK_WAIVE_REASON_OPTIONS : []);
+  const [waiveReasonOptions, setWaiveReasonOptions,] = useState( MOCK_WAIVE_REASON_OPTIONS);//lookup required
 
   const [applicableFor, setApplicableFor] = useState("");
   const [applicantCategory, setApplicantCategory] = useState("");
@@ -296,13 +293,8 @@ const ApplicationDocumentUpload = () => {
     (option) => normalizeDdeCustomerType(option.value) !== DDE_PENSIONER
   );
 
-  const [stage, setStage] = useState(USE_MOCK_DATA ? MOCK_DOCUMENT_DATA.stage : "");
-  useEffect(() => {
-    if (!stage && stageOptions.some((option) => option.value === "PRESUBMISSION")) {
-      setStage("PRESUBMISSION");
-    }
-  }, [stage, stageOptions]);
-
+  const [stage, setStage] = useState("");
+  
   const [families, setFamilies] = useState([]);
 
   const [expanded, setExpanded] = useState({});
@@ -666,72 +658,22 @@ const ApplicationDocumentUpload = () => {
         setApplicableFor(payload.applicableFor);
       }
     },
-    []
+    [toast]
   );
-  /* ==========================================================
-     LOAD MASTER DATA
-     ========================================================== */
-
-  const loadMasters = useCallback(
-    async () => {
-      /* ------------------------------------------
-         MOCK
-         ------------------------------------------ */
-
-      if (USE_MOCK_DATA) {
-        setWaiveReasonOptions(
-          MOCK_WAIVE_REASON_OPTIONS
-        );
-
-        return;
-      }
-
-      /* ------------------------------------------
-         ACTUAL API
-         ------------------------------------------ */
-
-      try {
-        const reasons = await HAxiosService.GET(
-          LosDocumentAPI.waiveReasons()
-        ).then(unwrapApiResponse);
-
-        const reasonOpts =
-          toDropdownOptions(reasons);
-
-        setWaiveReasonOptions(
-          reasonOpts
-        );
-      } catch (error) {
-        toast.error(
-          error?.message ||
-          t(
-            "label.docupload.msg.loadFailed",
-            "Unable to load document masters"
-          )
-        );
-      }
-    },
-    [
-      borrowerType,
-      t,
-      toast,
-    ]
-  );
-
-  /* ==========================================================
+  
+   /* ==========================================================
      LOAD CHECKLIST
      ========================================================== */
 
   const loadChecklist = useCallback(async () => {
     try {
-      if (!applicationNo || !applicantsLoaded || !applicableFor || !stage || !applicantCategory) {
+      if (!orgId || !applicationNo || !applicantsLoaded || !applicableFor || !stage || !applicantCategory) {
         setFamilies([]);
         return;
       }
 
       const payload = await HAxiosService.GET(LosDocumentAPI.LosDocumentAPI("ECF-DocumentUpload") + "/documents" + `?szOrgId=${encodeURIComponent(orgId)}&szApplicantId=${applicableFor}&szStageDue=${stage}&szApplicantCategory=${applicantCategory}`).then(unwrapApiResponse);
 
-      console.log("Incomming payload = ", payload);
       applyFamilies(payload);
 
       setAddingFor("");
@@ -739,8 +681,9 @@ const ApplicationDocumentUpload = () => {
     } catch (error) {
       console.error("Failed to load document checklist", error);
       setFamilies([]);
+      toast.error("Unable to load the document checklist");
     }
-  }, [applicationNo, applicantsLoaded, applicableFor, applicantCategory, stage, applyFamilies]);
+  }, [applicationNo, applicantsLoaded, applicableFor, applicantCategory, stage, applyFamilies,orgId,toast]);
 
   const loadApplicantOptions = useCallback(async () => {
     setApplicantsLoaded(false);
@@ -791,10 +734,6 @@ const ApplicationDocumentUpload = () => {
     loadApplicantOptions();
   }, [loadApplicantOptions]);
 
-
-  useEffect(() => {
-    loadMasters();
-  }, [loadMasters]);
 
   useEffect(() => {
     loadChecklist();
@@ -952,8 +891,7 @@ const ApplicationDocumentUpload = () => {
       szapplicationno:
         applicationNo,
 
-      szorgid:
-        "001",
+      szorgid:orgId,
 
       szdoccode: newDocName.trim(),
 
@@ -1032,13 +970,13 @@ const ApplicationDocumentUpload = () => {
         null,
 
       szcreatedby:
-        "USER",
+        getLoggedInUsername(),
 
       dtcreatedon:
         new Date(),
 
       szupdatedby:
-        "USER",
+        getLoggedInUsername(),
 
       dtupdatedon:
         new Date(),
@@ -1074,33 +1012,14 @@ const ApplicationDocumentUpload = () => {
 
   const handleDeleteCustom =
     async (item) => {
-      const docSrNo =
-        item.iDocumentsSrNo ??
-        item.idocumentsSrNo ??
-        item.idocumentsrno ??
-        null;
-      if (!item.custom) {
-        toast.error(
-          t(
-            "label.docupload.msg.masterDeleteDenied",
-            "Master checklist documents cannot be deleted"
-          )
-        );
+      const docSrNo =item.iDocumentsSrNo ??item.idocumentsSrNo ??item.idocumentsrno ??null;
 
+      if (!item.custom) {
+        toast.error(t("label.docupload.msg.masterDeleteDenied","Master checklist documents cannot be deleted"));
         return;
       }
 
-      /*
-       * Actual API delete
-       */
-
-
-      if (
-        applicationNo &&
-        savedItemIds.has(
-          String(docSrNo)
-        )
-      ) {
+      if (applicationNo && savedItemIds.has(String(docSrNo))) {
         try {
           unwrapApiResponse(
             await HAxiosService.DELETE(
@@ -1110,44 +1029,27 @@ const ApplicationDocumentUpload = () => {
               `&orgId=${encodeURIComponent(orgId)}`
             )
           );
-
-
         } catch (error) {
           toast.error(
             error?.message ||
-            t(
-              "label.docupload.msg.deleteFailed",
-              "Unable to delete document"
-            )
+            t("label.docupload.msg.deleteFailed","Unable to delete document")
           );
 
           return;
         }
       }
 
-      /*
-       * Remove from UI
-       */
       setFamilies(
         (prev) =>
           prev.map(
             (family) => ({
               ...family,
-
-              items: (
-                family.items || []
-              ).filter(
-                (row) =>
-                  row.itemId !==
-                  item.itemId
-              ),
+              items: (family.items || []).filter((row) =>row.itemId !==item.itemId),
             })
           )
       );
 
-      toast.success(
-        t("label.docupload.msg.deleteSuccess", "Document deleted successfully")
-      );
+      toast.success( t("label.docupload.msg.deleteSuccess", "Document deleted successfully") );
 
     };
 
@@ -1156,19 +1058,10 @@ const ApplicationDocumentUpload = () => {
  ========================================================== */
 
   const handleDeleteFile = async (item) => {
-    const docSrNo =
-      item.iDocumentsSrNo ??
-      item.idocumentsSrNo ??
-      item.idocumentsrno ??
-      null;
+    const docSrNo = item.iDocumentsSrNo ?? item.idocumentsSrNo ?? item.idocumentsrno ?? null;
 
     if (docSrNo == null) {
-      toast.error(
-        t(
-          "label.docupload.msg.noFileToDelete",
-          "This document has no uploaded file yet"
-        )
-      );
+      toast.error( t("label.docupload.msg.noFileToDelete","This document has no uploaded file yet"));
       return;
     }
 
@@ -1218,15 +1111,23 @@ const ApplicationDocumentUpload = () => {
   const handleFilePicked = (item, file) => {
     if (!file) return;
 
-    const allowedTypes = [
-      "application/pdf",
-      "image/jpeg",
-      "image/png",
-    ];
+    const fileName = file.name.toLowerCase();
+    const lastDotIndex = fileName.lastIndexOf(".");
+    const extension =
+      lastDotIndex >= 0 ? fileName.slice(lastDotIndex) : "";
 
-    const maxFileSize = 10 * 1024 * 1024; // 10 MB
+    const allowedMimeTypes = ALLOWED_DOCUMENT_FILES[extension];
 
-    if (!allowedTypes.includes(file.type)) {
+    if (!allowedMimeTypes) {
+      toast.error(
+        t("label.docupload.msg.fileValidation",
+          "Please upload a supported file within the permitted size limit: {size} MB",
+          { size: 10 }
+        )
+      );
+      return;
+    }
+    if (!allowedMimeTypes.includes(file.type)) {
       toast.error(
         t(
           "label.docupload.msg.fileValidation",
@@ -1237,7 +1138,8 @@ const ApplicationDocumentUpload = () => {
       return;
     }
 
-    if (file.size > maxFileSize) {
+
+    if (file.size > MAX_DOCUMENT_FILE_SIZE) {
       toast.error(
         t(
           "label.docupload.msg.fileValidation",
@@ -1402,37 +1304,35 @@ const ApplicationDocumentUpload = () => {
     return true;
   }, [applicableFor, stage, applicantCategory, t, toast]);
 
-  const validateMandatoryDocuments = () => {
-    const allItems = flattenItems(families);
+ const validateMandatoryDocuments = useCallback(() => {
+  const allItems = flattenItems(families);
 
-    const mandatoryItems = allItems.filter(
-      (item) =>
-        (item.szmandatoryyn || item.szMandatoryYn) === "Y"
-    );
+  const mandatoryItems = allItems.filter(
+    (item) =>
+      (item.szmandatoryyn || item.szMandatoryYn) === "Y"
+  );
 
-    const invalidItems = mandatoryItems.filter((item) => {
-      const status = getDocumentStatus(item);
-
-      return ![
+  const invalidItems = mandatoryItems.filter(
+    (item) =>
+      ![
         STATUS.RECEIVED,
         STATUS.DEFERRED,
         STATUS.WAIVED,
-      ].includes(status);
-    });
+      ].includes(getDocumentStatus(item))
+  );
 
-    if (invalidItems.length > 0) {
-      toast.error(
-        t(
-          "label.docupload.validation.mandatoryDocuments",
-          "Please receive and upload all mandatory documents before submitting"
-        )
-      );
+  if (invalidItems.length > 0) {
+    toast.error(
+      t(
+        "label.docupload.validation.mandatoryDocuments",
+        "Please receive and upload all mandatory documents before submitting"
+      )
+    );
+    return false;
+  }
 
-      return false;
-    }
-
-    return true;
-  };
+  return true;
+}, [families, t, toast]);
   /* ==========================================================
      SAVE
      ========================================================== */
@@ -1483,23 +1383,10 @@ const ApplicationDocumentUpload = () => {
             item.idocumentsrno ??
             null,
 
-          /*
-           * Application
-           */
-          szApplicationNo:
-            item.szapplicationno ||
-            item.szApplicationNo ||
-            appNo,
+          szApplicationNo:appNo,
 
-          szOrgId:
-            item.szorgid ||
-            item.szOrgId ||
-            orgId ||
-            "001",
+          szOrgId: orgId ,
 
-          /*
-           * Document
-           */
           szDocCode:
             item.szdoccode ||
             item.szDocCode ||
@@ -1698,15 +1585,9 @@ const ApplicationDocumentUpload = () => {
           /*
            * Audit
            */
-          szCreatedBy:
-            item.szcreatedby ||
-            item.szCreatedBy ||
-            null,
+          szCreatedBy: getLoggedInUsername(),
 
-          szUpdatedBy:
-            item.szupdatedby ||
-            item.szUpdatedBy ||
-            null,
+          szUpdatedBy: getLoggedInUsername(),
 
           dtCreatedOn:
             item.dtcreatedon ||
@@ -1735,11 +1616,6 @@ const ApplicationDocumentUpload = () => {
             ? `file_${item.itemId}`
             : null,
         }));
-
-        console.log(
-          "Document upload request:",
-          requestPayload
-        );
 
         /*
          * ==================================================
@@ -1775,14 +1651,9 @@ const ApplicationDocumentUpload = () => {
               "ECF-DocumentUpload"
             ) + "/documents/upload" +
             `?applicationNo=${encodeURIComponent(appNo)}` +
-            `&orgId=${encodeURIComponent(orgId || "001")}`,
+            `&orgId=${encodeURIComponent(orgId)}`,
             formData
           )
-        );
-
-        console.log(
-          "Documents uploaded successfully:",
-          saved
         );
 
         /*
@@ -1847,11 +1718,12 @@ const ApplicationDocumentUpload = () => {
       applicableFor,
       applicantCategory,
       families,
-      savedItemIds,
+      validateHeaderFields,
       orgId,
       applyFamilies,
       t,
       toast,
+      validateMandatoryDocuments,
     ]
   );
   /* ==========================================================
@@ -2332,6 +2204,7 @@ const ApplicationDocumentUpload = () => {
                           ref={(element) => { fileInputs.current[item.itemId] = element; }}
                           type="file"
                           hidden
+                          accept={ACCEPTED_DOCUMENT_FILES}
                           onChange={(e) => { handleFilePicked(item, e.target.files?.[0]); e.target.value = ""; }}
                         />
 
@@ -2553,7 +2426,12 @@ const ApplicationDocumentUpload = () => {
               translate={false}
               variant="outlined"
               inline
-              onClick={() => setPreview(null)}
+              onClick={() => {
+                if (preview?.fileUrl) {
+                  URL.revokeObjectURL(preview.fileUrl);
+                }
+                setPreview(null);
+              }}
             />
           }
         >
