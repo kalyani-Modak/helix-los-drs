@@ -1797,15 +1797,13 @@ const ApplicationDocumentUpload = () => {
             ) +
             "/documents" +
             `?szOrgId=${encodeURIComponent(orgId)}` +
-            `?szApplicantId=${encodeURIComponent(applicableFor)}` +
+            `&szApplicantId=${encodeURIComponent(applicableFor)}` +
             `&szStageDue=${encodeURIComponent(stage)}`+
             `&szApplicantCategory=${encodeURIComponent(applicantCategory)}`
           )
         );
 
-        applyFamilies(
-          refreshed || saved
-        );
+        applyFamilies(refreshed);
 
         /*
          * ==================================================
@@ -1847,6 +1845,7 @@ const ApplicationDocumentUpload = () => {
       incomingApplicationNo,
       stage,
       applicableFor,
+      applicantCategory,
       families,
       savedItemIds,
       orgId,
