@@ -3,7 +3,6 @@ import { useQdeLookups } from "./useQdeLookups";
 /** Lookup types for DDE dropdowns. */
 export const DDE_LOOKUP_TYPES = [
   "party.title",
-  "party.gender",
   "party.maritalstatus",
   "party.nationality",
   "party.religion",
@@ -21,6 +20,7 @@ export const DDE_LOOKUP_TYPES = [
   "los.repaymentfrequency",
   "los.ratetype",
   "los.repaymentscheduletype",
+  "los.graceperiodtype",
   "los.coapplicanttype",
   "los.coapplicant.relationship",
   "los.guarantor.relationship",
@@ -93,6 +93,27 @@ export const resolveDdeLookupKey = (optionsMaster) =>
 
 export function useDdeLookups(orgId) {
   return useQdeLookups(orgId, DDE_LOOKUP_TYPES);
+}
+
+/** Lookup types the DDE screen shares with QDE (gender, borrower category, address types). */
+export const DDE_SHARED_LOOKUP_TYPES = [
+  "party.gender",
+  "los.borrowercategory",
+  "los.address.type.individual",
+  "los.address.type.nonindividual",
+];
+
+/** Everything the DDE screen needs up front, so one request (not two) fetches it. */
+export const DDE_SCREEN_LOOKUP_TYPES = [
+  ...new Set([...DDE_LOOKUP_TYPES, ...DDE_SHARED_LOOKUP_TYPES]),
+];
+
+/**
+ * All the DDE screen's dropdown lists in ONE request (cached and shared, see lookupCache.js),
+ * instead of one request for the DDE types and a second one for the shared types.
+ */
+export function useDdeScreenLookups(orgId) {
+  return useQdeLookups(orgId, DDE_SCREEN_LOOKUP_TYPES);
 }
 
 export default useDdeLookups;
