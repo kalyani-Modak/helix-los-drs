@@ -7,6 +7,7 @@ import { unwrapApiResponse } from "../unwrapApiResponse";
 export const DU_LOOKUP_TYPES = [
   "los.du.stage",
   "los.borrowercategory",
+  "los.du.waiverreason",
 ];
 
 const toHDropdownOptions = (values = []) =>

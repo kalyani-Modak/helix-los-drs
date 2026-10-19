@@ -28,27 +28,6 @@ const STATUS = {
   WAIVED: "Waived",
 };
 
-const MOCK_WAIVE_REASON_OPTIONS = [
-  {
-    label: "Not Applicable",
-    value: "NOT_APPLICABLE",
-  },
-  {
-    label: "Already Available",
-    value: "ALREADY_AVAILABLE",
-  },
-  {
-    label: "Customer Request",
-    value: "CUSTOMER_REQUEST",
-  },
-  {
-    label: "Exception Approved",
-    value: "EXCEPTION_APPROVED",
-  },
-];
-
-
-
 const documentButtonStyle = {
   height: "30px",
   minHeight: "30px",
@@ -285,7 +264,7 @@ const ApplicationDocumentUpload = () => {
   const { lookups: duLookups } = useDuLookups(orgId);
   const stageOptions = duLookups["los.du.stage"] || [];
 
-  const [waiveReasonOptions, setWaiveReasonOptions,] = useState(MOCK_WAIVE_REASON_OPTIONS);//lookup required
+  const waiveReasonOptions = duLookups["los.du.waiverreason"] || [];
 
   const [applicableFor, setApplicableFor] = useState("");
   const [applicantCategory, setApplicantCategory] = useState("");

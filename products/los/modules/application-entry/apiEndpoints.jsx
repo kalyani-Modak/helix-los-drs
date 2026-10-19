@@ -39,7 +39,6 @@ export const LosDocumentAPI = {
     `${base()}api/los/v1/documents/masters/customer-types${
       borrowerType ? `?borrowerType=${encodeURIComponent(borrowerType)}` : ""
     }`,
-  waiveReasons: () => `${base()}api/los/v1/documents/masters/waive-reasons`,
   checklist: (stage, customerType) =>
     `${base()}api/los/v1/documents/checklist?stage=${encodeURIComponent(stage)}&customerType=${encodeURIComponent(
       customerType
