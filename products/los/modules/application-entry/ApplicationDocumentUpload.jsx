@@ -1423,9 +1423,10 @@ const ApplicationDocumentUpload = () => {
               "ECF-DocumentUpload"
             ) +
             "/documents" +
-            `?szOrgId=${encodeURIComponent(orgId)}` +
+            `?orgId=${encodeURIComponent(orgId)}` +
             `&szApplicantId=${encodeURIComponent(applicableFor)}` +
             `&szStageDue=${encodeURIComponent(stage)}` +
+            `&applicationNo=${encodeURIComponent(applicationNo)}` +
             `&szApplicantCategory=${encodeURIComponent(applicantCategory)}`
           )
         );
