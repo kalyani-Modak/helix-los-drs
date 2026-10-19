@@ -28,6 +28,12 @@ const STATUS = {
   WAIVED: "Waived",
 };
 
+/** Optional applicantId query param so the backend can verify the row belongs to this applicant. */
+const applicantQuery = (item, fallback) => {
+  const id = item?.szApplicantId ?? item?.szapplicantid ?? fallback;
+  return id ? `&applicantId=${encodeURIComponent(id)}` : "";
+};
+
 const documentButtonStyle = {
   height: "30px",
   minHeight: "30px",
@@ -669,7 +675,7 @@ const ApplicationDocumentUpload = () => {
         return;
       }
 
-      const payload = await HAxiosService.GET(LosDocumentAPI.LosDocumentAPI("ECF-DocumentUpload") + "/documents" + `?szOrgId=${encodeURIComponent(orgId)}&szApplicantId=${applicableFor}&szStageDue=${stage}&szApplicantCategory=${applicantCategory}`).then(unwrapApiResponse);
+      const payload = await HAxiosService.GET(LosDocumentAPI.LosDocumentAPI("ECF-DocumentUpload") + "/documents" + `?orgId=${encodeURIComponent(orgId)}&applicationNo=${encodeURIComponent(applicationNo)}&szApplicantId=${applicableFor}&szStageDue=${stage}&szApplicantCategory=${applicantCategory}`).then(unwrapApiResponse);
 
       applyFamilies(payload);
 
@@ -940,7 +946,8 @@ const ApplicationDocumentUpload = () => {
               LosDocumentAPI.LosDocumentAPI("ECF-DocumentUpload") +
               `/${encodeURIComponent(docSrNo)}` +
               `?applicationNo=${encodeURIComponent(applicationNo)}` +
-              `&orgId=${encodeURIComponent(orgId)}`
+              `&orgId=${encodeURIComponent(orgId)}` +
+              applicantQuery(item, applicableFor)
             )
           );
         } catch (error) {
@@ -985,7 +992,8 @@ const ApplicationDocumentUpload = () => {
           LosDocumentAPI.LosDocumentAPI("ECF-DocumentUpload") +
           `/documents/${encodeURIComponent(docSrNo)}/file` +
           `?applicationNo=${encodeURIComponent(applicationNo)}` +
-          `&orgId=${encodeURIComponent(orgId)}`
+          `&orgId=${encodeURIComponent(orgId)}` +
+          applicantQuery(item, applicableFor)
         )
       );
     } catch (error) {
@@ -1140,7 +1148,8 @@ const ApplicationDocumentUpload = () => {
         LosDocumentAPI.LosDocumentAPI("ECF-DocumentUpload") +
         `/documents/${docSrNo}/preview` +
         `?applicationNo=${encodeURIComponent(applicationNo)}` +
-        `&orgId=${encodeURIComponent(orgId)}`,
+        `&orgId=${encodeURIComponent(orgId)}` +
+        applicantQuery(item, applicableFor),
         { responseType: "blob" }
       );
 
