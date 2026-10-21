@@ -119,6 +119,43 @@ const getPreviewErrorMessage = async (error, fallback) => {
   );
 };
 
+/**
+ * Reads the backend's machine-readable errorCode from an axios error, a response object or an unwrapped API
+ * error (the response body may be a Blob for the preview request).
+ */
+const getApiErrorCode = async (errorOrResponse) => {
+  if (errorOrResponse?.errorCode) {
+    return errorOrResponse.errorCode;
+  }
+
+  const data =
+    errorOrResponse?.response?.data ??
+    errorOrResponse?.data ??
+    errorOrResponse?.apiData;
+
+  if (typeof Blob !== "undefined" && data instanceof Blob) {
+    try {
+      return JSON.parse(await data.text())?.errorCode || null;
+    } catch {
+      return null;
+    }
+  }
+
+  return data?.errorCode || null;
+};
+
+/** Identifies a checklist row across reloads (custom rows get new ids when the checklist is reloaded). */
+const itemKey = (docCode, applicantId) => `${docCode ?? ""}||${applicantId ?? ""}`;
+
+const rowItemKey = (item) =>
+  itemKey(
+    item.szdoccode || item.szDocCode,
+    item.szapplicantid || item.szApplicantId
+  );
+
+/** Visual lock for controls that must not be used while a save or a DMS sync is in progress. */
+const lockedSx = { pointerEvents: "none", opacity: 0.5 };
+
 const isDocumentChanged = (item, originalItem) => {
   // New/custom document
   if (!originalItem) {
@@ -247,6 +284,50 @@ const ApplicationDocumentUpload = () => {
     [t]
   );
 
+  /** Maps the backend's errorCode to a user-facing message; falls back to the server text, then a generic one. */
+  const getErrorCodeMessage = useCallback(
+    (code, fallback) => {
+      switch (code) {
+        case "UPLOAD_IN_PROGRESS":
+          return t(
+            "label.docupload.err.UPLOAD_IN_PROGRESS",
+            "Another upload for this document is still in progress. Please try again in a few minutes."
+          );
+        case "DMS_UNAVAILABLE":
+          return t(
+            "label.docupload.err.DMS_UNAVAILABLE",
+            "The document service is temporarily unavailable. Please try again."
+          );
+        case "VALIDATION_FAILED":
+          return t(
+            "label.docupload.err.VALIDATION_FAILED",
+            "The document or request is not valid. Please reload the page and try again."
+          );
+        case "FORBIDDEN":
+          return t(
+            "label.docupload.err.FORBIDDEN",
+            "You are not allowed to change this document."
+          );
+        case "NOT_FOUND":
+          return t(
+            "label.docupload.err.NOT_FOUND",
+            "The document item was not found. Please reload the page."
+          );
+        case "FILE_UNAVAILABLE":
+          return t(
+            "label.docupload.err.FILE_UNAVAILABLE",
+            "The uploaded file is no longer available. The list has been refreshed; please upload it again."
+          );
+        default:
+          return (
+            fallback ||
+            t("label.docupload.err.UNKNOWN", "Unable to save this document")
+          );
+      }
+    },
+    [t]
+  );
+
   const localeOverrides = useMemo(
     () => ({
       ...intl.messages,
@@ -292,6 +373,15 @@ const ApplicationDocumentUpload = () => {
   const [savedItemIds, setSavedItemIds] = useState(() => new Set());
 
   const originalItemsRef = useRef([]);
+
+  /*
+   * Save guard: the ref blocks a second click in the same tick, the state disables the controls.
+   */
+  const isSavingRef = useRef(false);
+  const [isSaving, setIsSaving] = useState(false);
+
+  /** A row is locked while a save runs or while the backend is still syncing it with the document service. */
+  const isRowLocked = (item) => isSaving || Boolean(item?.syncPending);
 
   const isMountedRef = useRef(true);
 
@@ -558,13 +648,11 @@ const ApplicationDocumentUpload = () => {
                 fileSize: item.fileSize,
                 fileType: item.fileType,
                 fileUrl: item.fileUrl,
-                hasFile: Boolean(
-                  item.hasFile ||
-                  item.documentId ||
-                  item.documentid ||
-                  item.szReceivedYn === "Y" ||
-                  item.szreceivedyn === "Y"
-                ),
+                /*
+                 * A file exists only if the row points at a DMS document. "Received" alone does not mean
+                 * a file was uploaded (Received without a file is allowed).
+                 */
+                hasFile: Boolean(item.documentId || item.documentid),
 
                 /*
                  * UI waiver information
@@ -778,6 +866,9 @@ const ApplicationDocumentUpload = () => {
     item,
     status
   ) => {
+    if (isSavingRef.current) {
+      return;
+    }
 
     /* =========================================================
        Clicking the currently selected status again
@@ -934,6 +1025,10 @@ const ApplicationDocumentUpload = () => {
     async (item) => {
       const docSrNo = item.iDocumentsSrNo ?? item.idocumentsSrNo ?? item.idocumentsrno ?? null;
 
+      if (isSavingRef.current || item.syncPending) {
+        return;
+      }
+
       if (!item.custom) {
         toast.error(t("label.docupload.msg.masterDeleteDenied", "Master checklist documents cannot be deleted"));
         return;
@@ -980,6 +1075,10 @@ const ApplicationDocumentUpload = () => {
 
   const handleDeleteFile = async (item) => {
     const docSrNo = item.iDocumentsSrNo ?? item.idocumentsSrNo ?? item.idocumentsrno ?? null;
+
+    if (isSavingRef.current || item.syncPending) {
+      return;
+    }
 
     if (docSrNo == null) {
       toast.error(t("label.docupload.msg.noFileToDelete", "This document has no uploaded file yet"));
@@ -1032,6 +1131,10 @@ const ApplicationDocumentUpload = () => {
 
   const handleFilePicked = (item, file) => {
     if (!file) return;
+
+    if (isSavingRef.current || item.syncPending) {
+      return;
+    }
 
     const fileName = file.name.toLowerCase();
     const lastDotIndex = fileName.lastIndexOf(".");
@@ -1154,6 +1257,10 @@ const ApplicationDocumentUpload = () => {
       );
 
       if (response?.status >= 400) {
+        if ((await getApiErrorCode(response)) === "FILE_UNAVAILABLE") {
+          await handleFileUnavailable();
+          return;
+        }
         toast.error(
           await getPreviewErrorMessage(
             response,
@@ -1180,6 +1287,11 @@ const ApplicationDocumentUpload = () => {
         fileType: blob.type,
       });
     } catch (error) {
+      if ((await getApiErrorCode(error)) === "FILE_UNAVAILABLE") {
+        await handleFileUnavailable();
+        return;
+      }
+
       toast.error(
         await getPreviewErrorMessage(
           error,
@@ -1189,6 +1301,12 @@ const ApplicationDocumentUpload = () => {
 
       return;
     }
+  };
+
+  /** DMS no longer has the file the row points at: say so and refresh the checklist. */
+  const handleFileUnavailable = async () => {
+    toast.error(getErrorCodeMessage("FILE_UNAVAILABLE"));
+    await loadChecklist();
   };
 
   const validateHeaderFields = useCallback(() => {
@@ -1260,6 +1378,14 @@ const ApplicationDocumentUpload = () => {
 
   const handleSave = useCallback(
     async () => {
+      /* A save is already running (double click / Enter): ignore this one. */
+      if (isSavingRef.current) {
+        return { success: false, busy: true };
+      }
+
+      isSavingRef.current = true;
+      setIsSaving(true);
+
       try {
         if (!validateHeaderFields()) {
           return {
@@ -1441,11 +1567,69 @@ const ApplicationDocumentUpload = () => {
         const successfulCount = documentResults.filter((item) => item.status === "SUCCESS").length;
 
         if (failedDocuments.length > 0) {
-          const failedNames = failedDocuments
-            .map((item) => item.documentCode || item.docCode || "Unknown document")
-            .join(", ");
+          /*
+           * Keep what the user picked for the failed documents so they can retry without choosing the
+           * files again. Matched by document code + applicant: new custom rows get new ids on reload.
+           */
+          const failedKeys = new Set(
+            failedDocuments.map((result) => itemKey(result.documentCode, result.applicantId))
+          );
+          const failedLocalItems = currentItems.filter((item) => failedKeys.has(rowItemKey(item)));
 
-          toast.error(`${failedDocuments.length} document(s) failed: ${failedNames}`);
+          setFamilies((prev) => {
+            const restored = new Set();
+            const next = prev.map((family) => ({
+              ...family,
+              items: (family.items || []).map((row) => {
+                const key = rowItemKey(row);
+                const local = failedLocalItems.find((candidate) => rowItemKey(candidate) === key);
+                if (!local) {
+                  return row;
+                }
+                restored.add(key);
+                return {
+                  ...row,
+                  selectedFile: local.selectedFile,
+                  fileName: local.fileName,
+                  fileSize: local.fileSize,
+                  fileType: local.fileType,
+                  hasFile: Boolean(local.selectedFile) || row.hasFile,
+                  status: local.status,
+                  szreceivedyn: local.szreceivedyn,
+                  szwaivedyn: local.szwaivedyn,
+                  szdifferyn: local.szdifferyn,
+                  waiveReason: local.waiveReason,
+                  waiveComments: local.waiveComments,
+                  deferralStage: local.deferralStage,
+                  deferralDate: local.deferralDate,
+                  dtrecieptdate: local.dtrecieptdate,
+                };
+              }),
+            }));
+
+            // A new custom row the server did not keep: put it back where it was.
+            failedLocalItems
+              .filter((local) => !restored.has(rowItemKey(local)))
+              .forEach((local) => {
+                const familyCode = local.szdocfamilycode || local.szDocFamilyCode || local.docFamilyCode;
+                const target = next.find((family) => family.docFamilyCode === familyCode);
+                if (target) {
+                  target.items = [...(target.items || []), local];
+                }
+              });
+
+            return next;
+          });
+
+          const failedDetails = failedDocuments
+            .map((item) => {
+              const name = item.documentCode || item.docCode || "Unknown document";
+              const reason = getErrorCodeMessage(item.errorCode, item.message);
+              return t("label.docupload.msg.failedItem", "{name}: {reason}", { name, reason });
+            })
+            .join("; ");
+
+          toast.error(`${failedDocuments.length} document(s) failed - ${failedDetails}`);
 
           if (successfulCount > 0) {
             toast.success(`${successfulCount} document(s) saved successfully`);
@@ -1462,12 +1646,27 @@ const ApplicationDocumentUpload = () => {
       } catch (error) {
         console.error("Failed to upload documents", error);
 
-        toast.error(error?.message || t("label.docupload.msg.saveFailed", "Save failed"));
+        /*
+         * Request-level failures (e.g. 400 when the request does not match the selected application)
+         * carry an errorCode; show its message instead of the raw one.
+         */
+        const errorCode = await getApiErrorCode(error);
+
+        toast.error(
+          errorCode
+            ? getErrorCodeMessage(errorCode, error?.message)
+            : error?.message || t("label.docupload.msg.saveFailed", "Save failed")
+        );
 
         return { success: false, };
+      } finally {
+        isSavingRef.current = false;
+        if (isMountedRef.current) {
+          setIsSaving(false);
+        }
       }
     },
-    [applicationNo, incomingApplicationNo, stage, applicableFor, applicantCategory, families, validateHeaderFields, orgId, applyFamilies, t, toast, validateMandatoryDocuments,]
+    [applicationNo, incomingApplicationNo, stage, applicableFor, applicantCategory, families, validateHeaderFields, orgId, applyFamilies, t, toast, validateMandatoryDocuments, getErrorCodeMessage,]
   );
   /* ==========================================================
      RESET
@@ -1935,6 +2134,14 @@ const ApplicationDocumentUpload = () => {
                                   colon={false}
                                 />
                               ) : null}
+                              {item.syncPending ? (
+                                <HLabel
+                                  value={t("label.docupload.msg.syncing", "Syncing…")}
+                                  translate={false}
+                                  align="left"
+                                  colon={false}
+                                />
+                              ) : null}
                             </HBox>
                           </HBox>
 
@@ -1967,7 +2174,8 @@ const ApplicationDocumentUpload = () => {
                             variant="outlined"
                             startIcon={<FileUploadOutlinedIcon sx={{ fontSize: 16 }} />}
                             onClick={() => fileInputs.current[item.itemId]?.click()}
-                            sx={{ ...documentButtonStyle, width: "280px" }}
+                            disabled={isRowLocked(item)}
+                            sx={{ ...documentButtonStyle, width: "280px", ...(isRowLocked(item) ? lockedSx : {}) }}
                           />
 
                           {/* ====================================RECEIVED==================================== */}
@@ -1978,7 +2186,8 @@ const ApplicationDocumentUpload = () => {
                             variant="outlined"
                             inline
                             onClick={() => handleStatusClick(item, STATUS.RECEIVED)}
-                            sx={getStatusButtonSx(STATUS.RECEIVED, item.status === STATUS.RECEIVED)}
+                            disabled={isSaving}
+                            sx={{ ...getStatusButtonSx(STATUS.RECEIVED, item.status === STATUS.RECEIVED), ...(isSaving ? lockedSx : {}) }}
                           />
 
                           {/* ====================================DEFERRED==================================== */}
@@ -1992,7 +2201,8 @@ const ApplicationDocumentUpload = () => {
                             variant="outlined"
                             inline
                             onClick={() => handleStatusClick(item, STATUS.DEFERRED)}
-                            sx={getStatusButtonSx(STATUS.DEFERRED, item.status === STATUS.DEFERRED)}
+                            disabled={isSaving}
+                            sx={{ ...getStatusButtonSx(STATUS.DEFERRED, item.status === STATUS.DEFERRED), ...(isSaving ? lockedSx : {}) }}
                           />
 
                           {/* ====================================WAIVED==================================== */}
@@ -2006,7 +2216,8 @@ const ApplicationDocumentUpload = () => {
                             variant="outlined"
                             inline
                             onClick={() => handleStatusClick(item, STATUS.WAIVED)}
-                            sx={getStatusButtonSx(STATUS.WAIVED, item.status === STATUS.WAIVED)}
+                            disabled={isSaving}
+                            sx={{ ...getStatusButtonSx(STATUS.WAIVED, item.status === STATUS.WAIVED), ...(isSaving ? lockedSx : {}) }}
                           />
 
 
@@ -2067,6 +2278,7 @@ const ApplicationDocumentUpload = () => {
                                   : handleDeleteFile(item)
                               }
                               size="small"
+                              disabled={isRowLocked(item)}
                               aria-label={t(
                                 "label.docupload.accessibility.removeFile",
                                 "Remove file"
@@ -2091,6 +2303,7 @@ const ApplicationDocumentUpload = () => {
                             <IconButton
                               onClick={() => handleDeleteCustom(item)}
                               size="small"
+                              disabled={isRowLocked(item)}
                               aria-label={t(
                                 "label.docupload.accessibility.deleteCustomDocument",
                                 "Delete custom document"

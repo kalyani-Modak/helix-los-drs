@@ -12,6 +12,7 @@ export function unwrapApiResponse(res) {
       body.message || "Request failed"
     );
 
+    error.errorCode = body.errorCode;
     error.apiStatus = body.status;
     error.apiMessage = body.message;
     error.apiData = body.responseJson;
