@@ -1257,16 +1257,7 @@ const ApplicationDocumentUpload = () => {
       );
 
       if (response?.status >= 400) {
-        if ((await getApiErrorCode(response)) === "FILE_UNAVAILABLE") {
-          await handleFileUnavailable();
-          return;
-        }
-        toast.error(
-          await getPreviewErrorMessage(
-            response,
-            "No uploaded file available to preview"
-          )
-        );
+        await reportPreviewError(response);
         return;
       }
       if (!isMountedRef.current) {
@@ -1287,20 +1278,34 @@ const ApplicationDocumentUpload = () => {
         fileType: blob.type,
       });
     } catch (error) {
-      if ((await getApiErrorCode(error)) === "FILE_UNAVAILABLE") {
-        await handleFileUnavailable();
-        return;
-      }
-
-      toast.error(
-        await getPreviewErrorMessage(
-          error,
-          "No uploaded file available to preview"
-        )
-      );
-
+      await reportPreviewError(error);
       return;
     }
+  };
+
+  /**
+   * Preview failed: a lost file refreshes the checklist; any other known error code (for example the document
+   * service being unreachable) gets its own message instead of the server's generic text.
+   */
+  const reportPreviewError = async (errorOrResponse) => {
+    const code = await getApiErrorCode(errorOrResponse);
+
+    if (code === "FILE_UNAVAILABLE") {
+      await handleFileUnavailable();
+      return;
+    }
+
+    if (code && code !== "UNKNOWN") {
+      toast.error(getErrorCodeMessage(code));
+      return;
+    }
+
+    toast.error(
+      await getPreviewErrorMessage(
+        errorOrResponse,
+        "No uploaded file available to preview"
+      )
+    );
   };
 
   /** DMS no longer has the file the row points at: say so and refresh the checklist. */
