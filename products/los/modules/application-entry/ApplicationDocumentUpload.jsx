@@ -181,7 +181,7 @@ const isDocumentChanged = (item, originalItem) => {
   if (
     item.szreceivedyn !== originalItem.szreceivedyn ||
     item.szwaivedyn !== originalItem.szwaivedyn ||
-    item.szdifferyn !== originalItem.szdifferyn
+    item.szDeferredYn !== originalItem.szDeferredYn
   ) {
     return true;
   }
@@ -232,7 +232,7 @@ const ApplicationDocumentUpload = () => {
   const screenMenuId = location.state?.menuId;
 
   //as we dont have parent page we are using default values.
-  const incomingApplicationNo = location.state?.applicationNo;
+  const incomingApplicationNo = location.state?.applicationNo || "116";
   const orgId = location.state?.orgId || "001";
 
   /* ==========================================================
@@ -409,61 +409,7 @@ const ApplicationDocumentUpload = () => {
   const [validationErrors, setValidationErrors] = useState({});
   const fileInputs = useRef({});
 
-  const loadApplicationOptions = useCallback(async () => {
-    try {
-      const response = await HAxiosService.GET(
-        LosQdeAPI.listApplications(orgId)
-      ).then(unwrapApiResponse);
-
-      const rows = Array.isArray(response)
-        ? response
-        : response?.content || response?.applications || response?.data || [];
-
-      const options = rows
-        .map((row) => {
-          const value =
-            row.applicationNo ||
-            row.applicationNumber ||
-            row.szApplicationNo ||
-            row.szapplicationno;
-
-          return value
-            ? {
-              label: String(value),
-              value: String(value),
-            }
-            : null;
-        })
-        .filter(Boolean);
-
-      if (
-        incomingApplicationNo &&
-        !options.some((option) => option.value === String(incomingApplicationNo))
-      ) {
-        options.unshift({
-          label: String(incomingApplicationNo),
-          value: String(incomingApplicationNo),
-        });
-      }
-
-      setApplicationOptions(options);
-
-      if (incomingApplicationNo) {
-        setApplicationNo(String(incomingApplicationNo));
-      } else if (options.length > 0) {
-        setApplicationNo(options[0].value);
-      }
-    } catch (error) {
-      toast.error(
-        error?.message ||
-        t(
-          "label.docupload.msg.loadApplicationsFailed",
-          "Unable to load applications"
-        )
-      );
-      setApplicationOptions([]);
-    }
-  }, [incomingApplicationNo, orgId, t, toast]);
+ 
 
 
 
@@ -485,7 +431,7 @@ const ApplicationDocumentUpload = () => {
       return STATUS.WAIVED;
     }
 
-    if (item.szdifferyn === "Y") {
+    if (item.szDeferredYn === "Y") {
       return STATUS.DEFERRED;
     }
 
@@ -619,7 +565,7 @@ const ApplicationDocumentUpload = () => {
               const status =
                 (item.szWaivedYn || item.szwaivedyn) === "Y"
                   ? STATUS.WAIVED
-                  : (item.szDifferYn || item.szdifferyn) === "Y"
+                  : (item.szDeferredYn || item.szDeferredYn) === "Y"
                     ? STATUS.DEFERRED
                     : (item.szReceivedYn || item.szreceivedyn) === "Y"
                       ? STATUS.RECEIVED
@@ -763,7 +709,7 @@ const ApplicationDocumentUpload = () => {
         return;
       }
 
-      const payload = await HAxiosService.GET(LosDocumentAPI.LosDocumentAPI("ECF-DocumentUpload") + "/documents" + `?orgId=${encodeURIComponent(orgId)}&applicationNo=${encodeURIComponent(applicationNo)}&szApplicantId=${applicableFor}&szStageDue=${stage}&szApplicantCategory=${applicantCategory}`).then(unwrapApiResponse);
+      const payload = await HAxiosService.GET(LosDocumentAPI.LosDocumentAPI("ECF-DocumentUpload") + "/documents" + `?szOrgId=${encodeURIComponent(orgId)}&applicationNo=${encodeURIComponent(applicationNo)}&szApplicantId=${applicableFor}&szStageDue=${stage}&szApplicantCategory=${applicantCategory}`).then(unwrapApiResponse);
 
       applyFamilies(payload);
 
@@ -776,50 +722,48 @@ const ApplicationDocumentUpload = () => {
     }
   }, [applicationNo, applicantsLoaded, applicableFor, applicantCategory, stage, applyFamilies, orgId, toast]);
 
-  const loadApplicantOptions = useCallback(async () => {
+ const loadApplicantOptions = useCallback(async () => {
+  if (!applicationNo || !orgId) {
+    setApplicantOptions([]);
+    setApplicableFor("");
     setApplicantsLoaded(false);
+    return;
+  }
 
-    if (!applicationNo || !orgId) {
-      setApplicantOptions([]);
-      setApplicableFor("");
-      return;
-    }
+  setApplicantsLoaded(false);
 
-    try {
-      const applicants = await HAxiosService.GET(LosDocumentAPI.LosDocumentAPI("ECF-DocumentUpload") + `?applicationNo=${applicationNo}&orgId=${orgId}`).then(unwrapApiResponse);
+  try {
+    const applicants = await HAxiosService.GET(
+      LosDocumentAPI.LosDocumentAPI("ECF-DocumentUpload") +
+      `?applicationNo=${encodeURIComponent(applicationNo)}` +
+      `&orgId=${encodeURIComponent(orgId)}`
+    ).then(unwrapApiResponse);
 
-      const options = toDropdownOptions(applicants);
+    const options = toDropdownOptions(applicants);
 
-      setApplicantOptions(options);
+    setApplicantOptions(options);
 
-      // Set first applicant as default
-      setApplicableFor((current) => {
-        const selectedValue = options[0]?.value || "";
-        const selectedApplicant = options.find(
-          (option) => option.value === selectedValue
-        );
+    // Automatically select the first applicant
+    setApplicableFor(options[0]?.value || "");
 
-        return selectedValue;
-      });
-      setApplicantsLoaded(true);
-    } catch (error) {
-      toast.error(error?.message || t("label.docupload.msg.loadApplicantFailed", "Unable to load applicants")
-      );
+    setApplicantsLoaded(true);
 
-      setApplicantOptions([]);
-      setApplicableFor("");
-      setApplicantsLoaded(false);
-    }
-  },
-    [applicationNo, orgId, t, toast,]
-  );
+  } catch (error) {
+    console.error("Failed to load applicants", error);
+
+    toast.error(
+      error?.message ||
+      t("label.docupload.msg.loadApplicantFailed", "Unable to load applicants")
+    );
+
+    setApplicantOptions([]);
+    setApplicableFor("");
+    setApplicantsLoaded(false);
+  }
+}, [applicationNo, orgId, t, toast]);
   /* ==========================================================
      INITIAL LOAD
      ========================================================== */
-
-  useEffect(() => {
-    loadApplicationOptions();
-  }, [loadApplicationOptions]);
 
   useEffect(() => {
     loadApplicantOptions();
@@ -883,7 +827,7 @@ const ApplicationDocumentUpload = () => {
 
           szreceivedyn: "N",
           szwaivedyn: "N",
-          szdifferyn: "N",
+          szDeferredYn: "N",
         }
       );
 
@@ -944,7 +888,7 @@ const ApplicationDocumentUpload = () => {
           status: STATUS.RECEIVED,
           szreceivedyn: "Y",
           szwaivedyn: "N",
-          szdifferyn: "N",
+          szDeferredYn: "N",
         }
       );
 
@@ -981,7 +925,7 @@ const ApplicationDocumentUpload = () => {
       szwaivedyn: "N",
       szwaiverdec: null,
       szwaiverreason: null,
-      szdifferyn: "N",
+      szDeferredYn: "N",
       szmandatoryyn: "N",
       szoriginalreqyn: "N",
       szverfdecision: null,
@@ -1114,7 +1058,7 @@ const ApplicationDocumentUpload = () => {
       status: STATUS.PENDING,
       szreceivedyn: "N",
       szwaivedyn: "N",
-      szdifferyn: "N",
+      szDeferredYn: "N",
 
       documentid: null,
       dtrecieptdate: null,
@@ -1186,7 +1130,7 @@ const ApplicationDocumentUpload = () => {
 
       szreceivedyn: "Y",
       szwaivedyn: "N",
-      szdifferyn: "N",
+      szDeferredYn: "N",
 
       dtrecieptdate: new Date(),
     });
@@ -1448,7 +1392,7 @@ const ApplicationDocumentUpload = () => {
 
           szWaivedYn: item.status === STATUS.WAIVED ? "Y" : "N",
 
-          szDifferYn: item.status === STATUS.DEFERRED ? "Y" : "N",
+          szDeferredYn: item.status === STATUS.DEFERRED ? "Y" : "N",
 
           szWaiverDec: item.waiveComments || item.szwaiverdec || item.szWaiverDec || null,
 
@@ -1554,7 +1498,7 @@ const ApplicationDocumentUpload = () => {
               "ECF-DocumentUpload"
             ) +
             "/documents" +
-            `?orgId=${encodeURIComponent(orgId)}` +
+            `?szOrgId=${encodeURIComponent(orgId)}` +
             `&szApplicantId=${encodeURIComponent(applicableFor)}` +
             `&szStageDue=${encodeURIComponent(stage)}` +
             `&applicationNo=${encodeURIComponent(applicationNo)}` +
@@ -1602,7 +1546,7 @@ const ApplicationDocumentUpload = () => {
                   status: local.status,
                   szreceivedyn: local.szreceivedyn,
                   szwaivedyn: local.szwaivedyn,
-                  szdifferyn: local.szdifferyn,
+                  szDeferredYn: local.szDeferredYn,
                   waiveReason: local.waiveReason,
                   waiveComments: local.waiveComments,
                   deferralStage: local.deferralStage,
@@ -1698,7 +1642,7 @@ const ApplicationDocumentUpload = () => {
             status: STATUS.PENDING,
             szreceivedyn: "N",
             szwaivedyn: "N",
-            szdifferyn: "N",
+            szDeferredYn: "N",
             dtrecieptdate: null,
 
           })),
@@ -1755,42 +1699,7 @@ const ApplicationDocumentUpload = () => {
         <HBox sx={{ width: "100%", padding: "0.5rem 1rem 0 1rem" }}>
 
           <HPaper>
-            <HBox
-              style={{
-                display: "flex",
-                flexDirection: "row",
-                alignItems: "center",
-                width: "100%",
-                marginBottom: "12px",
-                gap: "5px"
-              }}
-            >
-              <HLabel
-                value={t(
-                  "label.docupload.field.applicationNo",
-                  "Application No"
-                )}
-                translate={false}
-                align="left"
-                colon={false}
-                sx={{ fontWeight: "bold" }}
-              />
-
-              <HDropdown
-                name="applicationNo"
-                options={applicationOptions}
-                value={applicationNo}
-                onChange={(e) => {
-                  const nextApplicationNo = e.target.value;
-                  setFamilies([]);
-                  setApplicantOptions([]);
-                  setApplicableFor("");
-                  setApplicationNo(nextApplicationNo);
-                }}
-                width="51%"
-              />
-            </HBox>
-
+          
             {/* ==================================================
               TOP FILTER BAR
 
@@ -2479,7 +2388,7 @@ const ApplicationDocumentUpload = () => {
 
                       szwaivedyn: "Y",
 
-                      szdifferyn: "N",
+                      szDeferredYn: "N",
 
                       szwaiverreason: waiveDialog.reason,
                     }
@@ -2614,7 +2523,7 @@ const ApplicationDocumentUpload = () => {
 
                       szwaivedyn: "N",
 
-                      szdifferyn: "Y",
+                      szDeferredYn: "Y",
                     }
                   );
 
