@@ -34,6 +34,65 @@ const applicantQuery = (item, fallback) => {
   return id ? `&applicantId=${encodeURIComponent(id)}` : "";
 };
 
+const getDocumentScopes = (items) => {
+  const familyItems = Array.isArray(items) ? items : [];
+  return familyItems.reduce(
+    (scopes, item) => {
+      const accountId = String(
+        item?.szaccountid ?? item?.szAccountId ?? ""
+      ).trim();
+      const applicantId = String(
+        item?.szapplicantid ?? item?.szApplicantId ?? ""
+      ).trim();
+
+      if (!accountId && !applicantId) {
+        scopes.application = true;
+      } else if (accountId && !applicantId) {
+        scopes.account = true;
+      }
+
+      return scopes;
+    },
+    { application: false, account: false }
+  );
+};
+
+const getDocumentScopeLabel = (items) => {
+  const scopes = getDocumentScopes(items);
+  const labels = [];
+  if (scopes.application) labels.push("Application level");
+  if (scopes.account) labels.push("Account level");
+
+  return labels.length ? ` (${labels.join(" / ")})` : "";
+};
+
+const getDocumentScopeOrder = (items) => {
+  const scopes = getDocumentScopes(items);
+  if (scopes.application) return 0;
+  if (scopes.account) return 1;
+  return 2;
+};
+
+const documentChecklistUrl = ({
+  orgId,
+  accountId,
+  applicationNo,
+  applicantId,
+  stageDue,
+  applicantCategory,
+}) => {
+  const params = new URLSearchParams({
+    szOrgId: String(orgId ?? "").trim(),
+    szAccountId: String(accountId ?? "").trim(),
+    applicationNo: String(applicationNo ?? "").trim(),
+    szApplicantId: String(applicantId ?? "").trim(),
+    szStageDue: String(stageDue ?? "").trim(),
+    szApplicantCategory: String(applicantCategory ?? "").trim(),
+  });
+
+  return `${LosDocumentAPI.LosDocumentAPI("ECF-DocumentUpload")}/documents?${params.toString()}`;
+};
+
 const documentButtonStyle = {
   height: "30px",
   minHeight: "30px",
@@ -64,6 +123,26 @@ const getLoggedInUsername = () =>
 
 const flattenItems = (families = []) =>
   families.flatMap((family) => family.items || []);
+
+
+const getAlternativeDocumentRule = (family) => {
+  const alternativeDocuments = (family.items || [])
+    .filter(
+      (item) =>
+        (item.szmandatoryyn || item.szMandatoryYn || "")
+          .trim()
+          .toUpperCase() === "S"
+    )
+    .map((item) => item.szDocCode || item.szdoccode)
+    .filter(Boolean);
+
+  // Show the rule only when there are multiple alternatives.
+  if (alternativeDocuments.length < 2) {
+    return "";
+  }
+
+  return ` (Any 1 of ${alternativeDocuments.join(" or ")})`;
+};
 
 const formatFileSize = (bytes) => {
   if (!bytes) return "";
@@ -232,7 +311,7 @@ const ApplicationDocumentUpload = () => {
   const screenMenuId = location.state?.menuId;
 
   //as we dont have parent page we are using default values.
-  const incomingApplicationNo = location.state?.applicationNo || "116";
+  const incomingApplicationNo = location.state?.applicationNo || "115";
   const orgId = location.state?.orgId || "001";
 
   /* ==========================================================
@@ -342,7 +421,8 @@ const ApplicationDocumentUpload = () => {
      ========================================================== */
 
   const [applicationNo, setApplicationNo] = useState(incomingApplicationNo || "");
-  const [applicationOptions, setApplicationOptions] = useState([]);
+
+  const[szAccountId, setSzAccountId] = useState(location.state?.szAccountId || "ACC005");
 
   const [applicantOptions, setApplicantOptions] = useState([]);
 
@@ -422,6 +502,22 @@ const ApplicationDocumentUpload = () => {
     [families]
   );
 
+  const orderedFamilies = useMemo(
+    () =>
+      families
+        .map((family, index) => ({
+          family,
+          index,
+          scopeOrder: getDocumentScopeOrder(family.items),
+        }))
+        .sort(
+          (left, right) =>
+            left.scopeOrder - right.scopeOrder || left.index - right.index
+        )
+        .map(({ family }) => family),
+    [families]
+  );
+
   const getDocumentStatus = (item) => {
     if (item.status) {
       return item.status;
@@ -431,7 +527,7 @@ const ApplicationDocumentUpload = () => {
       return STATUS.WAIVED;
     }
 
-    if (item.szDeferredYn === "Y") {
+    if (item.szdeferredyn === "Y") {
       return STATUS.DEFERRED;
     }
 
@@ -565,7 +661,7 @@ const ApplicationDocumentUpload = () => {
               const status =
                 (item.szWaivedYn || item.szwaivedyn) === "Y"
                   ? STATUS.WAIVED
-                  : (item.szDeferredYn || item.szDeferredYn) === "Y"
+                  : (item.szDeferredYn || item.szdeferredyn) === "Y"
                     ? STATUS.DEFERRED
                     : (item.szReceivedYn || item.szreceivedyn) === "Y"
                       ? STATUS.RECEIVED
@@ -709,7 +805,16 @@ const ApplicationDocumentUpload = () => {
         return;
       }
 
-      const payload = await HAxiosService.GET(LosDocumentAPI.LosDocumentAPI("ECF-DocumentUpload") + "/documents" + `?szOrgId=${encodeURIComponent(orgId)}&applicationNo=${encodeURIComponent(applicationNo)}&szApplicantId=${applicableFor}&szStageDue=${stage}&szApplicantCategory=${applicantCategory}`).then(unwrapApiResponse);
+      const payload = await HAxiosService.GET(
+        documentChecklistUrl({
+          orgId,
+          accountId: szAccountId,
+          applicationNo,
+          applicantId: applicableFor,
+          stageDue: stage,
+          applicantCategory,
+        })
+      ).then(unwrapApiResponse);
 
       applyFamilies(payload);
 
@@ -720,7 +825,7 @@ const ApplicationDocumentUpload = () => {
       setFamilies([]);
       toast.error("Unable to load the document checklist");
     }
-  }, [applicationNo, applicantsLoaded, applicableFor, applicantCategory, stage, applyFamilies, orgId, toast]);
+  }, [applicationNo, szAccountId, applicantsLoaded, applicableFor, applicantCategory, stage, applyFamilies, orgId, toast]);
 
  const loadApplicantOptions = useCallback(async () => {
   if (!applicationNo || !orgId) {
@@ -1292,24 +1397,67 @@ const ApplicationDocumentUpload = () => {
     return true;
   }, [applicableFor, stage, applicantCategory, t, toast]);
 
+
   const validateMandatoryDocuments = useCallback(() => {
-    const allItems = flattenItems(families);
+    let hasInvalidMandatory = false;
+    let hasInvalidSet = false;
 
-    const mandatoryItems = allItems.filter(
-      (item) =>
-        (item.szmandatoryyn || item.szMandatoryYn) === "Y"
-    );
+    // Check each document family independently.
+    families.forEach((family) => {
+      const familyItems = family.items || [];
 
-    const invalidItems = mandatoryItems.filter(
-      (item) =>
-        ![
-          STATUS.RECEIVED,
-          STATUS.DEFERRED,
-          STATUS.WAIVED,
-        ].includes(getDocumentStatus(item))
-    );
+      // Case 1: Individual mandatory documents (Y)
+      const mandatoryItems = familyItems.filter(
+        (item) =>
+          (item.szmandatoryyn || item.szMandatoryYn || "").toUpperCase() === "Y"
+      );
 
-    if (invalidItems.length > 0) {
+      const invalidMandatoryItems = mandatoryItems.filter(
+        (item) =>
+          ![
+            STATUS.RECEIVED,
+            STATUS.DEFERRED,
+            STATUS.WAIVED,
+          ].includes(getDocumentStatus(item))
+      );
+
+      if (invalidMandatoryItems.length > 0) {
+        hasInvalidMandatory = true;
+      }
+
+      // Case 2: Alternative mandatory documents (S)
+      const setItems = familyItems.filter(
+        (item) =>
+          (item.szmandatoryyn || item.szMandatoryYn || "").toUpperCase() === "S"
+      );
+
+      // When multiple S documents exist, at least one must be received.
+      if (setItems.length >= 2) {
+        const hasReceivedDocument = setItems.some(
+          (item) => getDocumentStatus(item) === STATUS.RECEIVED
+        );
+
+        if (!hasReceivedDocument) {
+          hasInvalidSet = true;
+        }
+      }
+
+      // A single S document has no alternative, so treat it as mandatory.
+      if (setItems.length === 1) {
+        const status = getDocumentStatus(setItems[0]);
+
+        if (
+          ![
+            STATUS.RECEIVED,
+            STATUS.DEFERRED,
+            STATUS.WAIVED,
+          ].includes(status)
+        ) {
+          hasInvalidMandatory = true;
+        }
+      }
+    });
+    if (hasInvalidMandatory) {
       toast.error(
         t(
           "label.docupload.validation.mandatoryDocuments",
@@ -1318,9 +1466,19 @@ const ApplicationDocumentUpload = () => {
       );
       return false;
     }
+    if (hasInvalidSet) {
+      toast.error(
+        t(
+          "label.docupload.validation.mandatoryDocumentSet",
+          "Upload at least any one document from the set"
+        )
+      );
+      return false;
+    }
 
     return true;
   }, [families, t, toast]);
+
   /* ==========================================================
      SAVE
      ========================================================== */
@@ -1382,6 +1540,8 @@ const ApplicationDocumentUpload = () => {
 
           szApplicantId: item.szapplicantid || item.szApplicantId || applicableFor || null,
 
+          szApplicantCategory: applicantCategory,
+          
           szAssetSrNo: item.szassetsrno ?? item.szAssetSrNo ?? null,
 
           szStageDue: item.szstagedue || item.szStageDue || stage || null,
@@ -1405,6 +1565,12 @@ const ApplicationDocumentUpload = () => {
           szVerfDecision: item.szverfdecision || item.szVerfDecision || null,
 
           szVerifiedBy: item.szverifiedby || item.szVerifiedBy || null,
+
+          custom: Boolean(
+            item.custom ||
+            item.szuserspecifiedyn === "Y" ||
+            item.szUserSpecifiedYn === "Y"
+          ),
 
           szUserSpecifiedYn: item.custom || item._isNew ? "Y" : item.szuserspecifiedyn || item.szUserSpecifiedYn || "N",
 
@@ -1494,15 +1660,14 @@ const ApplicationDocumentUpload = () => {
          */
         const refreshed = unwrapApiResponse(
           await HAxiosService.GET(
-            LosDocumentAPI.LosDocumentAPI(
-              "ECF-DocumentUpload"
-            ) +
-            "/documents" +
-            `?szOrgId=${encodeURIComponent(orgId)}` +
-            `&szApplicantId=${encodeURIComponent(applicableFor)}` +
-            `&szStageDue=${encodeURIComponent(stage)}` +
-            `&applicationNo=${encodeURIComponent(applicationNo)}` +
-            `&szApplicantCategory=${encodeURIComponent(applicantCategory)}`
+            documentChecklistUrl({
+              orgId,
+              accountId: szAccountId,
+              applicationNo,
+              applicantId: applicableFor,
+              stageDue: stage,
+              applicantCategory,
+            })
           )
         );
 
@@ -1615,7 +1780,7 @@ const ApplicationDocumentUpload = () => {
         }
       }
     },
-    [applicationNo, incomingApplicationNo, stage, applicableFor, applicantCategory, families, validateHeaderFields, orgId, applyFamilies, t, toast, validateMandatoryDocuments, getErrorCodeMessage,]
+    [applicationNo, incomingApplicationNo, szAccountId, stage, applicableFor, applicantCategory, families, validateHeaderFields, orgId, applyFamilies, t, toast, validateMandatoryDocuments, getErrorCodeMessage,]
   );
   /* ==========================================================
      RESET
@@ -1623,49 +1788,91 @@ const ApplicationDocumentUpload = () => {
 
   const handleReset = useCallback(
     async () => {
-      setFamilies((prev) =>
-        prev.map((family) => ({
-          ...family,
+      if (isSavingRef.current) {
+        return { success: false, busy: true };
+      }
 
-          items: (family.items || []).map((item) => ({
-            ...item,
+      if (!validateHeaderFields()) {
+        return { success: false };
+      }
 
-            // Remove uploaded file
-            selectedFile: undefined,
-            fileName: undefined,
-            fileSize: undefined,
-            fileType: undefined,
-            fileUrl: undefined,
-            hasFile: false,
+      const appNo = String(applicationNo || incomingApplicationNo || "").trim();
+      if (!appNo) {
+        toast.error(t("label.docupload.validation.applicationNo", "Application number is required"));
+        return { success: false };
+      }
 
-            // Reset upload status
-            status: STATUS.PENDING,
-            szreceivedyn: "N",
-            szwaivedyn: "N",
-            szDeferredYn: "N",
-            dtrecieptdate: null,
+      isSavingRef.current = true;
+      setIsSaving(true);
+      let regenerationCompleted = false;
 
-          })),
-        }))
-      );
+      try {
+        unwrapApiResponse(
+          await HAxiosService.POST(
+            LosDocumentAPI.regenerate(),
+            { applicationNo: appNo }
+          )
+        );
+        regenerationCompleted = true;
 
-      // Clear any open preview
-      setPreview(null);
+        const refreshed = unwrapApiResponse(
+          await HAxiosService.GET(
+            documentChecklistUrl({
+              orgId,
+              accountId: szAccountId,
+              applicationNo: appNo,
+              applicantId: applicableFor,
+              stageDue: stage,
+              applicantCategory,
+            })
+          )
+        );
+        applyFamilies(refreshed);
 
-      // Clear custom-document input
-      setAddingFor("");
-      setNewDocName("");
+        setPreview(null);
+        setAddingFor("");
+        setNewDocName("");
 
-      toast.success(t(
-        "label.docupload.msg.resetSuccess",
-        "Documents re-generated successfully"
-      ));
+        toast.success(t(
+          "label.docupload.msg.resetSuccess",
+          "Documents re-generated successfully"
+        ));
 
-      return {
-        success: true,
-      };
+        return { success: true };
+      } catch (error) {
+        console.error("Failed to regenerate documents", error);
+        toast.error(
+          regenerationCompleted
+            ? t(
+              "label.docupload.msg.regenerateRefreshFailed",
+              "Documents were re-generated, but the checklist could not be refreshed"
+            )
+            : error?.message || t(
+              "label.docupload.msg.regenerateFailed",
+              "Unable to re-generate documents"
+            )
+        );
+        return { success: false };
+      } finally {
+        isSavingRef.current = false;
+        if (isMountedRef.current) {
+          setIsSaving(false);
+        }
+      }
     },
-    [toast, t]
+    [
+      applicationNo,
+      incomingApplicationNo,
+      validateHeaderFields,
+      orgId,
+      szAccountId,
+      applicableFor,
+      stage,
+      applicantCategory,
+      applyFamilies,
+      toast,
+      t,
+    ]
   );
   /* ==========================================================
      RENDER
@@ -1877,7 +2084,7 @@ const ApplicationDocumentUpload = () => {
               DOCUMENT FAMILIES
               ================================================== */}
 
-            {families.map((family) => (
+            {orderedFamilies.map((family) => (
               <HBox
                 key={family.docFamilyCode}
                 style={{
@@ -1908,17 +2115,31 @@ const ApplicationDocumentUpload = () => {
                 >
 
                   {/* Section title */}
-
+                <HBox
+                  style={{
+                    display: "flex",
+                    flexDirection: "row",
+                    alignItems: "baseline",
+                    padding: "8px 12px",
+                    backgroundColor: "transparent",
+                  }}
+                >
+                    <HLabel
+                      value={`${family.docFamilyName}${getDocumentScopeLabel(family.items)}`}
+                      translate={false}
+                      align="left"
+                      colon={false}
+                      sx={{
+                        fontWeight: "bold", fontSize: "14px"
+                      }}
+                  />
                   <HLabel
-                    value={family.docFamilyName}
+                    value={`${getAlternativeDocumentRule(family)}`}
                     translate={false}
                     align="left"
                     colon={false}
-                    sx={{
-                      fontWeight: "bold", fontSize: "14px"
-                    }}
                   />
-
+                 </HBox>
                   {/* Add Document */}
 
                   <HButton
@@ -2040,6 +2261,7 @@ const ApplicationDocumentUpload = () => {
                                 align="left"
                                 colon={false}
                               />
+
                               {item.fileName ? (
                                 <HLabel
                                   value={`${item.fileName} ${item.fileSize ? `(${formatFileSize(item.fileSize)})` : ""}`}

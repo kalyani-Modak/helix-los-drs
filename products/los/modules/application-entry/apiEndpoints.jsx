@@ -1,7 +1,19 @@
-import { getLosQdeApiPath } from "@shared/config/apiConstants";
+import {
+  getLosDocumentEngineApiPath,
+  getLosQdeApiPath,
+} from "@shared/config/apiConstants";
 
 const base = () => {
   const u = getLosQdeApiPath() || "";
+  return u.endsWith("/") ? u : `${u}/`;
+};
+
+const documentEngineBase = () => {
+  const configuredBase = getLosDocumentEngineApiPath();
+  if (!configuredBase || !String(configuredBase).trim()) {
+    throw new Error("LOS document engine API path is not configured");
+  }
+  const u = String(configuredBase).trim();
   return u.endsWith("/") ? u : `${u}/`;
 };
 
@@ -34,6 +46,7 @@ export const LosQdeAPI = {
 export const LosDocumentAPI = {
   LosDocumentAPI: (screenMenuId = "ECF-DocumentUpload") =>
     `${base()}los_DocUpload/${screenMenuId}`,
+  regenerate: () => `${documentEngineBase()}api/document-engine/regenerate`,
   stages: () => `${base()}api/los/v1/documents/masters/stages`,
   customerTypes: (borrowerType) =>
     `${base()}api/los/v1/documents/masters/customer-types${

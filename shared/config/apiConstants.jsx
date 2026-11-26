@@ -77,6 +77,14 @@ export function getLosQdeApiPath() {
   return (AppConfig.get('BASE_LOS_QDE_API_PATH') ||import.meta.env.VITE_BASE_LOS_QDE_API_PATH );
 }
 
+/** LOS document engine — application-entry-set service (generate / regenerate). */
+export function getLosDocumentEngineApiPath() {
+  return (
+    AppConfig.get('BASE_LOS_DOCUMENT_ENGINE_API_PATH') ||
+    import.meta.env.VITE_BASE_LOS_DOCUMENT_ENGINE_API_PATH
+  );
+}
+
 export function getHelixBatchMastersApiPath() {
   return (
     AppConfig.get('BASE_HELIX_BATCH_MASTERS_API_PATH') ||
